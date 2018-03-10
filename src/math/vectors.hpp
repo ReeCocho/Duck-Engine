@@ -597,6 +597,7 @@ namespace dk
 		union
 		{
 			struct { T x, y; };
+			struct { T u, v; };
 			T data[2];
 		};
 	};
@@ -1048,9 +1049,675 @@ namespace dk
 		union
 		{
 			struct { T x, y, z; };
+			struct { T r, g, b; };
+			struct { T u, v, w; };
 			T data[3];
 		};
 	};
+
+
+
+	/**
+	 * @class vec_t<T, 4>
+	 * @brief A 4 dimensional vector.
+	 * @tparam Datatype used by the vector.
+	 */
+	template<typename T>
+	class alignas(16) vec_t<T, 4>
+	{
+	public:
+
+		/**
+		 * @brief Constructor.
+		 */
+		vec_t() : x(0), y(0), z(0), w(0) {}
+
+		/**
+		 * @brief Constructor.
+		 * @param Value of every element.
+		 */
+		vec_t(T val) : x(val), y(val), z(val), w(val) {}
+
+		/**
+		 * @brief Constructor.
+		 * @param X value.
+		 * @param Y value.
+		 * @param Z value.
+		 * @param W value.
+		 */
+		vec_t(T x_a, T y_a, T z_a, T w_a) : x(x_a), y(y_a), z(z_a), w(w_a) {}
+
+		/**
+		 * @brief Copy constructor.
+		 * @param Other 2D vector.
+		 */
+		template<typename T2>
+		vec_t(const vec_t<T2, 2>& other) : 
+			x(static_cast<T>(other.x)), 
+			y(static_cast<T>(other.y)), 
+			z(0),
+			w(0) {}
+
+		/**
+		 * @brief Copy constructor.
+		 * @param Other 3D vector.
+		 */
+		template<typename T2>
+		vec_t(const vec_t<T2, 3>& other) : 
+			x(static_cast<T>(other.x)), 
+			y(static_cast<T>(other.y)), 
+			z(static_cast<T>(other.z)),
+			w(0) {}
+
+		/**
+		 * @brief Copy constructor.
+		 * @param Other 4D vector.
+		 */
+		template<typename T2>
+		vec_t(const vec_t<T2, 4>& other) : 
+			x(static_cast<T>(other.x)), 
+			y(static_cast<T>(other.y)), 
+			z(static_cast<T>(other.z)),
+			w(static_cast<T>(other.w)) {}
+
+		/**
+		 * @brief Destructor.
+		 */
+		~vec_t() = default;
+
+
+
+		/**
+		 * @brief Equivelence operator.
+		 * @param Other vector.
+		 * @return If this vector and the other vector are equal.
+		 */
+		DUCK_FORCE_INLINE bool operator==(const vec_t<T, 4>& other) const
+		{
+			return x == other.x && y == other.y && z == other.z && w == other.w;
+		}
+
+		/**
+		 * @brief Equivelence operator.
+		 * @param Other vector.
+		 * @return If this vector and the other vector are equal.
+		 */
+		DUCK_FORCE_INLINE bool operator==(const vec_t<T, 3>& other) const
+		{
+			return x == other.x && y == other.y && z == other.z && w == 0;
+		}
+
+		/**
+		 * @brief Equivelence operator.
+		 * @param Other vector.
+		 * @return If this vector and the other vector are equal.
+		 */
+		DUCK_FORCE_INLINE bool operator==(const vec_t<T, 2>& other) const
+		{
+			return x == other.x && y == other.y && z == 0 && w == 0;
+		}
+
+		/**
+		 * @brief Unequivelence operator.
+		 * @param Other vector.
+		 * @return If this vector and the other vector are not equal.
+		 */
+		DUCK_FORCE_INLINE bool operator!=(const vec_t<T, 4>& other) const
+		{
+			return x != other.x || y != other.y || z != other.z || w != other.w;
+		}
+
+		/**
+		 * @brief Unequivelence operator.
+		 * @param Other vector.
+		 * @return If this vector and the other vector are not equal.
+		 */
+		DUCK_FORCE_INLINE bool operator!=(const vec_t<T, 3>& other) const
+		{
+			return x != other.x || y != other.y || z != other.z || w != 0;
+		}
+
+		/**
+		 * @brief Unequivelence operator.
+		 * @param Other vector.
+		 * @return If this vector and the other vector are not equal.
+		 */
+		DUCK_FORCE_INLINE bool operator!=(const vec_t<T, 2>& other) const
+		{
+			return x != other.x || y != other.y || z != 0 || w != 0;
+		}
+
+
+
+		/**
+		 * @brief Addition operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with summed values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator+(const vec_t<T2, 4>& other) const
+		{
+			return
+			{
+				x + static_cast<T>(other.x),
+				y + static_cast<T>(other.y),
+				z + static_cast<T>(other.z),
+				w + static_cast<T>(other.w)
+			};
+		}
+
+		/**
+		 * @brief Addition operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with summed values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator+(const vec_t<T2, 3>& other) const
+		{
+			return
+			{
+				x + static_cast<T>(other.x),
+				y + static_cast<T>(other.y),
+				z + static_cast<T>(other.z),
+				w
+			};
+		}
+
+		/**
+		 * @brief Addition operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with summed values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator+(const vec_t<T2, 2>& other) const
+		{
+			return
+			{
+				x + static_cast<T>(other.x),
+				y + static_cast<T>(other.y),
+				z,
+				w
+			};
+		}
+
+		/**
+		 * @brief Subtration operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with difference values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator-(const vec_t<T2, 4>& other) const
+		{
+			return
+			{
+				x - static_cast<T>(other.x),
+				y - static_cast<T>(other.y),
+				z - static_cast<T>(other.z),
+				w - static_cast<T>(other.w)
+			};
+		}
+
+		/**
+		 * @brief Subtration operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with difference values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator-(const vec_t<T2, 3>& other) const
+		{
+			return
+			{
+				x - static_cast<T>(other.x),
+				y - static_cast<T>(other.y),
+				z - static_cast<T>(other.z),
+				w
+			};
+		}
+
+		/**
+		 * @brief Subtration operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with difference values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator-(const vec_t<T2, 2>& other) const
+		{
+			return
+			{
+				x - static_cast<T>(other.x),
+				y - static_cast<T>(other.y),
+				z,
+				w
+			};
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with product values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator*(const vec_t<T2, 4>& other) const
+		{
+			return
+			{
+				x * static_cast<T>(other.x),
+				y * static_cast<T>(other.y),
+				z * static_cast<T>(other.z),
+				w * static_cast<T>(other.w)
+			};
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with product values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator*(const vec_t<T2, 3>& other) const
+		{
+			return
+			{
+				x * static_cast<T>(other.x),
+				y * static_cast<T>(other.y),
+				z * static_cast<T>(other.z),
+				w
+			};
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with product values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator*(const vec_t<T2, 2>& other) const
+		{
+			return
+			{
+				x * static_cast<T>(other.x),
+				y * static_cast<T>(other.y),
+				z,
+				w
+			};
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with quotient values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator/(const vec_t<T2, 4>& other) const
+		{
+			return
+			{
+				x / static_cast<T>(other.x),
+				y / static_cast<T>(other.y),
+				z / static_cast<T>(other.z),
+				w / static_cast<T>(other.w)
+			};
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with quotient values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator/(const vec_t<T2, 3>& other) const
+		{
+			return
+			{
+				x / static_cast<T>(other.x),
+				y / static_cast<T>(other.y),
+				z / static_cast<T>(other.z),
+				w
+			};
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return Vector with quotient values.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4> operator/(const vec_t<T2, 2>& other) const
+		{
+			return
+			{
+				x / static_cast<T>(other.x),
+				y / static_cast<T>(other.y),
+				z,
+				w
+			};
+		}
+
+
+
+		/**
+		 * @brief Addition operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator+=(const vec_t<T2, 4>& other)
+		{
+			x += static_cast<T>(other.x);
+			y += static_cast<T>(other.y);
+			z += static_cast<T>(other.z);
+			w += static_cast<T>(other.w);
+			return *this;
+		}
+
+		/**
+		 * @brief Addition operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator+=(const vec_t<T2, 3>& other)
+		{
+			x += static_cast<T>(other.x);
+			y += static_cast<T>(other.y);
+			z += static_cast<T>(other.z);
+			return *this;
+		}
+
+		/**
+		 * @brief Addition operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator+=(const vec_t<T2, 2>& other)
+		{
+			x += static_cast<T>(other.x);
+			y += static_cast<T>(other.y);
+			return *this;
+		}
+
+		/**
+		 * @brief Subtraction operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator-=(const vec_t<T2, 4>& other)
+		{
+			x -= static_cast<T>(other.x);
+			y -= static_cast<T>(other.y);
+			z -= static_cast<T>(other.z);
+			w -= static_cast<T>(other.w);
+			return *this;
+		}
+
+		/**
+		 * @brief Subtraction operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator-=(const vec_t<T2, 3>& other)
+		{
+			x -= static_cast<T>(other.x);
+			y -= static_cast<T>(other.y);
+			z -= static_cast<T>(other.z);
+			return *this;
+		}
+
+		/**
+		 * @brief Subtraction operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator-=(const vec_t<T2, 2>& other)
+		{
+			x -= static_cast<T>(other.x);
+			y -= static_cast<T>(other.y);
+			return *this;
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator*=(const vec_t<T2, 4>& other)
+		{
+			x *= static_cast<T>(other.x);
+			y *= static_cast<T>(other.y);
+			z *= static_cast<T>(other.z);
+			w *= static_cast<T>(other.w);
+			return *this;
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator*=(const vec_t<T2, 3>& other)
+		{
+			x *= static_cast<T>(other.x);
+			y *= static_cast<T>(other.y);
+			z *= static_cast<T>(other.z);
+			return *this;
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator*=(const vec_t<T2, 2>& other)
+		{
+			x *= static_cast<T>(other.x);
+			y *= static_cast<T>(other.y);
+			return *this;
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator/=(const vec_t<T2, 4>& other)
+		{
+			x /= static_cast<T>(other.x);
+			y /= static_cast<T>(other.y);
+			z /= static_cast<T>(other.z);
+			w /= static_cast<T>(other.w);
+			return *this;
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator/=(const vec_t<T2, 3>& other)
+		{
+			x /= static_cast<T>(other.x);
+			y /= static_cast<T>(other.y);
+			z /= static_cast<T>(other.z);
+			return *this;
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @tparam Type of other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator/=(const vec_t<T2, 2>& other)
+		{
+			x /= static_cast<T>(other.x);
+			y /= static_cast<T>(other.y);
+			return *this;
+		}
+
+		/**
+		 * @brief Assignment operator.
+		 * @tparam Type of the other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator=(const vec_t<T2, 4>& other)
+		{
+			x = static_cast<T>(other.x);
+			y = static_cast<T>(other.y);
+			z = static_cast<T>(other.z);
+			w = static_cast<T>(other.w);
+			return *this;
+		}
+
+		/**
+		 * @brief Assignment operator.
+		 * @tparam Type of the other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator=(const vec_t<T2, 3>& other)
+		{
+			x = static_cast<T>(other.x);
+			y = static_cast<T>(other.y);
+			z = static_cast<T>(other.z);
+			w = 0;
+			return *this;
+		}
+
+		/**
+		 * @brief Assignment operator.
+		 * @tparam Type of the other vector.
+		 * @param Other vector.
+		 * @return This vector.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE vec_t<T, 4>& operator=(const vec_t<T2, 2>& other)
+		{
+			x = static_cast<T>(other.x);
+			y = static_cast<T>(other.y);
+			z = 0;
+			w = 0;
+			return *this;
+		}
+
+		/**
+		 * @brief Get the square magnitude of the vector.
+		 * @return Square magnitude of the vector.
+		 */
+		DUCK_FORCE_INLINE RealNumber square_magnitude() const
+		{
+			return static_cast<RealNumber>((x*x) + (y*y) + (z*z) + (w*w));
+		}
+
+		/**
+		 * @brief Get the magnitude of the vector.
+		 * @return Magnitude of the vector.
+		 */
+		DUCK_FORCE_INLINE RealNumber magnitude() const
+		{
+			return static_cast<RealNumber>(std::sqrt(square_magnitude()));
+		}
+
+		/**
+		 * @brief Get the dot product between this vector and another.
+		 * @param Other vector.
+		 * @return Result of the dot product.
+		 */
+		template<typename T2>
+		DUCK_FORCE_INLINE RealNumber dot(const vec_t<T2, 4>& other) const
+		{
+			return static_cast<RealNumber>((x*other.x) + (y*other.y) + (z*other.z) + (w*other.w));
+		}
+
+		/**
+		 * @brief Normalize the vector.
+		 * @return This vector.
+		 */
+		DUCK_FORCE_INLINE vec_t<T, 4>& normalize()
+		{
+			RealNumber mag = magnitude();
+			if (mag == 0) return;
+			x = static_cast<T>(static_cast<RealNumber>(x) / mag);
+			y = static_cast<T>(static_cast<RealNumber>(y) / mag);
+			z = static_cast<T>(static_cast<RealNumber>(z) / mag);
+			w = static_cast<T>(static_cast<RealNumber>(w) / mag);
+			return *this;
+		}
+
+		/**
+		 * @brief Create a normalized version of this vector.
+		 * @return A vector with the same direction as this, but with a magnitude of 1.
+		 * @note The magnitude might be 0 if the original vectors magnitude was 0.
+		 */
+		DUCK_FORCE_INLINE vec_t<T, 4> normalized() const
+		{
+			RealNumber mag = magnitude();
+			if (mag == 0) return vec_t<T, N>(0);
+			vec_t<T, N> new_vec = *this;
+			new_vec.x /= static_cast<T>(mag);
+			new_vec.y /= static_cast<T>(mag);
+			new_vec.z /= static_cast<T>(mag);
+			new_vec.w /= static_cast<T>(mag);
+			return new_vec;
+		}
+
+		/** Vector data. */
+		union
+		{
+			struct { T x, y, z, w; };
+			struct { T r, g, b, a; };
+			T data[4];
+		};
+	};
+
+
+
+	/** Standard 4D vector. */
+	using vec4 = vec_t<RealNumber, 4>;
+
+	/** Floating point 4D vector. */
+	using vec4f = vec_t<float, 4>;
+
+	/** Double precision floating point 4D vector. */
+	using vec4d = vec_t<double, 4>;
+
+	/** Signed integer 4D vector. */
+	using vec4i = vec_t<int32_t, 4>;
 
 
 
