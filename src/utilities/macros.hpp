@@ -9,5 +9,5 @@
 /** Stringify something. */
 #define DUCK_STRINGIFY(x) #x
 
-/** Force a function to inline. */
-#define DUCK_FORCE_INLINE __forceinline
+/** Recommend a function to inline. (Or not, if you want that) */
+#define DUCK_INLINE inline

@@ -1,22 +1,17 @@
-# Sources
-set(DUCK_MATH_SRCS
-	matrices.cpp
-	quaternions.cpp
-	vectors.cpp
-)
-
 # Headers
 set(DUCK_MATH_HDRS
-	common.hpp
-	config.hpp
-	matrices.hpp
-	quaternions.hpp
-	vectors.hpp
+	${CMAKE_SOURCE_DIR}/src/math/common.hpp
+	${CMAKE_SOURCE_DIR}/src/math/config.hpp
+	${CMAKE_SOURCE_DIR}/src/math/matrices.hpp
+	${CMAKE_SOURCE_DIR}/src/math/quaternions.hpp
+	${CMAKE_SOURCE_DIR}/src/math/vectors.hpp
 )
 
 # Math lib
-add_library(
-	Duck-Math
-	${DUCK_MATH_SRCS}
-	${DUCK_MATH_HDRS}
-)
+add_library(Duck-Math INTERFACE)
+
+if(MSVC)
+    add_custom_target(Duck-Math.headers SOURCES ${DUCK_MATH_HDRS})
+endif()
+
+target_sources(Duck-Math INTERFACE ${DUCK_MATH_HDRS})

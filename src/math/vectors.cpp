@@ -1,3 +1,10 @@
+/**
+ * @file vectors.cpp
+ * @brief Duck math vector source file.
+ * @author Connor J. Bramham (ReeCocho)
+ */
+
+/** Includes. */
 #include "vectors.hpp"
 
 namespace dk
@@ -7,7 +14,7 @@ namespace dk
 	// vec2f
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2> vec_t<float, 2>::operator+(const vec_t<float, 2>& other) const
+	vec_t<float, 2> vec_t<float, 2>::operator+(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -15,7 +22,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2> vec_t<float, 2>::operator-(const vec_t<float, 2>& other) const
+	vec_t<float, 2> vec_t<float, 2>::operator-(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -23,7 +30,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2> vec_t<float, 2>::operator*(const vec_t<float, 2>& other) const
+	vec_t<float, 2> vec_t<float, 2>::operator*(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -31,7 +38,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2> vec_t<float, 2>::operator/(const vec_t<float, 2>& other) const
+	vec_t<float, 2> vec_t<float, 2>::operator/(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -39,7 +46,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2>& vec_t<float, 2>::operator+=(const vec_t<float, 2>& other)
+	vec_t<float, 2>& vec_t<float, 2>::operator+=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, 0, 0 });
@@ -48,7 +55,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2>& vec_t<float, 2>::operator-=(const vec_t<float, 2>& other)
+	vec_t<float, 2>& vec_t<float, 2>::operator-=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, 0, 0 });
@@ -57,7 +64,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2>& vec_t<float, 2>::operator*=(const vec_t<float, 2>& other)
+	vec_t<float, 2>& vec_t<float, 2>::operator*=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, 0, 0 });
@@ -66,7 +73,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2>& vec_t<float, 2>::operator/=(const vec_t<float, 2>& other)
+	vec_t<float, 2>& vec_t<float, 2>::operator/=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 0, 0 });
@@ -74,7 +81,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<float, 2>::square_magnitude() const
+	RealNumber vec_t<float, 2>::square_magnitude() const
 	{
 		__m128 v1 = { x, y, 0.0f, 0.0f };
 		v1 = _mm_mul_ps(v1, v1);
@@ -83,14 +90,14 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<float, 2>::dot(const vec_t<float, 2>& other) const
+	RealNumber vec_t<float, 2>::dot(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return static_cast<RealNumber>(v1.m128_f32[0] + v1.m128_f32[1]);
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2>& vec_t<float, 2>::normalize()
+	vec_t<float, 2>& vec_t<float, 2>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -101,7 +108,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 2> vec_t<float, 2>::normalized() const
+	vec_t<float, 2> vec_t<float, 2>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return vec_t<float, 2>(0);
@@ -114,7 +121,7 @@ namespace dk
 	// vec2i
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2> vec_t<int32_t, 2>::operator+(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator+(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -130,7 +137,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2> vec_t<int32_t, 2>::operator-(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator-(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -146,7 +153,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2> vec_t<int32_t, 2>::operator*(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator*(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -162,7 +169,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2> vec_t<int32_t, 2>::operator/(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator/(const vec_t<int32_t, 2>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), 0.0f, 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0.0f, 0.0f };
@@ -177,7 +184,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator+=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator+=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -189,7 +196,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator-=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator-=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -201,7 +208,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator*=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator*=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -213,7 +220,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator/=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator/=(const vec_t<int32_t, 2>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), 0.0f, 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0.0f, 0.0f };
@@ -224,7 +231,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<int32_t, 2>::square_magnitude() const
+	RealNumber vec_t<int32_t, 2>::square_magnitude() const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -235,7 +242,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<int32_t, 2>::dot(const vec_t<int32_t, 2>& other) const
+	RealNumber vec_t<int32_t, 2>::dot(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -250,7 +257,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2>& vec_t<int32_t, 2>::normalize()
+	vec_t<int32_t, 2>& vec_t<int32_t, 2>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -263,7 +270,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 2> vec_t<int32_t, 2>::normalized() const
+	vec_t<int32_t, 2> vec_t<int32_t, 2>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return vec_t<int32_t, 2>(0);
@@ -278,7 +285,7 @@ namespace dk
 	// vec3f
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator+(const vec_t<float, 3>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator+(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -286,7 +293,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator+(const vec_t<float, 2>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator+(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -294,7 +301,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator-(const vec_t<float, 3>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator-(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -302,7 +309,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator-(const vec_t<float, 2>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator-(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -310,7 +317,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator*(const vec_t<float, 3>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator*(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -318,7 +325,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator*(const vec_t<float, 2>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator*(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, 0 }, { other.x, other.y, 1, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -326,7 +333,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator/(const vec_t<float, 3>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator/(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -334,7 +341,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::operator/(const vec_t<float, 2>& other) const
+	vec_t<float, 3> vec_t<float, 3>::operator/(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { other.x, other.y, 1, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -342,7 +349,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator+=(const vec_t<float, 3>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator+=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -351,7 +358,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator+=(const vec_t<float, 2>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator+=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, 0, 0 });
@@ -360,7 +367,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator-=(const vec_t<float, 3>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator-=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -369,7 +376,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator-=(const vec_t<float, 2>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator-=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, 0, 0 });
@@ -378,7 +385,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator*=(const vec_t<float, 3>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator*=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -387,7 +394,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator*=(const vec_t<float, 2>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator*=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, 1, 0 });
@@ -396,7 +403,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator/=(const vec_t<float, 3>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator/=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -405,7 +412,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::operator/=(const vec_t<float, 2>& other)
+	vec_t<float, 3>& vec_t<float, 3>::operator/=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 1, 0 });
@@ -413,7 +420,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<float, 3>::square_magnitude() const
+	RealNumber vec_t<float, 3>::square_magnitude() const
 	{
 		__m128 v1 = { x, y, z, 0.0f };
 		v1 = _mm_mul_ps(v1, v1);
@@ -422,7 +429,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<float, 3>::dot(const vec_t<float, 3>& other) const
+	RealNumber vec_t<float, 3>::dot(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = { x, y, z, 0.0f };
 		__m128 v2 = { other.x, other.y, other.z, 0.0f };
@@ -431,7 +438,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3>& vec_t<float, 3>::normalize()
+	vec_t<float, 3>& vec_t<float, 3>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -441,7 +448,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 3> vec_t<float, 3>::normalized() const
+	vec_t<float, 3> vec_t<float, 3>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return vec_t<float, 3>(0);
@@ -455,7 +462,7 @@ namespace dk
 	// vec3i
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator+(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator+(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -473,7 +480,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator+(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator+(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -491,7 +498,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator-(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator-(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -509,7 +516,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator-(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator-(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -527,7 +534,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator*(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator*(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -545,7 +552,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator*(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator*(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -563,7 +570,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator/(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator/(const vec_t<int32_t, 3>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 0.0f };
@@ -579,7 +586,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::operator/(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator/(const vec_t<int32_t, 2>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0.0f, 0.0f };
@@ -595,7 +602,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator+=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator+=(const vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -608,7 +615,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator+=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator+=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -621,7 +628,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator-=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator-=(const vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -634,7 +641,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator-=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator-=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -647,7 +654,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator*=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator*=(const vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -660,7 +667,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator*=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator*=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -673,7 +680,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator/=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator/=(const vec_t<int32_t, 3>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 0.0f };
@@ -686,7 +693,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator/=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator/=(const vec_t<int32_t, 2>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 1.0f, 1.0f };
@@ -697,7 +704,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<int32_t, 3>::square_magnitude() const
+	RealNumber vec_t<int32_t, 3>::square_magnitude() const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -709,7 +716,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<int32_t, 3>::dot(const vec_t<int32_t, 3>& other) const
+	RealNumber vec_t<int32_t, 3>::dot(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -726,7 +733,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3>& vec_t<int32_t, 3>::normalize()
+	vec_t<int32_t, 3>& vec_t<int32_t, 3>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -740,7 +747,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 3> vec_t<int32_t, 3>::normalized() const
+	vec_t<int32_t, 3> vec_t<int32_t, 3>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return vec_t<int32_t, 3>(0);
@@ -758,7 +765,7 @@ namespace dk
 	// vec4f
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 4>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -766,7 +773,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 3>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -774,7 +781,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 2>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -782,7 +789,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 4>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -790,7 +797,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 3>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, w }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -798,7 +805,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 2>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, w }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -806,7 +813,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 4>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -814,7 +821,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 3>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, w }, { other.x, other.y, other.z, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -822,7 +829,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 2>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, 1, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -830,7 +837,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 4>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -838,7 +845,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 3>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, other.z, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -846,7 +853,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 2>& other) const
+	vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, 1, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -854,7 +861,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 4>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -863,7 +870,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 3>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -872,7 +879,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 2>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, 0, 0 });
@@ -881,7 +888,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 4>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -890,7 +897,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 3>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -899,7 +906,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 2>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, 0, 0 });
@@ -908,7 +915,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 4>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -917,7 +924,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 3>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, other.z, 1 });
@@ -926,7 +933,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 2>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, 1, 1 });
@@ -935,7 +942,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 4>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -944,7 +951,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 3>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, other.z, 1 });
@@ -953,7 +960,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 2>& other)
+	vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 1, 1 });
@@ -961,7 +968,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<float, 4>::square_magnitude() const
+	RealNumber vec_t<float, 4>::square_magnitude() const
 	{
 		__m128 v1 = { x, y, z, w };
 		v1 = _mm_mul_ps(v1, v1);
@@ -970,7 +977,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<float, 4>::dot(const vec_t<float, 4>& other) const
+	RealNumber vec_t<float, 4>::dot(const vec_t<float, 4>& other) const
 	{
 		__m128 v1 = { x, y, z, w };
 		__m128 v2 = { other.x, other.y, other.z, other.w };
@@ -979,7 +986,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4>& vec_t<float, 4>::normalize()
+	vec_t<float, 4>& vec_t<float, 4>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -990,7 +997,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<float, 4> vec_t<float, 4>::normalized() const
+	vec_t<float, 4> vec_t<float, 4>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return vec_t<float, 4>(0);
@@ -1005,7 +1012,7 @@ namespace dk
 	// vec4i
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 4>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1025,7 +1032,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1045,7 +1052,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1065,7 +1072,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 4>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1085,7 +1092,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1105,7 +1112,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1125,7 +1132,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 4>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1145,7 +1152,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1165,7 +1172,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1185,7 +1192,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 4>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 4>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), static_cast<float>(other.w) };
@@ -1202,7 +1209,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 3>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 3>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 1 };
@@ -1219,7 +1226,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 2>& other) const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 2>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 1, 1 };
@@ -1236,7 +1243,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 4>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 4>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1250,7 +1257,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1264,7 +1271,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1278,7 +1285,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 4>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 4>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1292,7 +1299,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1306,7 +1313,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1320,7 +1327,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 4>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 4>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1334,7 +1341,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1348,7 +1355,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1362,7 +1369,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 4>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 4>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), static_cast<float>(other.w) };
@@ -1376,7 +1383,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 3>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 3>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 0 };
@@ -1389,7 +1396,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 2>& other)
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 2>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0, 0};
@@ -1400,7 +1407,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<int32_t, 4>::square_magnitude() const
+	RealNumber vec_t<int32_t, 4>::square_magnitude() const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1413,7 +1420,7 @@ namespace dk
 
 	template<>
 	template<>
-	DUCK_FORCE_INLINE RealNumber vec_t<int32_t, 4>::dot(const vec_t<int32_t, 4>& other) const
+	RealNumber vec_t<int32_t, 4>::dot(const vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1432,7 +1439,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4>& vec_t<int32_t, 4>::normalize()
+	vec_t<int32_t, 4>& vec_t<int32_t, 4>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -1447,7 +1454,7 @@ namespace dk
 	}
 
 	template<>
-	DUCK_FORCE_INLINE vec_t<int32_t, 4> vec_t<int32_t, 4>::normalized() const
+	vec_t<int32_t, 4> vec_t<int32_t, 4>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return vec_t<int32_t, 4>(0);

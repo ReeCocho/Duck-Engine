@@ -10,7 +10,7 @@
 #include <iostream>
 
 /** Print a message to the console in both debugging and release builds. */
-#define dk_log(MSG) std::clog << MSG
+#define dk_log(MSG) std::clog << MSG << '\n'
 
 /** Assert that a condition is true at compile time and stop compiling if it's false. */
 #define dk_static_assert(COND) static_assert(COND)
@@ -21,11 +21,11 @@
 	#define dk_assert(COND) ((void)0)
 #else
 	/** Print an error and terminate the program. */
-	#define dk_err(MSG) { std::cerr << MSG; std::terminate(); }((void)0)
+	#define dk_err(MSG) { std::cerr << MSG << '\n'; std::terminate(); }((void)0)
 	
 	/** Print a message to the console only in the debug build. */
-	#define dk_out(MSG) { std::cout << MSG }((void)0)
+	#define dk_out(MSG) { std::cout << MSG << '\n' }((void)0)
 	
 	/** Assert that a condition is true and terminate the program if it's false. */
-	#define dk_assert(COND) {if(!(COND)) dk_err("Assertation failed in file " << __FILE__ << " on line " << __LINE__  << " : " << #COND << '\n'); }((void)0)
+	#define dk_assert(COND) {if(!(COND)) dk_err("Assertation failed in file " << __FILE__ << " on line " << __LINE__  << " : " << #COND); }((void)0)
 #endif
