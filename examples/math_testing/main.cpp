@@ -70,6 +70,83 @@ int main()
 		dk_log(v3.to_string() << '\n');
 	}
 
+	// vec4 tests
+	{
+		dk_log("VEC4 TESTS");
+
+		dk::vec4 v1 = { 1, 2, 3, 4 };
+		dk::vec4 v2 = { 5, 6, 7, 8 };
+		dk::vec4 v3 = { 0, 0, 0, 0 };
+
+		v3 = v1 + v2; // (6, 8, 10, 12)
+		dk_log(v3.to_string());
+
+		v3 = v1 - v2; // (-4, -4, -4, -4)
+		dk_log(v3.to_string());
+
+		v3 = v1 * v2; // (5, 12, 21, 32)
+		dk_log(v3.to_string());
+
+		v3 = v1 / v2; // (.2, .333, .428571, .5)
+		dk_log(v3.to_string());
+
+		v3 = v2;
+		v3 += v1; // (6, 8, 10, 12)
+		dk_log(v3.to_string());
+
+		v3 -= v1; // (5, 6, 7, 8)
+		dk_log(v3.to_string());
+
+		v3 *= v1; // (5, 12, 21, 32)
+		dk_log(v3.to_string());
+
+		v3 /= v1; // (5, 6, 7, 8)
+		dk_log(v3.to_string() << '\n');
+	}
+
+	// mat4 tests
+	{
+		dk_log("MAT4 TESTS");
+
+		dk::mat4 m1 = 
+		{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		};
+
+		dk::mat4 m2 = 
+		{
+			 1,  2,  3,  4,
+			 5,  6,  7,  8,
+			 9, 10, 11, 12,
+			13, 14, 15, 16
+		};
+
+		dk::mat4 m3(0);
+
+		m3 = m1 + m2; // [2, 2, 3, 4; 5, 7, 7, 8; 9, 10, 12, 12; 13, 14, 15, 17]
+		dk_log(m3.to_string() << '\n');
+
+		m3 = m1 - m2; // [0, -2, -3, -4; -5, -5, -7, -8; -9, -10, -10, -12; -13, -14, -15, -15]
+		dk_log(m3.to_string() << '\n');
+
+		m3 = m1 * m2; // (3, 8)
+		dk_log(m3.to_string() << '\n');
+
+
+		m3 = m2;
+		m3 += m1; // (4, 6)
+		//dk_log(m3.to_string() << '\n');
+
+		m3 -= m1; // (3, 4)
+		// dk_log(v3.to_string());
+
+		// v3 *= v1; // (3, 8)
+		//dk_log(m3.to_string() << '\n');
+	}
+
 	std::cin.get();
 	return 0;
 }

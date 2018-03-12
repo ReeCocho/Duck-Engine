@@ -84,7 +84,7 @@ namespace dk
 		 * @brief Turn the vector into a string.
 		 * @return Vector as a string.
 		 */
-		 std::string to_string() const
+		std::string to_string() const
 		{
 			std::string str = "(";
 
@@ -99,7 +99,7 @@ namespace dk
 		 * @brief Get the number of elements in the vector.
 		 * @return Number of elements in the vector.
 		 */
-		 constexpr size_t size() const
+		constexpr size_t size() const
 		{
 			return N;
 		}
@@ -109,7 +109,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		 bool operator==(const vec_t<T, N>& other) const
+		bool operator==(const vec_t<T, N>& other) const
 		{
 			for (size_t i = 0; i < N; ++i)
 				if (data[i] != other.data[i])
@@ -123,7 +123,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		 bool operator!=(const vec_t<T, N>& other) const
+		bool operator!=(const vec_t<T, N>& other) const
 		{
 			for (size_t i = 0; i < N; ++i)
 				if (data[i] == other.data[i])
@@ -141,7 +141,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		 vec_t<T, N> operator+(const vec_t<T2, N>& other) const
+		vec_t<T, N> operator+(const vec_t<T2, N>& other) const
 		{
 			vec_t<T, N> new_vec = *this;
 
@@ -158,7 +158,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		 vec_t<T, N> operator-(const vec_t<T2, N>& other) const
+		vec_t<T, N> operator-(const vec_t<T2, N>& other) const
 		{
 			vec_t<T, N> new_vec = *this;
 
@@ -175,7 +175,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		 vec_t<T, N> operator*(const vec_t<T2, N>& other) const
+		vec_t<T, N> operator*(const vec_t<T2, N>& other) const
 		{
 			vec_t<T, N> new_vec = *this;
 
@@ -192,7 +192,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		 vec_t<T, N> operator/(const vec_t<T2, N>& other) const
+		vec_t<T, N> operator/(const vec_t<T2, N>& other) const
 		{
 			vec_t<T, N> new_vec = *this;
 
@@ -211,7 +211,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		 vec_t<T, N>& operator+=(const vec_t<T2, N>& other)
+		vec_t<T, N>& operator+=(const vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] += static_cast<T>(other.data[i]);
@@ -226,7 +226,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		 vec_t<T, N>& operator-=(const vec_t<T2, N>& other)
+		vec_t<T, N>& operator-=(const vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] -= static_cast<T>(other.data[i]);
@@ -241,7 +241,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		 vec_t<T, N>& operator*=(const vec_t<T2, N>& other)
+		vec_t<T, N>& operator*=(const vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] *= static_cast<T>(other.data[i]);
@@ -256,7 +256,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		 vec_t<T, N>& operator/=(const vec_t<T2, N>& other)
+		vec_t<T, N>& operator/=(const vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] /= static_cast<T>(other.data[i]);
@@ -271,7 +271,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		 vec_t<T, N>& operator=(const vec_t<T2, N>& other)
+		vec_t<T, N>& operator=(const vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] = static_cast<T>(other.data[i]);
@@ -283,7 +283,7 @@ namespace dk
 		 * @brief Get the square magnitude of the vector.
 		 * @return Square magnitude of the vector.
 		 */
-		 RealNumber square_magnitude() const
+		RealNumber square_magnitude() const
 		{
 			RealNumber sqr_total = 0;
 
@@ -297,7 +297,7 @@ namespace dk
 		 * @brief Get the magnitude of the vector.
 		 * @return Magnitude of the vector.
 		 */
-		 RealNumber magnitude() const
+		RealNumber magnitude() const
 		{
 			return static_cast<RealNumber>(std::sqrt(square_magnitude()));
 		}
@@ -308,7 +308,7 @@ namespace dk
 		 * @return Result of the dot product.
 		 */
 		template<typename T2>
-		 RealNumber dot(const vec_t<T2, N>& other) const
+		RealNumber dot(const vec_t<T2, N>& other) const
 		{
 			RealNumber mult_total = 0;
 
@@ -322,7 +322,7 @@ namespace dk
 		 * @brief Normalize the vector.
 		 * @return This vector.
 		 */
-		 vec_t<T, N>& normalize()
+		vec_t<T, N>& normalize()
 		{
 			RealNumber mag = magnitude();
 			if (mag == 0) return *this;
@@ -338,7 +338,7 @@ namespace dk
 		 * @return A vector with the same direction as this, but with a magnitude of 1.
 		 * @note The magnitude might be 0 if the original vectors magnitude was 0.
 		 */
-		 vec_t<T, N> normalized() const
+		vec_t<T, N> normalized() const
 		{
 			RealNumber mag = magnitude();
 			if (mag == 0) return vec_t<T, N>(0);

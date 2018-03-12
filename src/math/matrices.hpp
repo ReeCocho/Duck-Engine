@@ -37,6 +37,35 @@ namespace dk
 				for (size_t j = 0; j < N; ++j)
 					data[i][j] = val;
 		}
+		
+		/**
+		 * @brief Constructor.
+		 * @param Matrix values.
+		 */
+		mat_t(std::initializer_list<T> values)
+		{
+			dk_assert(values.size() == N * M);
+
+			size_t i = 0;
+			for (auto value : values)
+			{
+				data[i / M][i%N] = value;
+				++i;
+			}
+		}
+
+		/**
+		 * @brief Copy constructor.
+		 * @tparam Type of the other matrix.
+		 * @param Other matrix.
+		 */
+		template<typename T2>
+		mat_t(const mat_t<T2, M, N>& other)
+		{
+			for (size_t i = 0; i < M; ++i)
+				for (size_t j = 0; j < N; ++j)
+					data[i][j] = static_cast<T>(other.data[i][j]);
+		}
 
 		/**
 		 * @brief Destructor.
@@ -49,7 +78,7 @@ namespace dk
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		 constexpr size_t rows() const
+		constexpr size_t rows() const
 		{
 			return M;
 		}
@@ -58,9 +87,29 @@ namespace dk
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		 constexpr size_t columns() const
+		constexpr size_t columns() const
 		{
 			return N;
+		}
+
+		/**
+		 * @brief Convert the matrix into a string.
+		 * @return The matrix as a string.
+		 */
+		std::string to_string() const
+		{
+			std::string str = "";
+
+			for (size_t i = 0; i < M; ++i)
+			{
+				str += "[";
+				for (size_t j = 0; j < N - 1; ++j)
+					str += std::to_string(data[i][j]) + ", ";
+
+				str += std::to_string(data[i][N - 1]) + "]\n";
+			}
+			str.resize(str.size() - 1);
+			return str;
 		}
 
 		/**
@@ -68,7 +117,7 @@ namespace dk
 		 * @param Other matrix.
 		 * @return If the two matrices are equal.
 		 */
-		 bool operator==(const mat_t<T, M, N>& other) const
+		bool operator==(const mat_t<T, M, N>& other) const
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -83,9 +132,25 @@ namespace dk
 		 * @param Other matrix.
 		 * @return If the two matrices are not equal.
 		 */
-		 bool operator!=(const mat_t<T, M, N>& other) const
+		bool operator!=(const mat_t<T, M, N>& other) const
 		{
 			return !(*this == other);
+		}
+
+		/**
+		 * @brief Assignment operator.
+		 * @tparam Type of the other matrix.
+		 * @param Other matrix.
+		 * @return This matrix.
+		 */
+		template<typename T2>
+		mat_t<T, M, N>& operator=(const mat_t<T2, M, N>& other)
+		{
+			for (size_t i = 0; i < M; ++i)
+				for (size_t j = 0; j < N; ++j)
+					data[i][j] = static_cast<T>(other.data[i][j]);
+
+			return *this;
 		}
 
 		/**
@@ -95,7 +160,7 @@ namespace dk
 		 * @return Sum of the two matrices.
 		 */
 		template<typename T2>
-		 mat_t<T, M, N> operator+(const mat_t<T2, M, N>& other) const
+		mat_t<T, M, N> operator+(const mat_t<T2, M, N>& other) const
 		{
 			mat_t<T, M, N> mat = *this;
 
@@ -113,7 +178,7 @@ namespace dk
 		 * @return Difference between the two matrices.
 		 */
 		template<typename T2>
-		 mat_t<T, M, N> operator-(const mat_t<T2, M, N>& other) const
+		mat_t<T, M, N> operator-(const mat_t<T2, M, N>& other) const
 		{
 			mat_t<T, M, N> mat = *this;
 
@@ -131,17 +196,17 @@ namespace dk
 		 * @param Other matrix.
 		 * @return Product of the two matrices.
 		 */
-		template<typename T2, size_t N2>
-		 mat_t<T, M, N> operator*(const mat_t<T2, N, N2>& other) const
+		template<typename T2, size_t P>
+		mat_t<T, M, N> operator*(const mat_t<T2, N, P>& other) const
 		{
-			mat_t<T, M, N2> mat = {};
+			mat_t<T, M, P> mat(0);
 
 			for (size_t i = 0; i < M; ++i)
-				for (size_t j = 0; j < N2; ++j)
+				for (size_t j = 0; j < P; ++j)
 					for (size_t k = 0; k < N; ++k)
-						mat[i][j] += data[i][k] * other.data[k][j];
+						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
 
-			return *this;
+			return mat;
 		}
 
 		/**
@@ -151,7 +216,7 @@ namespace dk
 		 * @return This matrix.
 		 */
 		template<typename T2>
-		 mat_t<T, M, N>& operator+=(const mat_t<T2, M, N>& other)
+		mat_t<T, M, N>& operator+=(const mat_t<T2, M, N>& other)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -167,12 +232,33 @@ namespace dk
 		 * @return This matrix.
 		 */
 		template<typename T2>
-		 mat_t<T, M, N>& operator-=(const mat_t<T2, M, N>& other)
+		mat_t<T, M, N>& operator-=(const mat_t<T2, M, N>& other)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
 					data[i][j] -= static_cast<T>(other.data[i][j]);
 
+			return *this;
+		}
+
+		/**
+		 * @brief Multiplication operator.
+		 * @tparam Type of the other matrix.
+		 * @tparam Number of columns in the other matrix
+		 * @param Other matrix.
+		 * @return This matrix.
+		 */
+		template<typename T2, size_t P>
+		mat_t<T, M, N>& operator*=(const mat_t<T2, N, P>& other)
+		{
+			mat_t<T, M, P> mat(0);
+
+			for (size_t i = 0; i < M; ++i)
+				for (size_t j = 0; j < P; ++j)
+					for (size_t k = 0; k < N; ++k)
+						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
+
+			*this = mat;
 			return *this;
 		}
 
