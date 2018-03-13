@@ -20,7 +20,6 @@
 namespace dk
 {
 	/**
-	 * @class vec_t
 	 * @brief Generic N dimensional vector.
 	 * @tparam Datatype used by the vector.
 	 * @tparam Number of elements.
@@ -358,7 +357,6 @@ namespace dk
 
 
 	/**
-	 * @class vec_t<T, 2>
 	 * @brief A 2 dimensional vector.
 	 * @tparam Datatype used by the vector.
 	 */
@@ -913,7 +911,6 @@ namespace dk
 
 
 	/**
-	 * @class vec_t<T, 3>
 	 * @brief A 3 dimensional vector.
 	 * @tparam Datatype used by the vector.
 	 */
@@ -1862,7 +1859,6 @@ namespace dk
 
 
 	/**
-	 * @class vec_t<T, 4>
 	 * @brief A 4 dimensional vector.
 	 * @tparam Datatype used by the vector.
 	 */
