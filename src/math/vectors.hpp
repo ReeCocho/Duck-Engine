@@ -25,20 +25,20 @@ namespace dk
 	 * @tparam Number of elements.
 	 */
 	template<typename T, size_t N>
-	class alignas(16) vec_t
+	class alignas(16) Vec_t
 	{
 	public:
 
 		/**
 		 * @brief Constructor.
 		 */
-		vec_t() = default;
+		Vec_t() = default;
 
 		/**
 		 * @brief Constructor.
 		 * @param The value of every element in the vector.
 		 */
-		vec_t(T val)
+		Vec_t(T val)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] = val;
@@ -48,7 +48,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Values.
 		 */
-		vec_t(std::initializer_list<T> a_data)
+		Vec_t(std::initializer_list<T> a_data)
 		{
 			dk_static_assert(a_data.size() <= N);
 
@@ -66,7 +66,7 @@ namespace dk
 		 * @param Other vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, N>& other)
+		Vec_t(const Vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] = static_cast<T>(other.data[i]);
@@ -75,7 +75,7 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		~vec_t() = default;
+		~Vec_t() = default;
 
 
 
@@ -108,7 +108,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, N>& other) const
+		bool operator==(const Vec_t<T, N>& other) const
 		{
 			for (size_t i = 0; i < N; ++i)
 				if (data[i] != other.data[i])
@@ -122,7 +122,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, N>& other) const
+		bool operator!=(const Vec_t<T, N>& other) const
 		{
 			for (size_t i = 0; i < N; ++i)
 				if (data[i] == other.data[i])
@@ -140,9 +140,9 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, N> operator+(const vec_t<T2, N>& other) const
+		Vec_t<T, N> operator+(const Vec_t<T2, N>& other) const
 		{
-			vec_t<T, N> new_vec = *this;
+			Vec_t<T, N> new_vec = *this;
 
 			for (size_t i = 0; i < N; ++i)
 				new_vec.data[i] += static_cast<T>(other.data[i]);
@@ -157,9 +157,9 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, N> operator-(const vec_t<T2, N>& other) const
+		Vec_t<T, N> operator-(const Vec_t<T2, N>& other) const
 		{
-			vec_t<T, N> new_vec = *this;
+			Vec_t<T, N> new_vec = *this;
 
 			for (size_t i = 0; i < N; ++i)
 				new_vec.data[i] -= static_cast<T>(other.data[i]);
@@ -174,9 +174,9 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, N> operator*(const vec_t<T2, N>& other) const
+		Vec_t<T, N> operator*(const Vec_t<T2, N>& other) const
 		{
-			vec_t<T, N> new_vec = *this;
+			Vec_t<T, N> new_vec = *this;
 
 			for (size_t i = 0; i < N; ++i)
 				new_vec.data[i] *= static_cast<T>(other.data[i]);
@@ -191,9 +191,9 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, N> operator/(const vec_t<T2, N>& other) const
+		Vec_t<T, N> operator/(const Vec_t<T2, N>& other) const
 		{
-			vec_t<T, N> new_vec = *this;
+			Vec_t<T, N> new_vec = *this;
 
 			for (size_t i = 0; i < N; ++i)
 				new_vec.data[i] /= static_cast<T>(other.data[i]);
@@ -210,7 +210,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, N>& operator+=(const vec_t<T2, N>& other)
+		Vec_t<T, N>& operator+=(const Vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] += static_cast<T>(other.data[i]);
@@ -225,7 +225,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, N>& operator-=(const vec_t<T2, N>& other)
+		Vec_t<T, N>& operator-=(const Vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] -= static_cast<T>(other.data[i]);
@@ -240,7 +240,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, N>& operator*=(const vec_t<T2, N>& other)
+		Vec_t<T, N>& operator*=(const Vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] *= static_cast<T>(other.data[i]);
@@ -255,7 +255,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, N>& operator/=(const vec_t<T2, N>& other)
+		Vec_t<T, N>& operator/=(const Vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] /= static_cast<T>(other.data[i]);
@@ -270,7 +270,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, N>& operator=(const vec_t<T2, N>& other)
+		Vec_t<T, N>& operator=(const Vec_t<T2, N>& other)
 		{
 			for (size_t i = 0; i < N; ++i)
 				data[i] = static_cast<T>(other.data[i]);
@@ -307,7 +307,7 @@ namespace dk
 		 * @return Result of the dot product.
 		 */
 		template<typename T2>
-		RealNumber dot(const vec_t<T2, N>& other) const
+		RealNumber dot(const Vec_t<T2, N>& other) const
 		{
 			RealNumber mult_total = 0;
 
@@ -321,7 +321,7 @@ namespace dk
 		 * @brief Normalize the vector.
 		 * @return This vector.
 		 */
-		vec_t<T, N>& normalize()
+		Vec_t<T, N>& normalize()
 		{
 			RealNumber mag = magnitude();
 			if (mag == 0) return *this;
@@ -337,12 +337,12 @@ namespace dk
 		 * @return A vector with the same direction as this, but with a magnitude of 1.
 		 * @note The magnitude might be 0 if the original vectors magnitude was 0.
 		 */
-		vec_t<T, N> normalized() const
+		Vec_t<T, N> normalized() const
 		{
 			RealNumber mag = magnitude();
-			if (mag == 0) return vec_t<T, N>(0);
+			if (mag == 0) return Vec_t<T, N>(0);
 
-			vec_t<T, N> new_vec = *this;
+			Vec_t<T, N> new_vec = *this;
 
 			for (size_t i = 0; i < N; ++i)
 				new_vec[i] /= mag;
@@ -361,41 +361,41 @@ namespace dk
 	 * @tparam Datatype used by the vector.
 	 */
 	template<typename T>
-	class alignas(16) vec_t<T, 2>
+	class alignas(16) Vec_t<T, 2>
 	{
 	public:
 
 		/**
 		 * @brief Constructor.
 		 */
-		vec_t() : x(0), y(0) {}
+		Vec_t() : x(0), y(0) {}
 
 		/**
 		 * @brief Constructor.
 		 * @param The value of every element.
 		 */
-		vec_t(T x_a) : x(x_a), y(x_a) {}
+		Vec_t(T x_a) : x(x_a), y(x_a) {}
 
 		/**
 		 * @brief Constructor.
 		 * @param X value.
 		 * @param Y value.
 		 */
-		vec_t(T x_a, T y_a) : x(x_a), y(y_a) {}
+		Vec_t(T x_a, T y_a) : x(x_a), y(y_a) {}
 
 		/**
 		 * @brief Copy constructor.
 		 * @param Other vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, 2>& other) : 
+		Vec_t(const Vec_t<T2, 2>& other) : 
 			x(static_cast<T>(other.x)), 
 			y(static_cast<T>(other.y)) {}
 
 		/**
 		 * @brief Destructor.
 		 */
-		~vec_t() = default;
+		~Vec_t() = default;
 
 
 
@@ -422,7 +422,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, 2>& other) const
+		bool operator==(const Vec_t<T, 2>& other) const
 		{
 			return x == other.x && y == other.y;
 		}
@@ -432,7 +432,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, 2>& other) const
+		bool operator!=(const Vec_t<T, 2>& other) const
 		{
 			return x != other.x || y != other.y;
 		}
@@ -444,7 +444,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, 2> operator+(const vec_t<T2, 2>& other) const
+		Vec_t<T, 2> operator+(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -460,7 +460,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, 2> operator-(const vec_t<T2, 2>& other) const
+		Vec_t<T, 2> operator-(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -476,7 +476,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, 2> operator*(const vec_t<T2, 2>& other) const
+		Vec_t<T, 2> operator*(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -492,7 +492,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, 2> operator/(const vec_t<T2, 2>& other) const
+		Vec_t<T, 2> operator/(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -508,7 +508,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 2>& operator+=(const vec_t<T2, 2>& other)
+		Vec_t<T, 2>& operator+=(const Vec_t<T2, 2>& other)
 		{
 			x += static_cast<T>(other.x);
 			y += static_cast<T>(other.y);
@@ -522,7 +522,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 2>& operator-=(const vec_t<T2, 2>& other)
+		Vec_t<T, 2>& operator-=(const Vec_t<T2, 2>& other)
 		{
 			x -= static_cast<T>(other.x);
 			y -= static_cast<T>(other.y);
@@ -536,7 +536,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 2>& operator*=(const vec_t<T2, 2>& other)
+		Vec_t<T, 2>& operator*=(const Vec_t<T2, 2>& other)
 		{
 			x *= static_cast<T>(other.x);
 			y *= static_cast<T>(other.y);
@@ -550,7 +550,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 2>& operator/=(const vec_t<T2, 2>& other)
+		Vec_t<T, 2>& operator/=(const Vec_t<T2, 2>& other)
 		{
 			x /= static_cast<T>(other.x);
 			y /= static_cast<T>(other.y);
@@ -564,7 +564,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 2>& operator=(const vec_t<T2, 2>& other)
+		Vec_t<T, 2>& operator=(const Vec_t<T2, 2>& other)
 		{
 			x = other.x;
 			y = other.y;
@@ -595,7 +595,7 @@ namespace dk
 		 * @return Result of the dot product.
 		 */
 		template<typename T2>
-		RealNumber dot(const vec_t<T2, 2>& other) const
+		RealNumber dot(const Vec_t<T2, 2>& other) const
 		{
 			return static_cast<RealNumber>((x * other.x) + (y * other.y));
 		}
@@ -604,7 +604,7 @@ namespace dk
 		 * @brief Normalize the vector.
 		 * @return This vector.
 		 */
-		vec_t<T, 2>& normalize()
+		Vec_t<T, 2>& normalize()
 		{
 			RealNumber mag = magnitude();
 			if (mag == 0) return;
@@ -618,11 +618,11 @@ namespace dk
 		 * @return A vector with the same direction as this, but with a magnitude of 1.
 		 * @note The magnitude might be 0 if the original vectors magnitude was 0.
 		 */
-		vec_t<T, 2> normalized() const
+		Vec_t<T, 2> normalized() const
 		{
 			RealNumber mag = magnitude();
-			if (mag == 0) return vec_t<T, N>(0);
-			vec_t<T, N> new_vec = *this;
+			if (mag == 0) return Vec_t<T, N>(0);
+			Vec_t<T, N> new_vec = *this;
 			new_vec.x /= static_cast<T>(mag);
 			new_vec.y /= static_cast<T>(mag);
 			return new_vec;
@@ -642,7 +642,7 @@ namespace dk
 	// vec2f
 	template<>
 	template<>
-	vec_t<float, 2> vec_t<float, 2>::operator+(const vec_t<float, 2>& other) const
+	Vec_t<float, 2> Vec_t<float, 2>::operator+(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -650,7 +650,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2> vec_t<float, 2>::operator-(const vec_t<float, 2>& other) const
+	Vec_t<float, 2> Vec_t<float, 2>::operator-(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -658,7 +658,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2> vec_t<float, 2>::operator*(const vec_t<float, 2>& other) const
+	Vec_t<float, 2> Vec_t<float, 2>::operator*(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -666,7 +666,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2> vec_t<float, 2>::operator/(const vec_t<float, 2>& other) const
+	Vec_t<float, 2> Vec_t<float, 2>::operator/(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
@@ -674,7 +674,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2>& vec_t<float, 2>::operator+=(const vec_t<float, 2>& other)
+	Vec_t<float, 2>& Vec_t<float, 2>::operator+=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, 0, 0 });
@@ -683,7 +683,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2>& vec_t<float, 2>::operator-=(const vec_t<float, 2>& other)
+	Vec_t<float, 2>& Vec_t<float, 2>::operator-=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, 0, 0 });
@@ -692,7 +692,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2>& vec_t<float, 2>::operator*=(const vec_t<float, 2>& other)
+	Vec_t<float, 2>& Vec_t<float, 2>::operator*=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, 0, 0 });
@@ -701,7 +701,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 2>& vec_t<float, 2>::operator/=(const vec_t<float, 2>& other)
+	Vec_t<float, 2>& Vec_t<float, 2>::operator/=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 0, 0 });
@@ -709,7 +709,7 @@ namespace dk
 	}
 
 	template<>
-	RealNumber vec_t<float, 2>::square_magnitude() const
+	RealNumber Vec_t<float, 2>::square_magnitude() const
 	{
 		__m128 v1 = { x, y, 0.0f, 0.0f };
 		v1 = _mm_mul_ps(v1, v1);
@@ -718,14 +718,14 @@ namespace dk
 
 	template<>
 	template<>
-	RealNumber vec_t<float, 2>::dot(const vec_t<float, 2>& other) const
+	RealNumber Vec_t<float, 2>::dot(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
 		return static_cast<RealNumber>(v1.m128_f32[0] + v1.m128_f32[1]);
 	}
 
 	template<>
-	vec_t<float, 2>& vec_t<float, 2>::normalize()
+	Vec_t<float, 2>& Vec_t<float, 2>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -736,18 +736,18 @@ namespace dk
 	}
 
 	template<>
-	vec_t<float, 2> vec_t<float, 2>::normalized() const
+	Vec_t<float, 2> Vec_t<float, 2>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
-		if (mag == 0) return vec_t<float, 2>(0);
+		if (mag == 0) return Vec_t<float, 2>(0);
 		__m128 v1 = _mm_div_ps({ x, y, 0, 0 }, { mag, mag, mag, mag });
-		return vec_t<float, 2>(v1.m128_f32[0], v1.m128_f32[1]);
+		return Vec_t<float, 2>(v1.m128_f32[0], v1.m128_f32[1]);
 	}
 
 	// vec2i
 	template<>
 	template<>
-	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator+(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 2> Vec_t<int32_t, 2>::operator+(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -763,7 +763,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator-(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 2> Vec_t<int32_t, 2>::operator-(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -779,7 +779,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator*(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 2> Vec_t<int32_t, 2>::operator*(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -795,7 +795,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2> vec_t<int32_t, 2>::operator/(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 2> Vec_t<int32_t, 2>::operator/(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), 0.0f, 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0.0f, 0.0f };
@@ -810,7 +810,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator+=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 2>& Vec_t<int32_t, 2>::operator+=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -822,7 +822,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator-=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 2>& Vec_t<int32_t, 2>::operator-=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -834,7 +834,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator*=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 2>& Vec_t<int32_t, 2>::operator*=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -846,7 +846,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 2>& vec_t<int32_t, 2>::operator/=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 2>& Vec_t<int32_t, 2>::operator/=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), 0.0f, 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0.0f, 0.0f };
@@ -857,7 +857,7 @@ namespace dk
 	}
 
 	template<>
-	RealNumber vec_t<int32_t, 2>::square_magnitude() const
+	RealNumber Vec_t<int32_t, 2>::square_magnitude() const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -868,7 +868,7 @@ namespace dk
 
 	template<>
 	template<>
-	RealNumber vec_t<int32_t, 2>::dot(const vec_t<int32_t, 2>& other) const
+	RealNumber Vec_t<int32_t, 2>::dot(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -883,7 +883,7 @@ namespace dk
 	}
 
 	template<>
-	vec_t<int32_t, 2>& vec_t<int32_t, 2>::normalize()
+	Vec_t<int32_t, 2>& Vec_t<int32_t, 2>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -896,14 +896,14 @@ namespace dk
 	}
 
 	template<>
-	vec_t<int32_t, 2> vec_t<int32_t, 2>::normalized() const
+	Vec_t<int32_t, 2> Vec_t<int32_t, 2>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
-		if (mag == 0) return vec_t<int32_t, 2>(0);
+		if (mag == 0) return Vec_t<int32_t, 2>(0);
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), 0, 0 };
 		__m128 v2 = { mag, mag, mag, mag };
 		v1 = _mm_div_ps(v1, v2);
-		return vec_t<int32_t, 2>(static_cast<int32_t>(v1.m128_f32[0]), static_cast<int32_t>(v1.m128_f32[1]));
+		return Vec_t<int32_t, 2>(static_cast<int32_t>(v1.m128_f32[0]), static_cast<int32_t>(v1.m128_f32[1]));
 	}
 
 #endif
@@ -915,20 +915,20 @@ namespace dk
 	 * @tparam Datatype used by the vector.
 	 */
 	template<typename T>
-	class alignas(16) vec_t<T, 3>
+	class alignas(16) Vec_t<T, 3>
 	{
 	public:
 
 		/**
 		 * @brief Constructor.
 		 */
-		vec_t() : x(0), y(0), z(0) {}
+		Vec_t() : x(0), y(0), z(0) {}
 
 		/**
 		 * @brief Constructor.
 		 * @param Value of every element.
 		 */
-		vec_t(T val) : x(val), y(val), z(val) {}
+		Vec_t(T val) : x(val), y(val), z(val) {}
 
 		/**
 		 * @brief Constructor.
@@ -936,14 +936,14 @@ namespace dk
 		 * @param Y value.
 		 * @param Z value.
 		 */
-		vec_t(T x_a, T y_a, T z_a) : x(x_a), y(y_a), z(z_a) {}
+		Vec_t(T x_a, T y_a, T z_a) : x(x_a), y(y_a), z(z_a) {}
 
 		/**
 		 * @brief Copy constructor.
 		 * @param Other 2D vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, 2>& other) : 
+		Vec_t(const Vec_t<T2, 2>& other) : 
 			x(static_cast<T>(other.x)), 
 			y(static_cast<T>(other.y)), 
 			z(0) {}
@@ -953,7 +953,7 @@ namespace dk
 		 * @param Other 3D vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, 3>& other) : 
+		Vec_t(const Vec_t<T2, 3>& other) : 
 			x(static_cast<T>(other.x)), 
 			y(static_cast<T>(other.y)), 
 			z(static_cast<T>(other.z)) {}
@@ -961,7 +961,7 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		~vec_t() = default;
+		~Vec_t() = default;
 
 
 
@@ -988,7 +988,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, 3>& other) const
+		bool operator==(const Vec_t<T, 3>& other) const
 		{
 			return x == other.x && y == other.y && z == other.z;
 		}
@@ -998,7 +998,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, 2>& other) const
+		bool operator==(const Vec_t<T, 2>& other) const
 		{
 			return x == other.x && y == other.y && z == 0;
 		}
@@ -1008,7 +1008,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, 3>& other) const
+		bool operator!=(const Vec_t<T, 3>& other) const
 		{
 			return x != other.x || y != other.y || z != other.z;
 		}
@@ -1018,7 +1018,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, 2>& other) const
+		bool operator!=(const Vec_t<T, 2>& other) const
 		{
 			return x != other.x || y != other.y || z != 0;
 		}
@@ -1030,7 +1030,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator+(const vec_t<T2, 3>& other) const
+		Vec_t<T, 3> operator+(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -1047,7 +1047,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator+(const vec_t<T2, 2>& other) const
+		Vec_t<T, 3> operator+(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -1064,7 +1064,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator-(const vec_t<T2, 3>& other) const
+		Vec_t<T, 3> operator-(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -1081,7 +1081,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator-(const vec_t<T2, 2>& other) const
+		Vec_t<T, 3> operator-(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -1098,7 +1098,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator*(const vec_t<T2, 3>& other) const
+		Vec_t<T, 3> operator*(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -1115,7 +1115,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator*(const vec_t<T2, 2>& other) const
+		Vec_t<T, 3> operator*(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -1132,7 +1132,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator/(const vec_t<T2, 3>& other) const
+		Vec_t<T, 3> operator/(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -1149,7 +1149,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, 3> operator/(const vec_t<T2, 2>& other) const
+		Vec_t<T, 3> operator/(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -1168,7 +1168,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator+=(const vec_t<T2, 3>& other)
+		Vec_t<T, 3>& operator+=(const Vec_t<T2, 3>& other)
 		{
 			x += static_cast<T>(other.x);
 			y += static_cast<T>(other.y);
@@ -1183,7 +1183,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator+=(const vec_t<T2, 2>& other)
+		Vec_t<T, 3>& operator+=(const Vec_t<T2, 2>& other)
 		{
 			x += static_cast<T>(other.x);
 			y += static_cast<T>(other.y);
@@ -1197,7 +1197,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator-=(const vec_t<T2, 3>& other)
+		Vec_t<T, 3>& operator-=(const Vec_t<T2, 3>& other)
 		{
 			x -= static_cast<T>(other.x);
 			y -= static_cast<T>(other.y);
@@ -1212,7 +1212,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator-=(const vec_t<T2, 2>& other)
+		Vec_t<T, 3>& operator-=(const Vec_t<T2, 2>& other)
 		{
 			x -= static_cast<T>(other.x);
 			y -= static_cast<T>(other.y);
@@ -1226,7 +1226,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator*=(const vec_t<T2, 3>& other)
+		Vec_t<T, 3>& operator*=(const Vec_t<T2, 3>& other)
 		{
 			x *= static_cast<T>(other.x);
 			y *= static_cast<T>(other.y);
@@ -1241,7 +1241,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator*=(const vec_t<T2, 2>& other)
+		Vec_t<T, 3>& operator*=(const Vec_t<T2, 2>& other)
 		{
 			x *= static_cast<T>(other.x);
 			y *= static_cast<T>(other.y);
@@ -1255,7 +1255,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator/=(const vec_t<T2, 3>& other)
+		Vec_t<T, 3>& operator/=(const Vec_t<T2, 3>& other)
 		{
 			x /= static_cast<T>(other.x);
 			y /= static_cast<T>(other.y);
@@ -1270,7 +1270,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator/=(const vec_t<T2, 2>& other)
+		Vec_t<T, 3>& operator/=(const Vec_t<T2, 2>& other)
 		{
 			x /= static_cast<T>(other.x);
 			y /= static_cast<T>(other.y);
@@ -1284,7 +1284,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator=(const vec_t<T2, 3>& other)
+		Vec_t<T, 3>& operator=(const Vec_t<T2, 3>& other)
 		{
 			x = static_cast<T>(other.x);
 			y = static_cast<T>(other.y);
@@ -1299,7 +1299,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 3>& operator=(const vec_t<T2, 2>& other)
+		Vec_t<T, 3>& operator=(const Vec_t<T2, 2>& other)
 		{
 			x = static_cast<T>(other.x);
 			y = static_cast<T>(other.y);
@@ -1331,7 +1331,7 @@ namespace dk
 		 * @return Result of the dot product.
 		 */
 		template<typename T2>
-		RealNumber dot(const vec_t<T2, 3>& other) const
+		RealNumber dot(const Vec_t<T2, 3>& other) const
 		{
 			return static_cast<RealNumber>((x*other.x) + (y*other.y) + (z*other.z));
 		}
@@ -1340,7 +1340,7 @@ namespace dk
 		 * @brief Normalize the vector.
 		 * @return This vector.
 		 */
-		vec_t<T, 3>& normalize()
+		Vec_t<T, 3>& normalize()
 		{
 			RealNumber mag = magnitude();
 			if (mag == 0) return;
@@ -1355,11 +1355,11 @@ namespace dk
 		 * @return A vector with the same direction as this, but with a magnitude of 1.
 		 * @note The magnitude might be 0 if the original vectors magnitude was 0.
 		 */
-		vec_t<T, 3> normalized() const
+		Vec_t<T, 3> normalized() const
 		{
 			RealNumber mag = magnitude();
-			if (mag == 0) return vec_t<T, N>(0);
-			vec_t<T, N> new_vec = *this;
+			if (mag == 0) return Vec_t<T, N>(0);
+			Vec_t<T, N> new_vec = *this;
 			new_vec.x /= static_cast<T>(mag);
 			new_vec.y /= static_cast<T>(mag);
 			new_vec.z /= static_cast<T>(mag);
@@ -1381,7 +1381,7 @@ namespace dk
 	// vec3f
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator+(const vec_t<float, 3>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator+(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1389,7 +1389,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator+(const vec_t<float, 2>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator+(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1397,7 +1397,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator-(const vec_t<float, 3>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator-(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1405,7 +1405,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator-(const vec_t<float, 2>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator-(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, 0 }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1413,7 +1413,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator*(const vec_t<float, 3>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator*(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1421,7 +1421,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator*(const vec_t<float, 2>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator*(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, 0 }, { other.x, other.y, 1, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1429,7 +1429,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator/(const vec_t<float, 3>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator/(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1437,7 +1437,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::operator/(const vec_t<float, 2>& other) const
+	Vec_t<float, 3> Vec_t<float, 3>::operator/(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { other.x, other.y, 1, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
@@ -1445,7 +1445,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator+=(const vec_t<float, 3>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator+=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -1454,7 +1454,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator+=(const vec_t<float, 2>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator+=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, 0, 0 });
@@ -1463,7 +1463,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator-=(const vec_t<float, 3>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator-=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -1472,7 +1472,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator-=(const vec_t<float, 2>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator-=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, 0, 0 });
@@ -1481,7 +1481,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator*=(const vec_t<float, 3>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator*=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -1490,7 +1490,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator*=(const vec_t<float, 2>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator*=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, 1, 0 });
@@ -1499,7 +1499,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator/=(const vec_t<float, 3>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator/=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -1508,7 +1508,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::operator/=(const vec_t<float, 2>& other)
+	Vec_t<float, 3>& Vec_t<float, 3>::operator/=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 1, 0 });
@@ -1516,7 +1516,7 @@ namespace dk
 	}
 
 	template<>
-	RealNumber vec_t<float, 3>::square_magnitude() const
+	RealNumber Vec_t<float, 3>::square_magnitude() const
 	{
 		__m128 v1 = { x, y, z, 0.0f };
 		v1 = _mm_mul_ps(v1, v1);
@@ -1525,7 +1525,7 @@ namespace dk
 
 	template<>
 	template<>
-	RealNumber vec_t<float, 3>::dot(const vec_t<float, 3>& other) const
+	RealNumber Vec_t<float, 3>::dot(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = { x, y, z, 0.0f };
 		__m128 v2 = { other.x, other.y, other.z, 0.0f };
@@ -1534,7 +1534,7 @@ namespace dk
 	}
 
 	template<>
-	vec_t<float, 3>& vec_t<float, 3>::normalize()
+	Vec_t<float, 3>& Vec_t<float, 3>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -1544,19 +1544,19 @@ namespace dk
 	}
 
 	template<>
-	vec_t<float, 3> vec_t<float, 3>::normalized() const
+	Vec_t<float, 3> Vec_t<float, 3>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
-		if (mag == 0) return vec_t<float, 3>(0);
+		if (mag == 0) return Vec_t<float, 3>(0);
 		__m128 v1 = { x, y, z, 0 };
 		v1 = _mm_div_ps(v1, { mag, mag, mag, mag });
-		return vec_t<float, 3>(v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2]);
+		return Vec_t<float, 3>(v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2]);
 	}
 
 	// vec3i
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator+(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator+(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1574,7 +1574,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator+(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator+(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1592,7 +1592,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator-(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator-(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1610,7 +1610,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator-(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator-(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1628,7 +1628,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator*(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator*(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1646,7 +1646,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator*(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator*(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1664,7 +1664,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator/(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator/(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 0.0f };
@@ -1680,7 +1680,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::operator/(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::operator/(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0.0f, 0.0f };
@@ -1696,7 +1696,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator+=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator+=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1709,7 +1709,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator+=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator+=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1722,7 +1722,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator-=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator-=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1735,7 +1735,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator-=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator-=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1748,7 +1748,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator*=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator*=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1761,7 +1761,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator*=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator*=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -1774,7 +1774,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator/=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator/=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 0.0f };
@@ -1787,7 +1787,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::operator/=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::operator/=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 1.0f, 1.0f };
@@ -1798,7 +1798,7 @@ namespace dk
 	}
 
 	template<>
-	RealNumber vec_t<int32_t, 3>::square_magnitude() const
+	RealNumber Vec_t<int32_t, 3>::square_magnitude() const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1810,7 +1810,7 @@ namespace dk
 
 	template<>
 	template<>
-	RealNumber vec_t<int32_t, 3>::dot(const vec_t<int32_t, 3>& other) const
+	RealNumber Vec_t<int32_t, 3>::dot(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -1827,7 +1827,7 @@ namespace dk
 	}
 
 	template<>
-	vec_t<int32_t, 3>& vec_t<int32_t, 3>::normalize()
+	Vec_t<int32_t, 3>& Vec_t<int32_t, 3>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -1841,14 +1841,14 @@ namespace dk
 	}
 
 	template<>
-	vec_t<int32_t, 3> vec_t<int32_t, 3>::normalized() const
+	Vec_t<int32_t, 3> Vec_t<int32_t, 3>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
-		if (mag == 0) return vec_t<int32_t, 3>(0);
+		if (mag == 0) return Vec_t<int32_t, 3>(0);
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 0 };
 		__m128 v2 = { mag, mag, mag, mag };
 		v1 = _mm_div_ps(v1, v2);
-		return vec_t<int32_t, 3>(
+		return Vec_t<int32_t, 3>(
 			static_cast<int32_t>(v1.m128_f32[0]), 
 			static_cast<int32_t>(v1.m128_f32[1]), 
 			static_cast<int32_t>(v1.m128_f32[2]));
@@ -1863,20 +1863,20 @@ namespace dk
 	 * @tparam Datatype used by the vector.
 	 */
 	template<typename T>
-	class alignas(16) vec_t<T, 4>
+	class alignas(16) Vec_t<T, 4>
 	{
 	public:
 
 		/**
 		 * @brief Constructor.
 		 */
-		vec_t() : x(0), y(0), z(0), w(0) {}
+		Vec_t() : x(0), y(0), z(0), w(0) {}
 
 		/**
 		 * @brief Constructor.
 		 * @param Value of every element.
 		 */
-		vec_t(T val) : x(val), y(val), z(val), w(val) {}
+		Vec_t(T val) : x(val), y(val), z(val), w(val) {}
 
 		/**
 		 * @brief Constructor.
@@ -1885,14 +1885,14 @@ namespace dk
 		 * @param Z value.
 		 * @param W value.
 		 */
-		vec_t(T x_a, T y_a, T z_a, T w_a) : x(x_a), y(y_a), z(z_a), w(w_a) {}
+		Vec_t(T x_a, T y_a, T z_a, T w_a) : x(x_a), y(y_a), z(z_a), w(w_a) {}
 
 		/**
 		 * @brief Copy constructor.
 		 * @param Other 2D vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, 2>& other) : 
+		Vec_t(const Vec_t<T2, 2>& other) : 
 			x(static_cast<T>(other.x)), 
 			y(static_cast<T>(other.y)), 
 			z(0),
@@ -1903,7 +1903,7 @@ namespace dk
 		 * @param Other 3D vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, 3>& other) : 
+		Vec_t(const Vec_t<T2, 3>& other) : 
 			x(static_cast<T>(other.x)), 
 			y(static_cast<T>(other.y)), 
 			z(static_cast<T>(other.z)),
@@ -1914,7 +1914,7 @@ namespace dk
 		 * @param Other 4D vector.
 		 */
 		template<typename T2>
-		vec_t(const vec_t<T2, 4>& other) : 
+		Vec_t(const Vec_t<T2, 4>& other) : 
 			x(static_cast<T>(other.x)), 
 			y(static_cast<T>(other.y)), 
 			z(static_cast<T>(other.z)),
@@ -1923,7 +1923,7 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		~vec_t() = default;
+		~Vec_t() = default;
 
 
 
@@ -1950,7 +1950,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, 4>& other) const
+		bool operator==(const Vec_t<T, 4>& other) const
 		{
 			return x == other.x && y == other.y && z == other.z && w == other.w;
 		}
@@ -1960,7 +1960,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, 3>& other) const
+		bool operator==(const Vec_t<T, 3>& other) const
 		{
 			return x == other.x && y == other.y && z == other.z && w == 0;
 		}
@@ -1970,7 +1970,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are equal.
 		 */
-		bool operator==(const vec_t<T, 2>& other) const
+		bool operator==(const Vec_t<T, 2>& other) const
 		{
 			return x == other.x && y == other.y && z == 0 && w == 0;
 		}
@@ -1980,7 +1980,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, 4>& other) const
+		bool operator!=(const Vec_t<T, 4>& other) const
 		{
 			return x != other.x || y != other.y || z != other.z || w != other.w;
 		}
@@ -1990,7 +1990,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, 3>& other) const
+		bool operator!=(const Vec_t<T, 3>& other) const
 		{
 			return x != other.x || y != other.y || z != other.z || w != 0;
 		}
@@ -2000,7 +2000,7 @@ namespace dk
 		 * @param Other vector.
 		 * @return If this vector and the other vector are not equal.
 		 */
-		bool operator!=(const vec_t<T, 2>& other) const
+		bool operator!=(const Vec_t<T, 2>& other) const
 		{
 			return x != other.x || y != other.y || z != 0 || w != 0;
 		}
@@ -2012,7 +2012,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator+(const vec_t<T2, 4>& other) const
+		Vec_t<T, 4> operator+(const Vec_t<T2, 4>& other) const
 		{
 			return
 			{
@@ -2030,7 +2030,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator+(const vec_t<T2, 3>& other) const
+		Vec_t<T, 4> operator+(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -2048,7 +2048,7 @@ namespace dk
 		 * @return Vector with summed values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator+(const vec_t<T2, 2>& other) const
+		Vec_t<T, 4> operator+(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -2066,7 +2066,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator-(const vec_t<T2, 4>& other) const
+		Vec_t<T, 4> operator-(const Vec_t<T2, 4>& other) const
 		{
 			return
 			{
@@ -2084,7 +2084,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator-(const vec_t<T2, 3>& other) const
+		Vec_t<T, 4> operator-(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -2102,7 +2102,7 @@ namespace dk
 		 * @return Vector with difference values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator-(const vec_t<T2, 2>& other) const
+		Vec_t<T, 4> operator-(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -2120,7 +2120,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator*(const vec_t<T2, 4>& other) const
+		Vec_t<T, 4> operator*(const Vec_t<T2, 4>& other) const
 		{
 			return
 			{
@@ -2138,7 +2138,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator*(const vec_t<T2, 3>& other) const
+		Vec_t<T, 4> operator*(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -2156,7 +2156,7 @@ namespace dk
 		 * @return Vector with product values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator*(const vec_t<T2, 2>& other) const
+		Vec_t<T, 4> operator*(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -2174,7 +2174,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator/(const vec_t<T2, 4>& other) const
+		Vec_t<T, 4> operator/(const Vec_t<T2, 4>& other) const
 		{
 			return
 			{
@@ -2192,7 +2192,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator/(const vec_t<T2, 3>& other) const
+		Vec_t<T, 4> operator/(const Vec_t<T2, 3>& other) const
 		{
 			return
 			{
@@ -2210,7 +2210,7 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		template<typename T2>
-		vec_t<T, 4> operator/(const vec_t<T2, 2>& other) const
+		Vec_t<T, 4> operator/(const Vec_t<T2, 2>& other) const
 		{
 			return
 			{
@@ -2228,7 +2228,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator+=(const vec_t<T2, 4>& other)
+		Vec_t<T, 4>& operator+=(const Vec_t<T2, 4>& other)
 		{
 			x += static_cast<T>(other.x);
 			y += static_cast<T>(other.y);
@@ -2244,7 +2244,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator+=(const vec_t<T2, 3>& other)
+		Vec_t<T, 4>& operator+=(const Vec_t<T2, 3>& other)
 		{
 			x += static_cast<T>(other.x);
 			y += static_cast<T>(other.y);
@@ -2259,7 +2259,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator+=(const vec_t<T2, 2>& other)
+		Vec_t<T, 4>& operator+=(const Vec_t<T2, 2>& other)
 		{
 			x += static_cast<T>(other.x);
 			y += static_cast<T>(other.y);
@@ -2273,7 +2273,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator-=(const vec_t<T2, 4>& other)
+		Vec_t<T, 4>& operator-=(const Vec_t<T2, 4>& other)
 		{
 			x -= static_cast<T>(other.x);
 			y -= static_cast<T>(other.y);
@@ -2289,7 +2289,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator-=(const vec_t<T2, 3>& other)
+		Vec_t<T, 4>& operator-=(const Vec_t<T2, 3>& other)
 		{
 			x -= static_cast<T>(other.x);
 			y -= static_cast<T>(other.y);
@@ -2304,7 +2304,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator-=(const vec_t<T2, 2>& other)
+		Vec_t<T, 4>& operator-=(const Vec_t<T2, 2>& other)
 		{
 			x -= static_cast<T>(other.x);
 			y -= static_cast<T>(other.y);
@@ -2318,7 +2318,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator*=(const vec_t<T2, 4>& other)
+		Vec_t<T, 4>& operator*=(const Vec_t<T2, 4>& other)
 		{
 			x *= static_cast<T>(other.x);
 			y *= static_cast<T>(other.y);
@@ -2334,7 +2334,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator*=(const vec_t<T2, 3>& other)
+		Vec_t<T, 4>& operator*=(const Vec_t<T2, 3>& other)
 		{
 			x *= static_cast<T>(other.x);
 			y *= static_cast<T>(other.y);
@@ -2349,7 +2349,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator*=(const vec_t<T2, 2>& other)
+		Vec_t<T, 4>& operator*=(const Vec_t<T2, 2>& other)
 		{
 			x *= static_cast<T>(other.x);
 			y *= static_cast<T>(other.y);
@@ -2363,7 +2363,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator/=(const vec_t<T2, 4>& other)
+		Vec_t<T, 4>& operator/=(const Vec_t<T2, 4>& other)
 		{
 			x /= static_cast<T>(other.x);
 			y /= static_cast<T>(other.y);
@@ -2379,7 +2379,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator/=(const vec_t<T2, 3>& other)
+		Vec_t<T, 4>& operator/=(const Vec_t<T2, 3>& other)
 		{
 			x /= static_cast<T>(other.x);
 			y /= static_cast<T>(other.y);
@@ -2394,7 +2394,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator/=(const vec_t<T2, 2>& other)
+		Vec_t<T, 4>& operator/=(const Vec_t<T2, 2>& other)
 		{
 			x /= static_cast<T>(other.x);
 			y /= static_cast<T>(other.y);
@@ -2408,7 +2408,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator=(const vec_t<T2, 4>& other)
+		Vec_t<T, 4>& operator=(const Vec_t<T2, 4>& other)
 		{
 			x = static_cast<T>(other.x);
 			y = static_cast<T>(other.y);
@@ -2424,7 +2424,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator=(const vec_t<T2, 3>& other)
+		Vec_t<T, 4>& operator=(const Vec_t<T2, 3>& other)
 		{
 			x = static_cast<T>(other.x);
 			y = static_cast<T>(other.y);
@@ -2440,7 +2440,7 @@ namespace dk
 		 * @return This vector.
 		 */
 		template<typename T2>
-		vec_t<T, 4>& operator=(const vec_t<T2, 2>& other)
+		Vec_t<T, 4>& operator=(const Vec_t<T2, 2>& other)
 		{
 			x = static_cast<T>(other.x);
 			y = static_cast<T>(other.y);
@@ -2473,7 +2473,7 @@ namespace dk
 		 * @return Result of the dot product.
 		 */
 		template<typename T2>
-		RealNumber dot(const vec_t<T2, 4>& other) const
+		RealNumber dot(const Vec_t<T2, 4>& other) const
 		{
 			return static_cast<RealNumber>((x*other.x) + (y*other.y) + (z*other.z) + (w*other.w));
 		}
@@ -2482,7 +2482,7 @@ namespace dk
 		 * @brief Normalize the vector.
 		 * @return This vector.
 		 */
-		vec_t<T, 4>& normalize()
+		Vec_t<T, 4>& normalize()
 		{
 			RealNumber mag = magnitude();
 			if (mag == 0) return;
@@ -2498,11 +2498,11 @@ namespace dk
 		 * @return A vector with the same direction as this, but with a magnitude of 1.
 		 * @note The magnitude might be 0 if the original vectors magnitude was 0.
 		 */
-		vec_t<T, 4> normalized() const
+		Vec_t<T, 4> normalized() const
 		{
 			RealNumber mag = magnitude();
-			if (mag == 0) return vec_t<T, N>(0);
-			vec_t<T, N> new_vec = *this;
+			if (mag == 0) return Vec_t<T, N>(0);
+			Vec_t<T, N> new_vec = *this;
 			new_vec.x /= static_cast<T>(mag);
 			new_vec.y /= static_cast<T>(mag);
 			new_vec.z /= static_cast<T>(mag);
@@ -2524,7 +2524,7 @@ namespace dk
 	// vec4f
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 4>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator+(const Vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2532,7 +2532,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 3>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator+(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2540,7 +2540,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator+(const vec_t<float, 2>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator+(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2548,7 +2548,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 4>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator-(const Vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2556,7 +2556,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 3>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator-(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, w }, { other.x, other.y, other.z, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2564,7 +2564,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator-(const vec_t<float, 2>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator-(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_sub_ps({ x, y, z, w }, { other.x, other.y, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2572,7 +2572,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 4>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator*(const Vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2580,7 +2580,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 3>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator*(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_mul_ps({ x, y, z, w }, { other.x, other.y, other.z, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2588,7 +2588,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator*(const vec_t<float, 2>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator*(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_add_ps({ x, y, z, w }, { other.x, other.y, 1, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2596,7 +2596,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 4>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator/(const Vec_t<float, 4>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2604,7 +2604,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 3>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator/(const Vec_t<float, 3>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, other.z, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2612,7 +2612,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::operator/(const vec_t<float, 2>& other) const
+	Vec_t<float, 4> Vec_t<float, 4>::operator/(const Vec_t<float, 2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, 1, 1 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
@@ -2620,7 +2620,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 4>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator+=(const Vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -2629,7 +2629,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 3>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator+=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -2638,7 +2638,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator+=(const vec_t<float, 2>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator+=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_add_ps(*v1, { other.x, other.y, 0, 0 });
@@ -2647,7 +2647,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 4>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator-=(const Vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -2656,7 +2656,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 3>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator-=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, other.z, 0 });
@@ -2665,7 +2665,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator-=(const vec_t<float, 2>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator-=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_sub_ps(*v1, { other.x, other.y, 0, 0 });
@@ -2674,7 +2674,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 4>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator*=(const Vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -2683,7 +2683,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 3>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator*=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, other.z, 1 });
@@ -2692,7 +2692,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator*=(const vec_t<float, 2>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator*=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_mul_ps(*v1, { other.x, other.y, 1, 1 });
@@ -2701,7 +2701,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 4>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator/=(const Vec_t<float, 4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, other.z, other.w });
@@ -2710,7 +2710,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 3>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator/=(const Vec_t<float, 3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, other.z, 1 });
@@ -2719,7 +2719,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::operator/=(const vec_t<float, 2>& other)
+	Vec_t<float, 4>& Vec_t<float, 4>::operator/=(const Vec_t<float, 2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 1, 1 });
@@ -2727,7 +2727,7 @@ namespace dk
 	}
 
 	template<>
-	RealNumber vec_t<float, 4>::square_magnitude() const
+	RealNumber Vec_t<float, 4>::square_magnitude() const
 	{
 		__m128 v1 = { x, y, z, w };
 		v1 = _mm_mul_ps(v1, v1);
@@ -2736,7 +2736,7 @@ namespace dk
 
 	template<>
 	template<>
-	RealNumber vec_t<float, 4>::dot(const vec_t<float, 4>& other) const
+	RealNumber Vec_t<float, 4>::dot(const Vec_t<float, 4>& other) const
 	{
 		__m128 v1 = { x, y, z, w };
 		__m128 v2 = { other.x, other.y, other.z, other.w };
@@ -2745,7 +2745,7 @@ namespace dk
 	}
 
 	template<>
-	vec_t<float, 4>& vec_t<float, 4>::normalize()
+	Vec_t<float, 4>& Vec_t<float, 4>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -2756,20 +2756,20 @@ namespace dk
 	}
 
 	template<>
-	vec_t<float, 4> vec_t<float, 4>::normalized() const
+	Vec_t<float, 4> Vec_t<float, 4>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
-		if (mag == 0) return vec_t<float, 4>(0);
+		if (mag == 0) return Vec_t<float, 4>(0);
 		__m128 v1 = { x, y, z, w };
 		__m128 v2 = { mag, mag, mag, mag };
 		v1 = _mm_div_ps(v1, v2);
-		return vec_t<float, 4>(v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3]);
+		return Vec_t<float, 4>(v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3]);
 	}
 
 	// vec4i
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 4>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator+(const Vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2789,7 +2789,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator+(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2809,7 +2809,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator+(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator+(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2829,7 +2829,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 4>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator-(const Vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2849,7 +2849,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator-(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2869,7 +2869,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator-(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator-(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2889,7 +2889,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 4>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator*(const Vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2909,7 +2909,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator*(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2929,7 +2929,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator*(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator*(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -2949,7 +2949,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 4>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator/(const Vec_t<int32_t, 4>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), static_cast<float>(other.w) };
@@ -2966,7 +2966,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 3>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator/(const Vec_t<int32_t, 3>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 1 };
@@ -2983,7 +2983,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::operator/(const vec_t<int32_t, 2>& other) const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::operator/(const Vec_t<int32_t, 2>& other) const
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 1, 1 };
@@ -3000,7 +3000,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 4>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator+=(const Vec_t<int32_t, 4>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3014,7 +3014,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator+=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3028,7 +3028,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator+=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator+=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3042,7 +3042,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 4>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator-=(const Vec_t<int32_t, 4>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3056,7 +3056,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator-=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3070,7 +3070,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator-=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator-=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3084,7 +3084,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 4>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator*=(const Vec_t<int32_t, 4>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3098,7 +3098,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator*=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3112,7 +3112,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator*=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator*=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128i* v1 = reinterpret_cast<__m128i*>(data);
 		__m128i v2 = {};
@@ -3126,7 +3126,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 4>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator/=(const Vec_t<int32_t, 4>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), static_cast<float>(other.w) };
@@ -3140,7 +3140,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 3>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator/=(const Vec_t<int32_t, 3>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), static_cast<float>(other.z), 0 };
@@ -3153,7 +3153,7 @@ namespace dk
 
 	template<>
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::operator/=(const vec_t<int32_t, 2>& other)
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::operator/=(const Vec_t<int32_t, 2>& other)
 	{
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { static_cast<float>(other.x), static_cast<float>(other.y), 0, 0};
@@ -3164,7 +3164,7 @@ namespace dk
 	}
 
 	template<>
-	RealNumber vec_t<int32_t, 4>::square_magnitude() const
+	RealNumber Vec_t<int32_t, 4>::square_magnitude() const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -3177,7 +3177,7 @@ namespace dk
 
 	template<>
 	template<>
-	RealNumber vec_t<int32_t, 4>::dot(const vec_t<int32_t, 4>& other) const
+	RealNumber Vec_t<int32_t, 4>::dot(const Vec_t<int32_t, 4>& other) const
 	{
 		__m128i v1 = {};
 		v1.m128i_i32[0] = x;
@@ -3196,7 +3196,7 @@ namespace dk
 	}
 
 	template<>
-	vec_t<int32_t, 4>& vec_t<int32_t, 4>::normalize()
+	Vec_t<int32_t, 4>& Vec_t<int32_t, 4>::normalize()
 	{
 		float mag = static_cast<float>(magnitude());
 		if (mag == 0) return *this;
@@ -3211,14 +3211,14 @@ namespace dk
 	}
 
 	template<>
-	vec_t<int32_t, 4> vec_t<int32_t, 4>::normalized() const
+	Vec_t<int32_t, 4> Vec_t<int32_t, 4>::normalized() const
 	{
 		float mag = static_cast<float>(magnitude());
-		if (mag == 0) return vec_t<int32_t, 4>(0);
+		if (mag == 0) return Vec_t<int32_t, 4>(0);
 		__m128 v1 = { static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), static_cast<float>(w) };
 		__m128 v2 = { mag, mag, mag, mag };
 		v1 = _mm_div_ps(v1, v2);
-		return vec_t<int32_t, 4>(
+		return Vec_t<int32_t, 4>(
 			static_cast<int32_t>(v1.m128_f32[0]), 
 			static_cast<int32_t>(v1.m128_f32[1]), 
 			static_cast<int32_t>(v1.m128_f32[2]),
@@ -3228,42 +3228,42 @@ namespace dk
 #endif
 
 	/** Standard 4D vector. */
-	using vec4 = vec_t<RealNumber, 4>;
+	using Vec4 = Vec_t<RealNumber, 4>;
 
 	/** Floating point 4D vector. */
-	using vec4f = vec_t<float, 4>;
+	using Vec4f = Vec_t<float, 4>;
 
 	/** Double precision floating point 4D vector. */
-	using vec4d = vec_t<double, 4>;
+	using Vec4d = Vec_t<double, 4>;
 
 	/** Signed integer 4D vector. */
-	using vec4i = vec_t<int32_t, 4>;
+	using Vec4i = Vec_t<int32_t, 4>;
 
 
 
 	/** Standard 3D vector. */
-	using vec3 = vec_t<RealNumber, 3>;
+	using Vec3 = Vec_t<RealNumber, 3>;
 
 	/** Floating point 3D vector. */
-	using vec3f = vec_t<float, 3>;
+	using Vec3f = Vec_t<float, 3>;
 
 	/** Double precision floating point 2D vector. */
-	using vec3d = vec_t<double, 3>;
+	using Vec3d = Vec_t<double, 3>;
 
 	/** Signed integer 2D vector. */
-	using vec3i = vec_t<int32_t, 3>;
+	using Vec3i = Vec_t<int32_t, 3>;
 
 
 
 	/** Standard 2D vector. */
-	using vec2 = vec_t<RealNumber, 2>;
+	using Vec2 = Vec_t<RealNumber, 2>;
 
 	/** Floating point 2D vector. */
-	using vec2f = vec_t<float, 2>;
+	using Vec2f = Vec_t<float, 2>;
 
 	/** Double precision floating point 2D vector. */
-	using vec2d = vec_t<double, 2>;
+	using Vec2d = Vec_t<double, 2>;
 
 	/** Signed integer 2D vector. */
-	using vec2i = vec_t<int32_t, 2>;
+	using Vec2i = Vec_t<int32_t, 2>;
 }
