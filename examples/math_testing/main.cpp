@@ -136,6 +136,36 @@ int main()
 		dk_log(m3.to_string() << '\n');
 	}
 
+	// mat3 tests
+	{
+		dk_log("MAT3 TESTS");
+
+		dk::Mat3 m1 =
+		{
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+		};
+
+		dk::Mat3 m2 =
+		{
+			1, 2, 1,
+			4, 5, 9,
+			7, 8, 9
+		};
+
+		dk::Mat3 m3(0);
+
+		m3 = m1 + m2; // [2, 2; 3, 5]
+		dk_log(m3.to_string() << '\n');
+
+		m3 = m1 - m2; // [0, -2; -3, -3]
+		dk_log(m3.to_string() << '\n');
+
+		m3 = m2 * m2.inverse(); // [1, 2; 3, 4]
+		dk_log(m3.to_string() << '\n');
+	}
+
 	// mat2 tests
 	{
 		dk_log("MAT2 TESTS");
