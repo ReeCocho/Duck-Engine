@@ -156,13 +156,13 @@ int main()
 
 		dk::Mat3 m3(0);
 
-		m3 = m1 + m2; // [2, 2; 3, 5]
+		m3 = m1 + m2;
 		dk_log(m3.to_string() << '\n');
 
-		m3 = m1 - m2; // [0, -2; -3, -3]
+		m3 = m1 - m2;
 		dk_log(m3.to_string() << '\n');
 
-		m3 = m2 * m2.inverse(); // [1, 2; 3, 4]
+		m3 = m2 * m2.inverse();
 		dk_log(m3.to_string() << '\n');
 	}
 
