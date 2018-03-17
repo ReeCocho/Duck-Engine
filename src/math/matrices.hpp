@@ -2184,7 +2184,7 @@ namespace dk
 		 * @return This matrix
 		 */
 		template<typename T2>
-		Mat_t<T, 3, 3> operator/=(T2 scalar)
+		Mat_t<T, 4, 4> operator/=(T2 scalar)
 		{
 			data[0][0] /= static_cast<T>(scalar);
 			data[0][1] /= static_cast<T>(scalar);
@@ -2311,6 +2311,204 @@ namespace dk
 		/** Matrix data. */
 		T data[4][4] = {};
 	};
+
+#if DUCK_USE_SIMD
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator+(const Mat_t<float, 4, 4>& other) const
+	{
+		Mat_t<float, 4, 4> mat = *this;
+
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
+			m1 = _mm_add_ps(m1, m2);
+			mat.data[i][0] = m1.m128_f32[0];
+			mat.data[i][1] = m1.m128_f32[1];
+			mat.data[i][2] = m1.m128_f32[2];
+			mat.data[i][3] = m1.m128_f32[3];
+		}
+
+		return mat;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator-(const Mat_t<float, 4, 4>& other) const
+	{
+		Mat_t<float, 4, 4> mat = *this;
+
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
+			m1 = _mm_sub_ps(m1, m2);
+			mat.data[i][0] = m1.m128_f32[0];
+			mat.data[i][1] = m1.m128_f32[1];
+			mat.data[i][2] = m1.m128_f32[2];
+			mat.data[i][3] = m1.m128_f32[3];
+		}
+
+		return mat;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator*(const Mat_t<float, 4, 4>& other) const
+	{
+		Mat_t<float, 4, 4> mat(0);
+
+		for (size_t i = 0; i < 4; ++i)
+			for(size_t j = 0; j < 4; ++j)
+			{
+				__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+				__m128 m2 = { other.data[0][j], other.data[1][j], other.data[2][j], other.data[3][j] };
+				m1 = _mm_mul_ps(m1, m2);
+				mat.data[i][j] = m1.m128_f32[0] + m1.m128_f32[1] + m1.m128_f32[2] + m1.m128_f32[3];
+			}
+
+		return mat;
+	}
+
+	template<>
+	Vec_t<float, 4> Mat_t<float, 4, 4>::operator*(const Vec_t<float, 4>& vec) const
+	{
+		Vec_t<float, 4> new_vec(0);
+
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { vec.data[0], vec.data[1], vec.data[2], vec.data[3] };
+			m1 = _mm_mul_ps(m1, m2);
+			new_vec.data[i] = m1.m128_f32[0] + m1.m128_f32[1] + m1.m128_f32[2] + m1.m128_f32[3];
+		}
+
+		return new_vec;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator*(float scalar) const
+	{
+		Mat_t<float, 4, 4> mat = *this;
+
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { scalar, scalar, scalar, scalar };
+			m1 = _mm_mul_ps(m1, m2);
+			mat.data[i][0] = m1.m128_f32[0];
+			mat.data[i][1] = m1.m128_f32[1];
+			mat.data[i][2] = m1.m128_f32[2];
+			mat.data[i][3] = m1.m128_f32[3];
+		}
+
+		return mat;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator/(float scalar) const
+	{
+		Mat_t<float, 4, 4> mat = *this;
+
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { scalar, scalar, scalar, scalar };
+			m1 = _mm_div_ps(m1, m2);
+			mat.data[i][0] = m1.m128_f32[0];
+			mat.data[i][1] = m1.m128_f32[1];
+			mat.data[i][2] = m1.m128_f32[2];
+			mat.data[i][3] = m1.m128_f32[3];
+		}
+
+		return mat;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4>& Mat_t<float, 4, 4>::operator+=(const Mat_t<float, 4, 4>& other)
+	{
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
+			m1 = _mm_add_ps(m1, m2);
+			data[i][0] = m1.m128_f32[0];
+			data[i][1] = m1.m128_f32[1];
+			data[i][2] = m1.m128_f32[2];
+			data[i][3] = m1.m128_f32[3];
+		}
+
+		return *this;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4>& Mat_t<float, 4, 4>::operator-=(const Mat_t<float, 4, 4>& other)
+	{
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
+			m1 = _mm_sub_ps(m1, m2);
+			data[i][0] = m1.m128_f32[0];
+			data[i][1] = m1.m128_f32[1];
+			data[i][2] = m1.m128_f32[2];
+			data[i][3] = m1.m128_f32[3];
+		}
+
+		return *this;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4>& Mat_t<float, 4, 4>::operator*=(const Mat_t<float, 4, 4>& other)
+	{
+		*this = *this * other;
+		return *this;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator*=(float scalar)
+	{
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { scalar, scalar, scalar, scalar };
+			m1 = _mm_mul_ps(m1, m2);
+			data[i][0] = m1.m128_f32[0];
+			data[i][1] = m1.m128_f32[1];
+			data[i][2] = m1.m128_f32[2];
+			data[i][3] = m1.m128_f32[3];
+		}
+
+		return *this;
+	}
+
+	template<>
+	template<>
+	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator/=(float scalar)
+	{
+		for (size_t i = 0; i < 4; ++i)
+		{
+			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
+			__m128 m2 = { scalar, scalar, scalar, scalar };
+			m1 = _mm_div_ps(m1, m2);
+			data[i][0] = m1.m128_f32[0];
+			data[i][1] = m1.m128_f32[1];
+			data[i][2] = m1.m128_f32[2];
+			data[i][3] = m1.m128_f32[3];
+		}
+
+		return *this;
+	}
+
+#endif
 
 
 

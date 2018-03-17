@@ -126,13 +126,13 @@ int main()
 
 		dk::Mat4 m3(0);
 
-		m3 = m1 + m2; // [2, 2, 3, 4; 5, 7, 7, 8; 9, 10, 12, 12; 13, 14, 15, 17]
+		m3 = m1 + m2;
 		dk_log(m3.to_string() << '\n');
 
-		m3 = m1 - m2; // [0, -2, -3, -4; -5, -5, -7, -8; -9, -10, -10, -12; -13, -14, -15, -15]
+		m3 = m1 - m2;
 		dk_log(m3.to_string() << '\n');
 
-		m3 = m2.inverse() * m2; // (3, 8)
+		m3 = m2.inverse() * m2;
 		dk_log(m3.to_string() << '\n');
 	}
 
@@ -184,13 +184,13 @@ int main()
 
 		dk::Mat2 m3(0);
 
-		m3 = m1 + m2; // [2, 2; 3, 5]
+		m3 = m1 + m2;
 		dk_log(m3.to_string() << '\n');
 
-		m3 = m1 - m2; // [0, -2; -3, -3]
+		m3 = m1 - m2;
 		dk_log(m3.to_string() << '\n');
 
-		m3 = m1 * m2; // [1, 2; 3, 4]
+		m3 = m1 * m2;
 		dk_log(m3.to_string() << '\n');
 	}
 
