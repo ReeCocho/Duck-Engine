@@ -2211,33 +2211,105 @@ namespace dk
 		 */
 		T determinant() const
 		{
-			return	(data[0][0] * data[1][1] * data[2][2]) + (data[0][1] * data[1][2] * data[2][0]) + 
-					(data[0][2] * data[1][0] * data[2][1]) - (data[0][2] * data[1][1] * data[2][0]) - 
-					(data[0][1] * data[1][0] * data[2][2]) - (data[0][0] * data[1][2] * data[2][1]);
+			return	(data[0][0]*data[1][1]*data[2][2]*data[3][3]) - (data[0][0]*data[1][1]*data[2][3]*data[3][2]) - 
+					(data[0][0]*data[1][2]*data[2][1]*data[3][3]) + (data[0][0]*data[1][2]*data[2][3]*data[3][1]) + 
+					(data[0][0]*data[1][3]*data[2][1]*data[3][2]) - (data[0][0]*data[1][3]*data[2][2]*data[3][1]) - 
+					(data[0][1]*data[1][0]*data[2][2]*data[3][3]) + (data[0][1]*data[1][0]*data[2][3]*data[3][2]) +
+					(data[0][1]*data[1][2]*data[2][0]*data[3][3]) - (data[0][1]*data[1][2]*data[2][3]*data[3][1]) - 
+					(data[0][1]*data[1][3]*data[2][0]*data[3][2]) + (data[0][1]*data[1][3]*data[2][2]*data[3][1]) + 
+					(data[0][2]*data[1][0]*data[2][1]*data[3][3]) - (data[0][2]*data[1][0]*data[2][3]*data[3][1]) - 
+					(data[0][2]*data[1][1]*data[2][0]*data[3][3]) + (data[0][2]*data[1][1]*data[2][3]*data[3][0]) +
+					(data[0][2]*data[1][3]*data[2][0]*data[3][1]) - (data[0][2]*data[1][3]*data[2][1]*data[3][0]) - 
+					(data[0][3]*data[1][0]*data[2][1]*data[3][2]) + (data[0][3]*data[1][0]*data[2][2]*data[3][1]) + 
+					(data[0][3]*data[1][1]*data[2][0]*data[3][2]) - (data[0][3]*data[1][1]*data[2][2]*data[3][0]) - 
+					(data[0][3]*data[1][2]*data[2][0]*data[3][1]) + (data[0][3]*data[1][2]*data[2][1]*data[3][0]);
 		}
 
 		/**
 		 * @brief Get the inverse of the matrix.
 		 * @return Inverse of the matrix.
+		 * @note Thanks to the ID Software for this code ;)
 		 */
-		Mat_t<T, 3, 3> inverse() const
+		Mat_t<T, 4, 4> inverse() const
 		{
-			Mat_t<T, 3, 3> mat = 
-			{
-				(data[1][1]*data[2][2]) - (data[1][2]*data[2][1]), (data[0][2]*data[2][1]) - (data[0][1]*data[2][2]), (data[0][1]*data[1][2]) - (data[0][2]*data[1][1]),
-				(data[1][2]*data[2][0]) - (data[1][0]*data[2][2]), (data[0][0]*data[2][2]) - (data[0][2]*data[2][0]), (data[0][2]*data[1][0]) - (data[0][0]*data[1][2]),
-				(data[1][0]*data[2][1]) - (data[1][1]*data[2][0]), (data[0][1]*data[2][0]) - (data[0][0]*data[2][1]), (data[0][0]*data[1][1]) - (data[0][1]*data[1][0])
-			};
+			// 2x2 sub-determinants required to calculate 4x4 determinant
+			const T det2_01_01 = data[0][0] * data[1][1] - data[0][1] * data[1][0];
+			const T det2_01_02 = data[0][0] * data[1][2] - data[0][2] * data[1][0];
+			const T det2_01_03 = data[0][0] * data[1][3] - data[0][3] * data[1][0];
+			const T det2_01_12 = data[0][1] * data[1][2] - data[0][2] * data[1][1];
+			const T det2_01_13 = data[0][1] * data[1][3] - data[0][3] * data[1][1];
+			const T det2_01_23 = data[0][2] * data[1][3] - data[0][3] * data[1][2];
 
-			T det = determinant();
+			// 3x3 sub-determinants required to calculate 4x4 determinant
+			const T det3_201_012 = data[2][0] * det2_01_12 - data[2][1] * det2_01_02 + data[2][2] * det2_01_01;
+			const T det3_201_013 = data[2][0] * det2_01_13 - data[2][1] * det2_01_03 + data[2][3] * det2_01_01;
+			const T det3_201_023 = data[2][0] * det2_01_23 - data[2][2] * det2_01_03 + data[2][3] * det2_01_02;
+			const T det3_201_123 = data[2][1] * det2_01_23 - data[2][2] * det2_01_13 + data[2][3] * det2_01_12;
+
+			const T det = (-det3_201_123 * data[3][0] + det3_201_023 * data[3][1] - det3_201_013 * data[3][2] + det3_201_012 * data[3][3]);
 			dk_assert(det != 0);
-			mat /= det;
 
-			return mat;
+			const T rcpDet = 1 / det;
+
+			// remaining 2x2 sub-determinants
+			const T det2_03_01 = data[0][0] * data[3][1] - data[0][1] * data[3][0];
+			const T det2_03_02 = data[0][0] * data[3][2] - data[0][2] * data[3][0];
+			const T det2_03_03 = data[0][0] * data[3][3] - data[0][3] * data[3][0];
+
+			const T det2_03_12 = data[0][1] * data[3][2] - data[0][2] * data[3][1];
+			const T det2_03_13 = data[0][1] * data[3][3] - data[0][3] * data[3][1];
+			const T det2_03_23 = data[0][2] * data[3][3] - data[0][3] * data[3][2];
+
+			const T det2_13_01 = data[1][0] * data[3][1] - data[1][1] * data[3][0];
+			const T det2_13_02 = data[1][0] * data[3][2] - data[1][2] * data[3][0];
+			const T det2_13_03 = data[1][0] * data[3][3] - data[1][3] * data[3][0];
+			const T det2_13_12 = data[1][1] * data[3][2] - data[1][2] * data[3][1];
+			const T det2_13_13 = data[1][1] * data[3][3] - data[1][3] * data[3][1];
+			const T det2_13_23 = data[1][2] * data[3][3] - data[1][3] * data[3][2];
+
+			// remaining 3x3 sub-determinants
+			const T det3_203_012 = data[2][0] * det2_03_12 - data[2][1] * det2_03_02 + data[2][2] * det2_03_01;
+			const T det3_203_013 = data[2][0] * det2_03_13 - data[2][1] * det2_03_03 + data[2][3] * det2_03_01;
+			const T det3_203_023 = data[2][0] * det2_03_23 - data[2][2] * det2_03_03 + data[2][3] * det2_03_02;
+			const T det3_203_123 = data[2][1] * det2_03_23 - data[2][2] * det2_03_13 + data[2][3] * det2_03_12;
+
+			const T det3_213_012 = data[2][0] * det2_13_12 - data[2][1] * det2_13_02 + data[2][2] * det2_13_01;
+			const T det3_213_013 = data[2][0] * det2_13_13 - data[2][1] * det2_13_03 + data[2][3] * det2_13_01;
+			const T det3_213_023 = data[2][0] * det2_13_23 - data[2][2] * det2_13_03 + data[2][3] * det2_13_02;
+			const T det3_213_123 = data[2][1] * det2_13_23 - data[2][2] * det2_13_13 + data[2][3] * det2_13_12;
+
+			const T det3_301_012 = data[3][0] * det2_01_12 - data[3][1] * det2_01_02 + data[3][2] * det2_01_01;
+			const T det3_301_013 = data[3][0] * det2_01_13 - data[3][1] * det2_01_03 + data[3][3] * det2_01_01;
+			const T det3_301_023 = data[3][0] * det2_01_23 - data[3][2] * det2_01_03 + data[3][3] * det2_01_02;
+			const T det3_301_123 = data[3][1] * det2_01_23 - data[3][2] * det2_01_13 + data[3][3] * det2_01_12;
+
+			Mat_t<T, 4, 4> m(0);
+
+			m.data[0][0] = -det3_213_123 * rcpDet;
+			m.data[1][0] = +det3_213_023 * rcpDet;
+			m.data[2][0] = -det3_213_013 * rcpDet;
+			m.data[3][0] = +det3_213_012 * rcpDet;
+
+			m.data[0][1] = +det3_203_123 * rcpDet;
+			m.data[1][1] = -det3_203_023 * rcpDet;
+			m.data[2][1] = +det3_203_013 * rcpDet;
+			m.data[3][1] = -det3_203_012 * rcpDet;
+
+			m.data[0][2] = +det3_301_123 * rcpDet;
+			m.data[1][2] = -det3_301_023 * rcpDet;
+			m.data[2][2] = +det3_301_013 * rcpDet;
+			m.data[3][2] = -det3_301_012 * rcpDet;
+
+			m.data[0][3] = -det3_201_123 * rcpDet;
+			m.data[1][3] = +det3_201_023 * rcpDet;
+			m.data[2][3] = -det3_201_013 * rcpDet;
+			m.data[3][3] = +det3_201_012 * rcpDet;
+
+			return m;
 		}
 
 		/** Matrix data. */
-		T data[3][3] = {};
+		T data[4][4] = {};
 	};
 
 
