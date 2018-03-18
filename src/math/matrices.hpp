@@ -13,7 +13,7 @@ namespace dk
 {
 	/**
 	 * @brief A row in a matrix.
-	 * @tparam Type of data in the row.
+	 * @tparam Type of data sent to the row.
 	 * @tparam Number of elements in the row.
 	 */
 	template<typename T, size_t N>
@@ -46,11 +46,10 @@ namespace dk
 
 	/**
 	 * @brief M by N matrix.
-	 * @tparam Type used by the matrix.
 	 * @tparam M dimension.
 	 * @tparam N dimension.
 	 */
-	template<typename T, size_t M, size_t N>
+	template<size_t M, size_t N>
 	class alignas(16) Mat_t
 	{
 	public:
@@ -64,7 +63,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Value for every element.
 		 */
-		Mat_t(T val)
+		Mat_t(float val)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -75,7 +74,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Matrix values.
 		 */
-		Mat_t(std::initializer_list<T> values)
+		Mat_t(std::initializer_list<float> values)
 		{
 			dk_assert(values.size() == N * M);
 
@@ -89,15 +88,13 @@ namespace dk
 
 		/**
 		 * @brief Copy constructor.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 */
-		template<typename T2>
-		Mat_t(const Mat_t<T2, M, N>& other)
+		Mat_t(const Mat_t<M, N>& other)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
-					data[i][j] = static_cast<T>(other.data[i][j]);
+					data[i][j] = other.data[i][j];
 		}
 
 		/**
@@ -130,10 +127,10 @@ namespace dk
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<T, N> operator[](size_t index)
+		Row<float, N> operator[](size_t index)
 		{
 			dk_assert(index < M);
-			return Row<T, N>(data[index]);
+			return Row<float, N>(data[index]);
 		}
 
 		/**
@@ -141,10 +138,10 @@ namespace dk
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<const T, N> operator[](size_t index) const
+		Row<const float, N> operator[](size_t index) const
 		{
 			dk_assert(index < M);
-			return Row<T, N>(data[index]);
+			return Row<float, N>(data[index]);
 		}
 
 		/**
@@ -172,7 +169,7 @@ namespace dk
 		 * @param Other matrix.
 		 * @return If the two matrices are equal.
 		 */
-		bool operator==(const Mat_t<T, M, N>& other) const
+		bool operator==(const Mat_t<M, N>& other) const
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -187,79 +184,72 @@ namespace dk
 		 * @param Other matrix.
 		 * @return If the two matrices are not equal.
 		 */
-		bool operator!=(const Mat_t<T, M, N>& other) const
+		bool operator!=(const Mat_t<M, N>& other) const
 		{
 			return !(*this == other);
 		}
 
 		/**
 		 * @brief Assignment operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, M, N>& operator=(const Mat_t<T2, M, N>& other)
+		Mat_t<M, N>& operator=(const Mat_t<M, N>& other)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
-					data[i][j] = static_cast<T>(other.data[i][j]);
+					data[i][j] = other.data[i][j];
 
 			return *this;
 		}
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Sum of the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, M, N> operator+(const Mat_t<T2, M, N>& other) const
+		Mat_t<M, N> operator+(const Mat_t<M, N>& other) const
 		{
-			Mat_t<T, M, N> mat = *this;
+			Mat_t<M, N> mat = *this;
 
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
-					mat.data[i][j] += static_cast<T>(other.data[i][j]);
+					mat.data[i][j] += other.data[i][j];
 
 			return mat;
 		}
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Difference between the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, M, N> operator-(const Mat_t<T2, M, N>& other) const
+		Mat_t<M, N> operator-(const Mat_t<M, N>& other) const
 		{
-			Mat_t<T, M, N> mat = *this;
+			Mat_t<M, N> mat = *this;
 
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
-					mat.data[i][j] -= static_cast<T>(other.data[i][j]);
+					mat.data[i][j] -= other.data[i][j];
 
 			return mat;
 		}
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
 		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return Product of the two matrices.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, M, N> operator*(const Mat_t<T2, N, P>& other) const
+		template<size_t P>
+		Mat_t<M, N> operator*(const Mat_t<N, P>& other) const
 		{
-			Mat_t<T, M, P> mat(0);
+			Mat_t<M, P> mat(0);
 
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < P; ++j)
 					for (size_t k = 0; k < N; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
+						mat.data[i][j] += data[i][k] * other.data[k][j];
 
 			return mat;
 		}
@@ -269,9 +259,9 @@ namespace dk
 		 * @param Vector to multiply.
 		 * @return Vector with resulting multiplied values.
 		 */
-		Vec_t<T, M> operator*(const Vec_t<T, M>& vec) const
+		Vec_t<M> operator*(const Vec_t<M>& vec) const
 		{
-			Vec_t<T, M> new_vec(0);
+			Vec_t<M> new_vec(0);
 
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -282,14 +272,12 @@ namespace dk
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return Matrix with multiplied values.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator*(T2 scalar) const
+		Mat_t<M, N> operator*(float scalar) const
 		{
-			Mat_t<T, 2, 2> mat = *this;
+			Mat_t<M, N> mat = *this;
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
 					mat.data[i][j] *= scalar;
@@ -298,14 +286,12 @@ namespace dk
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return Matrix with quotient values.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator/(T2 scalar) const
+		Mat_t<M, N> operator/(float scalar) const
 		{
-			Mat_t<T, 2, 2> mat = *this;
+			Mat_t<M, N> mat = *this;
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
 					mat.data[i][j] /= scalar;
@@ -314,52 +300,47 @@ namespace dk
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, M, N>& operator+=(const Mat_t<T2, M, N>& other)
+		Mat_t<M, N>& operator+=(const Mat_t<M, N>& other)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
-					data[i][j] += static_cast<T>(other.data[i][j]);
+					data[i][j] += other.data[i][j];
 
 			return *this;
 		}
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, M, N>& operator-=(const Mat_t<T2, M, N>& other)
+		Mat_t<M, N>& operator-=(const Mat_t<M, N>& other)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
-					data[i][j] -= static_cast<T>(other.data[i][j]);
+					data[i][j] -= other.data[i][j];
 
 			return *this;
 		}
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
 		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, M, N>& operator*=(const Mat_t<T2, N, P>& other)
+		template<size_t P>
+		Mat_t<M, N>& operator*=(const Mat_t<N, P>& other)
 		{
-			Mat_t<T, M, P> mat(0);
+			Mat_t<M, P> mat(0);
 
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < P; ++j)
 					for (size_t k = 0; k < N; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
+						mat.data[i][j] += data[i][k] * other.data[k][j];
 
 			*this = mat;
 			return *this;
@@ -367,12 +348,10 @@ namespace dk
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2>& operator*=(T2 scalar)
+		Mat_t<M, N>& operator*=(float scalar)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -382,12 +361,10 @@ namespace dk
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2>& operator/=(T2 scalar)
+		Mat_t<M, N>& operator/=(float scalar)
 		{
 			for (size_t i = 0; i < M; ++i)
 				for (size_t j = 0; j < N; ++j)
@@ -396,7 +373,7 @@ namespace dk
 		}
 
 		/** Matrix data. */
-		T data[M][N] = {};
+		float data[M][N] = {};
 	};
 
 
@@ -405,8 +382,8 @@ namespace dk
 	 * @brief 2 by 2 matrix.
 	 * @tparam Type used by the matrix.
 	 */
-	template<typename T>
-	class alignas(16) Mat_t<T, 2, 2>
+	template<>
+	class alignas(16) Mat_t<2, 2>
 	{
 	public:
 
@@ -414,208 +391,114 @@ namespace dk
 		 * @brief Default constructor.
 		 * @note Creates an identity matrix.
 		 */
-		Mat_t()
-		{
-			data[0][0] = 1;
-			data[0][1] = 0;
-			data[1][0] = 0;
-			data[1][1] = 1;
-		}
+		Mat_t();
 
 		/**
 		 * @brief Constructor.
 		 * @param Value for every element.
 		 */
-		Mat_t(T val)
-		{
-			data[0][0] = val;
-			data[1][0] = val;
-			data[0][1] = val;
-			data[1][1] = val;
-		}
+		Mat_t(float val);
 		
 		/**
 		 * @brief Constructor.
 		 * @param Matrix values.
 		 */
-		Mat_t(T a, T b, T c, T d)
-		{
-			data[0][0] = a;
-			data[0][1] = b;
-			data[1][0] = c;
-			data[1][1] = d;
-		}
+		Mat_t(float a, float b, float c, float d);
 
 		/**
 		 * @brief Copy constructor.
 		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 */
-		template<typename T2>
-		Mat_t(const Mat_t<T2, 2, 2>& other)
-		{
-			data[0][0] = static_cast<T>(other.data[0][0]);
-			data[0][1] = static_cast<T>(other.data[1][0]);
-			data[1][0] = static_cast<T>(other.data[0][1]);
-			data[1][1] = static_cast<T>(other.data[1][1]);
-		}
+		Mat_t(const Mat_t<2, 2>& other);
 
 		/**
 		 * @brief Destructor.
 		 */
 		~Mat_t() = default;
 
-
-
 		/**
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		constexpr size_t rows() const
-		{
-			return 2;
-		}
+		constexpr size_t rows() const;
 
 		/**
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		constexpr size_t columns() const
-		{
-			return 2;
-		}
+		constexpr size_t columns() const;
 
 		/**
 		 * @brief Access operator.
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<T, 2> operator[](size_t index)
-		{
-			dk_assert(index < 2);
-			return Row<T, 2>(data[index]);
-		}
+		Row<float, 2> operator[](size_t index);
 
 		/**
 		 * @brief Access operator.
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<const T, 2> operator[](size_t index) const
-		{
-			dk_assert(index < 2);
-			return Row<T, 2>(data[index]);
-		}
+		Row<const float, 2> operator[](size_t index) const;
 
 		/**
 		 * @brief Convert the matrix into a string.
 		 * @return The matrix as a string.
 		 */
-		std::string to_string() const
-		{
-			std::string str = "";
-
-			for (size_t i = 0; i < 2; ++i)
-			{
-				str += "[";
-				for (size_t j = 0; j < 2 - 1; ++j)
-					str += std::to_string(data[i][j]) + ", ";
-
-				str += std::to_string(data[i][2 - 1]) + "]\n";
-			}
-			str.resize(str.size() - 1);
-			return str;
-		}
+		std::string to_string() const;
 
 		/**
 		 * @brief Equivilence operator.
 		 * @param Other matrix.
 		 * @return If the two matrices are equal.
 		 */
-		bool operator==(const Mat_t<T, 2, 2>& other) const
-		{
-			return	data[0][0] == other.data[0][0] && 
-					data[1][0] == other.data[1][0] && 
-					data[0][1] == other.data[0][1] && 
-					data[1][1] == other.data[1][1];
-		}
+		bool operator==(const Mat_t<2, 2>& other) const;
 
 		/**
 		 * @brief Unequivilence operator.
 		 * @param Other matrix.
 		 * @return If the two matrices are not equal.
 		 */
-		bool operator!=(const Mat_t<T, 2, 2>& other) const
-		{
-			return !(*this == other);
-		}
+		bool operator!=(const Mat_t<2, 2>& other) const;
 
 		/**
 		 * @brief Assignment operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2>& operator=(const Mat_t<T2, 2, 2>& other)
-		{
-			data[0][0] = static_cast<T>(other.data[0][0]);
-			data[1][0] = static_cast<T>(other.data[1][0]);
-			data[0][1] = static_cast<T>(other.data[0][1]);
-			data[1][1] = static_cast<T>(other.data[1][1]);
-			return *this;
-		}
+		Mat_t<2, 2>& operator=(const Mat_t<2, 2>& other);
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Sum of the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator+(const Mat_t<T2, 2, 2>& other) const
-		{
-			Mat_t<T, 2, 2> mat = *this;
-			mat.data[0][0] += static_cast<T>(other.data[0][0]);
-			mat.data[1][0] += static_cast<T>(other.data[1][0]);
-			mat.data[0][1] += static_cast<T>(other.data[0][1]);
-			mat.data[1][1] += static_cast<T>(other.data[1][1]);
-			return mat;
-		}
+		Mat_t<2, 2> operator+(const Mat_t<2, 2>& other) const;
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Difference between the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator-(const Mat_t<T2, 2, 2>& other) const
-		{
-			Mat_t<T, 2, 2> mat = *this;
-			mat.data[0][0] -= static_cast<T>(other.data[0][0]);
-			mat.data[1][0] -= static_cast<T>(other.data[1][0]);
-			mat.data[0][1] -= static_cast<T>(other.data[0][1]);
-			mat.data[1][1] -= static_cast<T>(other.data[1][1]);
-			return mat;
-		}
+		Mat_t<2, 2> operator-(const Mat_t<2, 2>& other) const;
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
 		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return Product of the two matrices.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, 2, 2> operator*(const Mat_t<T2, 2, P>& other) const
+		template<size_t P>
+		Mat_t<2, P> operator*(const Mat_t<2, P>& other) const
 		{
-			Mat_t<T, 2, P> mat(0);
+			Mat_t<2, P> mat(0);
 
 			for (size_t i = 0; i < 2; ++i)
 				for (size_t j = 0; j < P; ++j)
 					for (size_t k = 0; k < 2; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
+						mat.data[i][j] += data[i][k] * other.data[k][j];
 
 			return mat;
 		}
@@ -625,336 +508,72 @@ namespace dk
 		 * @param Vector to multiply.
 		 * @return Vector with resulting multiplied values.
 		 */
-		Vec_t<T, 2> operator*(const Vec_t<T, 2>& vec) const
-		{
-			Vec_t<T, 2> new_vec(0);
-			new_vec.data[0] = (data[0][0] * vec.data[0]) + (data[0][1] * vec.data[1]);
-			new_vec.data[1] = (data[1][0] * vec.data[0]) + (data[1][1] * vec.data[1]);
-			return new_vec;
-		}
+		Vec_t<2> operator*(const Vec_t<2>& vec) const;
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return Matrix with multiplied values.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator*(T2 scalar) const
-		{
-			Mat_t<T, 2, 2> mat = *this;
-			mat.data[0][0] *= static_cast<T>(scalar);
-			mat.data[1][0] *= static_cast<T>(scalar);
-			mat.data[0][1] *= static_cast<T>(scalar);
-			mat.data[1][1] *= static_cast<T>(scalar);
-			return mat;
-		}
+		Mat_t<2, 2> operator*(float scalar) const;
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return Matrix with quotient values.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator/(T2 scalar) const
-		{
-			Mat_t<T, 2, 2> mat = *this;
-			mat.data[0][0] /= static_cast<T>(scalar);
-			mat.data[1][0] /= static_cast<T>(scalar);
-			mat.data[0][1] /= static_cast<T>(scalar);
-			mat.data[1][1] /= static_cast<T>(scalar);
-			return mat;
-		}
+		Mat_t<2, 2> operator/(float scalar) const;
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2>& operator+=(const Mat_t<T2, 2, 2>& other)
-		{
-			data[0][0] += static_cast<T>(other.data[0][0]);
-			data[1][0] += static_cast<T>(other.data[1][0]);
-			data[0][1] += static_cast<T>(other.data[0][1]);
-			data[1][1] += static_cast<T>(other.data[1][1]);
-			return *this;
-		}
+		Mat_t<2, 2>& operator+=(const Mat_t<2, 2>& other);
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2>& operator-=(const Mat_t<T2, 2, 2>& other)
-		{
-			data[0][0] -= static_cast<T>(other.data[0][0]);
-			data[1][0] -= static_cast<T>(other.data[1][0]);
-			data[0][1] -= static_cast<T>(other.data[0][1]);
-			data[1][1] -= static_cast<T>(other.data[1][1]);
-			return *this;
-		}
+		Mat_t<2, 2>& operator-=(const Mat_t<2, 2>& other);
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
-		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, 2, 2>& operator*=(const Mat_t<T2, 2, P>& other)
-		{
-			Mat_t<T, 2, P> mat(0);
-
-			for (size_t i = 0; i < 2; ++i)
-				for (size_t j = 0; j < P; ++j)
-					for (size_t k = 0; k < 2; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
-
-			*this = mat;
-			return *this;
-		}
+		Mat_t<2, 2>& operator*=(const Mat_t<2, 2>& other);
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator*=(T2 scalar)
-		{
-			data[0][0] *= static_cast<T>(scalar);
-			data[1][0] *= static_cast<T>(scalar);
-			data[0][1] *= static_cast<T>(scalar);
-			data[1][1] *= static_cast<T>(scalar);
-			return *this;
-		}
+		Mat_t<2, 2> operator*=(float scalar);
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 2, 2> operator/=(T2 scalar)
-		{
-			data[0][0] /= static_cast<T>(scalar);
-			data[1][0] /= static_cast<T>(scalar);
-			data[0][1] /= static_cast<T>(scalar);
-			data[1][1] /= static_cast<T>(scalar);
-			return *this;
-		}
+		Mat_t<2, 2> operator/=(float scalar);
 
 		/**
 		 * @brief Determinant of the matrix.
 		 * @return The determinant.
 		 */
-		T determinant() const
-		{
-			return (data[0][0] * data[1][1]) - (data[1][0] * data[0][1]);
-		}
+		float determinant() const;
 
 		/**
 		 * @brief Get the inverse of the matrix.
 		 * @return Inverse of the matrix.
 		 */
-		Mat_t<T, 2, 2> inverse() const
-		{
-			Mat_t<T, 2, 2> mat = 
-			{
-				 data[1][1], -data[0][1],
-				-data[1][0],  data[0][0]
-			};
-
-			T det = determinant();
-			dk_assert(det != 0);
-			mat /= det;
-
-			return mat;
-		}
+		Mat_t<2, 2> inverse() const;
 
 		/** Matrix data. */
-		T data[2][2] = {};
+		float data[2][2] = {};
 	};
-
-#if DUCK_USE_SIMD
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator+(const Mat_t<float, 2, 2>& other) const
-	{
-		Mat_t<float, 2, 2> mat = *this;
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { other.data[0][0], other.data[1][0], other.data[0][1], other.data[1][1] };
-		m1 = _mm_add_ps(m1, m2);
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[1][0] = m1.m128_f32[1];
-		mat.data[0][1] = m1.m128_f32[2];
-		mat.data[1][1] = m1.m128_f32[3];
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator-(const Mat_t<float, 2, 2>& other) const
-	{
-		Mat_t<float, 2, 2> mat = *this;
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { other.data[0][0], other.data[1][0], other.data[0][1], other.data[1][1] };
-		m1 = _mm_sub_ps(m1, m2);
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[1][0] = m1.m128_f32[1];
-		mat.data[0][1] = m1.m128_f32[2];
-		mat.data[1][1] = m1.m128_f32[3];
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator*(const Mat_t<float, 2, 2>& other) const
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[0][0], data[0][1] };
-		__m128 m2 = { other.data[0][0], other.data[1][0], other.data[0][1], other.data[1][1] };
-		m1 = _mm_mul_ps(m1, m2);
-
-		Mat_t<float, 2, 2> mat(0);
-		mat.data[0][0] = m1.m128_f32[0] + m1.m128_f32[1];
-		mat.data[0][1] = m1.m128_f32[2] + m1.m128_f32[3];
-
-		m1 = { data[1][0], data[1][1], data[1][0], data[1][1] };
-		m2 = { other.data[0][0], other.data[1][0], other.data[0][1], other.data[1][1] };
-		m1 = _mm_mul_ps(m1, m2);
-
-		mat.data[1][0] = m1.m128_f32[0] + m1.m128_f32[1];
-		mat.data[1][1] = m1.m128_f32[2] + m1.m128_f32[3];
-
-		return mat;
-	}
-
-	template<>
-	Vec_t<float, 2> Mat_t<float, 2, 2>::operator*(const Vec_t<float, 2>& vec) const
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[1][0], data[1][1] };
-		__m128 m2 = { vec.data[0], vec.data[1], vec.data[0], vec.data[1] };
-		m1 = _mm_mul_ps(m1, m2);
-		Vec_t<float, 2> new_vec(0);
-		new_vec.data[0] = m1.m128_f32[0] + m1.m128_f32[1];
-		new_vec.data[1] = m1.m128_f32[2] + m1.m128_f32[3];
-		return new_vec;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator*(float scalar) const
-	{
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_mul_ps(m1, m2);
-		Mat_t<float, 2, 2> mat = *this;
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[1][0] = m1.m128_f32[1];
-		mat.data[0][1] = m1.m128_f32[2];
-		mat.data[1][1] = m1.m128_f32[3];
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator/(float scalar) const
-	{
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_div_ps(m1, m2);
-		Mat_t<float, 2, 2> mat = *this;
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[1][0] = m1.m128_f32[1];
-		mat.data[0][1] = m1.m128_f32[2];
-		mat.data[1][1] = m1.m128_f32[3];
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2>& Mat_t<float, 2, 2>::operator+=(const Mat_t<float, 2, 2>& other)
-	{
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { other.data[0][0], other.data[1][0], other.data[0][1], other.data[1][1] };
-		m1 = _mm_add_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[1][0] = m1.m128_f32[1];
-		data[0][1] = m1.m128_f32[2];
-		data[1][1] = m1.m128_f32[3];
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2>& Mat_t<float, 2, 2>::operator-=(const Mat_t<float, 2, 2>& other)
-	{
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { other.data[0][0], other.data[1][0], other.data[0][1], other.data[1][1] };
-		m1 = _mm_sub_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[1][0] = m1.m128_f32[1];
-		data[0][1] = m1.m128_f32[2];
-		data[1][1] = m1.m128_f32[3];
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2>& Mat_t<float, 2, 2>::operator*=(const Mat_t<float, 2, 2>& other)
-	{
-		*this = *this * other;
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator*=(float scalar)
-	{
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_mul_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[1][0] = m1.m128_f32[1];
-		data[0][1] = m1.m128_f32[2];
-		data[1][1] = m1.m128_f32[3];
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::operator/=(float scalar)
-	{
-		__m128 m1 = { data[0][0], data[1][0], data[0][1], data[1][1] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_div_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[1][0] = m1.m128_f32[1];
-		data[0][1] = m1.m128_f32[2];
-		data[1][1] = m1.m128_f32[3];
-		return *this;
-	}
-
-	template<>
-	Mat_t<float, 2, 2> Mat_t<float, 2, 2>::inverse() const
-	{
-		Mat_t<float, 2, 2> mat ={ data[1][1], -data[0][1], -data[1][0],  data[0][0] };
-		float det = determinant();
-		dk_assert(det != 0);
-		mat /= det;
-		return mat;
-	}
-
-#endif
 
 
 
@@ -962,8 +581,8 @@ namespace dk
 	 * @brief 3 by 3 matrix.
 	 * @tparam Type used by the matrix.
 	 */
-	template<typename T>
-	class alignas(16) Mat_t<T, 3, 3>
+	template<>
+	class alignas(16) Mat_t<3, 3>
 	{
 	public:
 
@@ -971,256 +590,114 @@ namespace dk
 		 * @brief Default constructor.
 		 * @note Creates an identity matrix.
 		 */
-		Mat_t()
-		{
-			data[0][0] = 1;
-			data[0][1] = 0;
-			data[0][2] = 0;
-
-			data[1][0] = 0;
-			data[1][1] = 1;
-			data[1][2] = 0;
-
-			data[2][0] = 0;
-			data[2][1] = 0;
-			data[2][2] = 1;
-		}
+		Mat_t();
 
 		/**
 		 * @brief Constructor.
 		 * @param Value for every element.
 		 */
-		Mat_t(T val)
-		{
-			data[0][0] = val;
-			data[0][1] = val;
-			data[0][2] = val;
-
-			data[1][0] = val;
-			data[1][1] = val;
-			data[1][2] = val;
-
-			data[2][0] = val;
-			data[2][1] = val;
-			data[2][2] = val;
-		}
+		Mat_t(float val);
 		
 		/**
 		 * @brief Constructor.
 		 * @param Matrix values.
 		 */
-		Mat_t(T a, T b, T c, T d, T e, T f, T g, T h, T i)
-		{
-			data[0][0] = a;
-			data[0][1] = b;
-			data[0][2] = c;
-
-			data[1][0] = d;
-			data[1][1] = e;
-			data[1][2] = f;
-
-			data[2][0] = g;
-			data[2][1] = h;
-			data[2][2] = i;
-		}
+		Mat_t(float a, float b, float c, float d, float e, float f, float g, float h, float i);
 
 		/**
 		 * @brief Copy constructor.
 		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 */
-		template<typename T2>
-		Mat_t(const Mat_t<T2, 3, 3>& other)
-		{
-			data[0][0] = static_cast<T>(other.data[0][0]);
-			data[0][1] = static_cast<T>(other.data[0][1]);
-			data[0][2] = static_cast<T>(other.data[0][2]);
-
-			data[1][0] = static_cast<T>(other.data[1][0]);
-			data[1][1] = static_cast<T>(other.data[1][1]);
-			data[1][2] = static_cast<T>(other.data[1][2]);
-
-			data[2][0] = static_cast<T>(other.data[2][0]);
-			data[2][1] = static_cast<T>(other.data[2][1]);
-			data[2][2] = static_cast<T>(other.data[2][2]);
-		}
+		Mat_t(const Mat_t<3, 3>& other);
 
 		/**
 		 * @brief Destructor.
 		 */
 		~Mat_t() = default;
 
-
-
 		/**
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		constexpr size_t rows() const
-		{
-			return 3;
-		}
+		constexpr size_t rows() const;
 
 		/**
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		constexpr size_t columns() const
-		{
-			return 3;
-		}
+		constexpr size_t columns() const;
 
 		/**
 		 * @brief Access operator.
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<T, 3> operator[](size_t index)
-		{
-			dk_assert(index < 3);
-			return Row<T, 3>(data[index]);
-		}
+		Row<float, 3> operator[](size_t index);
 
 		/**
 		 * @brief Access operator.
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<const T, 3> operator[](size_t index) const
-		{
-			dk_assert(index < 3);
-			return Row<T, 3>(data[index]);
-		}
+		Row<const float, 3> operator[](size_t index) const;
 
 		/**
 		 * @brief Convert the matrix into a string.
 		 * @return The matrix as a string.
 		 */
-		std::string to_string() const
-		{
-			std::string str = "";
-
-			for (size_t i = 0; i < 3; ++i)
-			{
-				str += "[";
-				for (size_t j = 0; j < 3 - 1; ++j)
-					str += std::to_string(data[i][j]) + ", ";
-
-				str += std::to_string(data[i][3 - 1]) + "]\n";
-			}
-			str.resize(str.size() - 1);
-			return str;
-		}
+		std::string to_string() const;
 
 		/**
 		 * @brief Equivilence operator.
 		 * @param Other matrix.
 		 * @return If the two matrices are equal.
 		 */
-		bool operator==(const Mat_t<T, 3, 3>& other) const
-		{
-			return	data[0][0] == other.data[0][0] && 
-					data[0][1] == other.data[0][1] && 
-					data[0][2] == other.data[0][2] &&
-					data[1][0] == other.data[1][0] &&
-					data[1][1] == other.data[1][1] &&
-					data[1][2] == other.data[1][2] && 
-					data[2][0] == other.data[2][0] &&
-					data[2][1] == other.data[2][1] &&
-					data[2][2] == other.data[2][2] &&;
-		}
+		bool operator==(const Mat_t<3, 3>& other) const;
 
 		/**
 		 * @brief Unequivilence operator.
 		 * @param Other matrix.
 		 * @return If the two matrices are not equal.
 		 */
-		bool operator!=(const Mat_t<T, 3, 3>& other) const
-		{
-			return !(*this == other);
-		}
+		bool operator!=(const Mat_t<3, 3>& other) const;
 
 		/**
 		 * @brief Assignment operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3>& operator=(const Mat_t<T2, 3, 3>& other)
-		{
-			data[0][0] = static_cast<T>(other.data[0][0]);
-			data[0][1] = static_cast<T>(other.data[0][1]);
-			data[0][2] = static_cast<T>(other.data[0][2]);
-			data[1][0] = static_cast<T>(other.data[1][0]);
-			data[1][1] = static_cast<T>(other.data[1][1]);
-			data[1][2] = static_cast<T>(other.data[1][2]);
-			data[2][0] = static_cast<T>(other.data[2][0]);
-			data[2][1] = static_cast<T>(other.data[2][1]);
-			data[2][2] = static_cast<T>(other.data[2][2]);
-			return *this;
-		}
+		Mat_t<3, 3>& operator=(const Mat_t<3, 3>& other);
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Sum of the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3> operator+(const Mat_t<T2, 3, 3>& other) const
-		{
-			Mat_t<T, 3, 3> mat = *this;
-			mat.data[0][0] += static_cast<T>(other.data[0][0]);
-			mat.data[0][1] += static_cast<T>(other.data[0][1]);
-			mat.data[0][2] += static_cast<T>(other.data[0][2]);
-			mat.data[1][0] += static_cast<T>(other.data[1][0]);
-			mat.data[1][1] += static_cast<T>(other.data[1][1]);
-			mat.data[1][2] += static_cast<T>(other.data[1][2]);
-			mat.data[2][0] += static_cast<T>(other.data[2][0]);
-			mat.data[2][1] += static_cast<T>(other.data[2][1]);
-			mat.data[2][2] += static_cast<T>(other.data[2][2]);
-			return mat;
-		}
+		Mat_t<3, 3> operator+(const Mat_t<3, 3>& other) const;
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Difference between the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3> operator-(const Mat_t<T2, 3, 3>& other) const
-		{
-			Mat_t<T, 3, 3> mat = *this;
-			mat.data[0][0] -= static_cast<T>(other.data[0][0]);
-			mat.data[0][1] -= static_cast<T>(other.data[0][1]);
-			mat.data[0][2] -= static_cast<T>(other.data[0][2]);
-			mat.data[1][0] -= static_cast<T>(other.data[1][0]);
-			mat.data[1][1] -= static_cast<T>(other.data[1][1]);
-			mat.data[1][2] -= static_cast<T>(other.data[1][2]);
-			mat.data[2][0] -= static_cast<T>(other.data[2][0]);
-			mat.data[2][1] -= static_cast<T>(other.data[2][1]);
-			mat.data[2][2] -= static_cast<T>(other.data[2][2]);
-			return mat;
-		}
+		Mat_t<3, 3> operator-(const Mat_t<3, 3>& other) const;
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
 		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return Product of the two matrices.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, 3, 3> operator*(const Mat_t<T2, 3, P>& other) const
+		template<size_t P>
+		Mat_t<3, 3> operator*(const Mat_t<3, P>& other) const
 		{
-			Mat_t<T, 3, P> mat(0);
+			Mat_t<3, P> mat(0);
 
 			for (size_t i = 0; i < 3; ++i)
 				for (size_t j = 0; j < P; ++j)
 					for (size_t k = 0; k < 3; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
+						mat.data[i][j] += data[i][k] * other.data[k][j];
 
 			return mat;
 		}
@@ -1230,454 +707,80 @@ namespace dk
 		 * @param Vector to multiply.
 		 * @return Vector with resulting multiplied values.
 		 */
-		Vec_t<T, 3> operator*(const Vec_t<T, 3>& vec) const
-		{
-			Vec_t<T, 3> new_vec(0);
-			new_vec.data[0] = (data[0][0] * vec.data[0]) + (data[0][1] * vec.data[1]) + (data[0][2] * vec.data[2]);
-			new_vec.data[1] = (data[1][0] * vec.data[0]) + (data[1][1] * vec.data[1]) + (data[1][2] * vec.data[2]);
-			new_vec.data[2] = (data[2][0] * vec.data[0]) + (data[2][1] * vec.data[1]) + (data[2][2] * vec.data[2]);
-			return new_vec;
-		}
+		Vec_t<3> operator*(const Vec_t<3>& vec) const;
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return Matrix with multiplied values.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3> operator*(T2 scalar) const
-		{
-			Mat_t<T, 3, 3> mat = *this;
-			mat.data[0][0] *= static_cast<T>(scalar);
-			mat.data[0][1] *= static_cast<T>(scalar);
-			mat.data[0][2] *= static_cast<T>(scalar);
-			mat.data[1][0] *= static_cast<T>(scalar);
-			mat.data[1][1] *= static_cast<T>(scalar);
-			mat.data[1][2] *= static_cast<T>(scalar);
-			mat.data[2][0] *= static_cast<T>(scalar);
-			mat.data[2][1] *= static_cast<T>(scalar);
-			mat.data[2][2] *= static_cast<T>(scalar);
-			return mat;
-		}
+		Mat_t<3, 3> operator*(float scalar) const;
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return Matrix with quotient values.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3> operator/(T2 scalar) const
-		{
-			Mat_t<T, 3, 3> mat = *this;
-			mat.data[0][0] /= static_cast<T>(scalar);
-			mat.data[0][1] /= static_cast<T>(scalar);
-			mat.data[0][2] /= static_cast<T>(scalar);
-			mat.data[1][0] /= static_cast<T>(scalar);
-			mat.data[1][1] /= static_cast<T>(scalar);
-			mat.data[1][2] /= static_cast<T>(scalar);
-			mat.data[2][0] /= static_cast<T>(scalar);
-			mat.data[2][1] /= static_cast<T>(scalar);
-			mat.data[2][2] /= static_cast<T>(scalar);
-			return mat;
-		}
+		Mat_t<3, 3> operator/(float scalar) const;
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3>& operator+=(const Mat_t<T2, 3, 3>& other)
-		{
-			data[0][0] += static_cast<T>(other.data[0][0]);
-			data[0][1] += static_cast<T>(other.data[0][1]);
-			data[0][2] += static_cast<T>(other.data[0][2]);
-			data[1][0] += static_cast<T>(other.data[1][0]);
-			data[1][1] += static_cast<T>(other.data[1][1]);
-			data[1][2] += static_cast<T>(other.data[1][2]);
-			data[2][0] += static_cast<T>(other.data[2][0]);
-			data[2][1] += static_cast<T>(other.data[2][1]);
-			data[2][2] += static_cast<T>(other.data[2][2]);
-			return *this;
-		}
+		Mat_t<3, 3>& operator+=(const Mat_t<3, 3>& other);
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3>& operator-=(const Mat_t<T2, 3, 3>& other)
-		{
-			data[0][0] -= static_cast<T>(other.data[0][0]);
-			data[0][1] -= static_cast<T>(other.data[0][1]);
-			data[0][2] -= static_cast<T>(other.data[0][2]);
-			data[1][0] -= static_cast<T>(other.data[1][0]);
-			data[1][1] -= static_cast<T>(other.data[1][1]);
-			data[1][2] -= static_cast<T>(other.data[1][2]);
-			data[2][0] -= static_cast<T>(other.data[2][0]);
-			data[2][1] -= static_cast<T>(other.data[2][1]);
-			data[2][2] -= static_cast<T>(other.data[2][2]);
-			return *this;
-		}
+		Mat_t<3, 3>& operator-=(const Mat_t<3, 3>& other);
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
-		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, 3, 3>& operator*=(const Mat_t<T2, 3, P>& other)
-		{
-			Mat_t<T, 3, P> mat(0);
-
-			for (size_t i = 0; i < 3; ++i)
-				for (size_t j = 0; j < P; ++j)
-					for (size_t k = 0; k < 3; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
-
-			*this = mat;
-			return *this;
-		}
+		Mat_t<3, 3>& operator*=(const Mat_t<3, 3>& other);
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3> operator*=(T2 scalar)
-		{
-			data[0][0] *= static_cast<T>(scalar);
-			data[0][1] *= static_cast<T>(scalar);
-			data[0][2] *= static_cast<T>(scalar);
-			data[1][0] *= static_cast<T>(scalar);
-			data[1][1] *= static_cast<T>(scalar);
-			data[1][2] *= static_cast<T>(scalar);
-			data[2][0] *= static_cast<T>(scalar);
-			data[2][1] *= static_cast<T>(scalar);
-			data[2][2] *= static_cast<T>(scalar);
-			return *this;
-		}
+		Mat_t<3, 3> operator*=(float scalar);
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 3, 3> operator/=(T2 scalar)
-		{
-			data[0][0] /= static_cast<T>(scalar);
-			data[0][1] /= static_cast<T>(scalar);
-			data[0][2] /= static_cast<T>(scalar);
-			data[1][0] /= static_cast<T>(scalar);
-			data[1][1] /= static_cast<T>(scalar);
-			data[1][2] /= static_cast<T>(scalar);
-			data[2][0] /= static_cast<T>(scalar);
-			data[2][1] /= static_cast<T>(scalar);
-			data[2][2] /= static_cast<T>(scalar);
-			return *this;
-		}
+		Mat_t<3, 3> operator/=(float scalar);
 
 		/**
 		 * @brief Determinant of the matrix.
 		 * @return The determinant.
 		 */
-		T determinant() const
-		{
-			return	(data[0][0] * data[1][1] * data[2][2]) + (data[0][1] * data[1][2] * data[2][0]) + 
-					(data[0][2] * data[1][0] * data[2][1]) - (data[0][2] * data[1][1] * data[2][0]) - 
-					(data[0][1] * data[1][0] * data[2][2]) - (data[0][0] * data[1][2] * data[2][1]);
-		}
+		float determinant() const;
 
 		/**
 		 * @brief Get the inverse of the matrix.
 		 * @return Inverse of the matrix.
 		 */
-		Mat_t<T, 3, 3> inverse() const
-		{
-			Mat_t<T, 3, 3> mat = 
-			{
-				(data[1][1]*data[2][2]) - (data[1][2]*data[2][1]), (data[0][2]*data[2][1]) - (data[0][1]*data[2][2]), (data[0][1]*data[1][2]) - (data[0][2]*data[1][1]),
-				(data[1][2]*data[2][0]) - (data[1][0]*data[2][2]), (data[0][0]*data[2][2]) - (data[0][2]*data[2][0]), (data[0][2]*data[1][0]) - (data[0][0]*data[1][2]),
-				(data[1][0]*data[2][1]) - (data[1][1]*data[2][0]), (data[0][1]*data[2][0]) - (data[0][0]*data[2][1]), (data[0][0]*data[1][1]) - (data[0][1]*data[1][0])
-			};
-
-			T det = determinant();
-			dk_assert(det != 0);
-			mat /= det;
-
-			return mat;
-		}
+		Mat_t<3, 3> inverse() const;
 
 		/** Matrix data. */
-		T data[3][3] = {};
+		float data[3][3] = {};
 	};
-
-#if DUCK_USE_SIMD
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator+(const Mat_t<float, 3, 3>& other) const
-	{
-		Mat_t<float, 3, 3> mat = *this;
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { other.data[0][0], other.data[0][1], other.data[0][2], other.data[1][0] };
-		m1 = _mm_add_ps(m1, m2);
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[0][1] = m1.m128_f32[1];
-		mat.data[0][2] = m1.m128_f32[2];
-		mat.data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { other.data[1][1], other.data[1][2], other.data[2][0], other.data[2][1] };
-		m1 = _mm_add_ps(m1, m2);
-		mat.data[1][1] = m1.m128_f32[0];
-		mat.data[1][2] = m1.m128_f32[1];
-		mat.data[2][0] = m1.m128_f32[2];
-		mat.data[2][1] = m1.m128_f32[3];
-		mat.data[2][2] += other.data[2][2];
-
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator-(const Mat_t<float, 3, 3>& other) const
-	{
-		Mat_t<float, 3, 3> mat = *this;
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { other.data[0][0], other.data[0][1], other.data[0][2], other.data[1][0] };
-		m1 = _mm_sub_ps(m1, m2);
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[0][1] = m1.m128_f32[1];
-		mat.data[0][2] = m1.m128_f32[2];
-		mat.data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { other.data[1][1], other.data[1][2], other.data[2][0], other.data[2][1] };
-		m1 = _mm_sub_ps(m1, m2);
-		mat.data[1][1] = m1.m128_f32[0];
-		mat.data[1][2] = m1.m128_f32[1];
-		mat.data[2][0] = m1.m128_f32[2];
-		mat.data[2][1] = m1.m128_f32[3];
-		mat.data[2][2] -= other.data[2][2];
-
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator*(const Mat_t<float, 3, 3>& other) const
-	{
-		Mat_t<float, 3, 3> mat(0);
-
-		for (size_t i = 0; i < 3; ++i)
-			for(size_t j = 0; j < 3; ++j)
-			{
-				__m128 m1 = { data[i][0], data[i][1], data[i][2], 0 };
-				__m128 m2 = { other.data[0][j], other.data[1][j], other.data[2][j], 0 };
-				m1 = _mm_mul_ps(m1, m2);
-				mat.data[i][j] = m1.m128_f32[0] + m1.m128_f32[1] + m1.m128_f32[2];
-			}
-
-		return mat;
-	}
-
-	template<>
-	Vec_t<float, 3> Mat_t<float, 3, 3>::operator*(const Vec_t<float, 3>& vec) const
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { vec.data[0], vec.data[1], vec.data[2], vec.data[0] };
-		m1 = _mm_mul_ps(m1, m2);
-		
-		Vec_t<float, 3> new_vec(0);
-		new_vec.data[0] = m1.m128_f32[0] + m1.m128_f32[1] + m1.m128_f32[2];
-		new_vec.data[1] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { vec.data[1], vec.data[2], vec.data[0], vec.data[1] };
-		m1 = _mm_mul_ps(m1, m2);
-
-		new_vec.data[1] += m1.m128_f32[0] + m1.m128_f32[1];
-		new_vec.data[2] = m1.m128_f32[2] + m1.m128_f32[3] + (data[2][2] * vec.data[2]);
-
-		return new_vec;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator*(float scalar) const
-	{
-		Mat_t<float, 3, 3> mat = *this;
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_mul_ps(m1, m2);
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[0][1] = m1.m128_f32[1];
-		mat.data[0][2] = m1.m128_f32[2];
-		mat.data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_mul_ps(m1, m2);
-		mat.data[1][1] = m1.m128_f32[0];
-		mat.data[1][2] = m1.m128_f32[1];
-		mat.data[2][0] = m1.m128_f32[2];
-		mat.data[2][1] = m1.m128_f32[3];
-		mat.data[2][2] *= scalar;
-
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator/(float scalar) const
-	{
-		Mat_t<float, 3, 3> mat = *this;
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_div_ps(m1, m2);
-		mat.data[0][0] = m1.m128_f32[0];
-		mat.data[0][1] = m1.m128_f32[1];
-		mat.data[0][2] = m1.m128_f32[2];
-		mat.data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_div_ps(m1, m2);
-		mat.data[1][1] = m1.m128_f32[0];
-		mat.data[1][2] = m1.m128_f32[1];
-		mat.data[2][0] = m1.m128_f32[2];
-		mat.data[2][1] = m1.m128_f32[3];
-		mat.data[2][2] /= scalar;
-
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3>& Mat_t<float, 3, 3>::operator+=(const Mat_t<float, 3, 3>& other)
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { other.data[0][0], other.data[0][1], other.data[0][2], other.data[1][0] };
-		m1 = _mm_add_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[0][1] = m1.m128_f32[1];
-		data[0][2] = m1.m128_f32[2];
-		data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { other.data[1][1], other.data[1][2], other.data[2][0], other.data[2][1] };
-		m1 = _mm_add_ps(m1, m2);
-		data[1][1] = m1.m128_f32[0];
-		data[1][2] = m1.m128_f32[1];
-		data[2][0] = m1.m128_f32[2];
-		data[2][1] = m1.m128_f32[3];
-		data[2][2] += other.data[2][2];
-
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3>& Mat_t<float, 3, 3>::operator-=(const Mat_t<float, 3, 3>& other)
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { other.data[0][0], other.data[0][1], other.data[0][2], other.data[1][0] };
-		m1 = _mm_sub_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[0][1] = m1.m128_f32[1];
-		data[0][2] = m1.m128_f32[2];
-		data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { other.data[1][1], other.data[1][2], other.data[2][0], other.data[2][1] };
-		m1 = _mm_sub_ps(m1, m2);
-		data[1][1] = m1.m128_f32[0];
-		data[1][2] = m1.m128_f32[1];
-		data[2][0] = m1.m128_f32[2];
-		data[2][1] = m1.m128_f32[3];
-		data[2][2] -= other.data[2][2];
-
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3>& Mat_t<float, 3, 3>::operator*=(const Mat_t<float, 3, 3>& other)
-	{
-		*this = *this * other;
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator*=(float scalar)
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_mul_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[0][1] = m1.m128_f32[1];
-		data[0][2] = m1.m128_f32[2];
-		data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_add_ps(m1, m2);
-		data[1][1] = m1.m128_f32[0];
-		data[1][2] = m1.m128_f32[1];
-		data[2][0] = m1.m128_f32[2];
-		data[2][1] = m1.m128_f32[3];
-		data[2][2] *= scalar;
-
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 3, 3> Mat_t<float, 3, 3>::operator/=(float scalar)
-	{
-		__m128 m1 = { data[0][0], data[0][1], data[0][2], data[1][0] };
-		__m128 m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_div_ps(m1, m2);
-		data[0][0] = m1.m128_f32[0];
-		data[0][1] = m1.m128_f32[1];
-		data[0][2] = m1.m128_f32[2];
-		data[1][0] = m1.m128_f32[3];
-
-		m1 = { data[1][1], data[1][2], data[2][0], data[2][1] };
-		m2 = { scalar, scalar, scalar, scalar };
-		m1 = _mm_div_ps(m1, m2);
-		data[1][1] = m1.m128_f32[0];
-		data[1][2] = m1.m128_f32[1];
-		data[2][0] = m1.m128_f32[2];
-		data[2][1] = m1.m128_f32[3];
-		data[2][2] /= scalar;
-
-		return *this;
-	}
-
-#endif
 
 
 
 	/**
 	 * @brief 4 by 4 matrix.
-	 * @tparam Type used by the matrix.
 	 */
-	template<typename T>
-	class alignas(16) Mat_t<T, 4, 4>
+	template<>
+	class alignas(16) Mat_t<4, 4>
 	{
 	public:
 
@@ -1685,316 +788,113 @@ namespace dk
 		 * @brief Default constructor.
 		 * @note Creates an identity matrix.
 		 */
-		Mat_t()
-		{
-			data[0][0] = 1;
-			data[0][1] = 0;
-			data[0][2] = 0;
-			data[0][3] = 0;
-
-			data[1][0] = 0;
-			data[1][1] = 1;
-			data[1][2] = 0;
-			data[1][3] = 0;
-
-			data[2][0] = 0;
-			data[2][1] = 0;
-			data[2][2] = 1;
-			data[2][3] = 0;
-
-			data[3][0] = 0;
-			data[3][1] = 0;
-			data[3][2] = 0;
-			data[3][3] = 1;
-		}
+		Mat_t();
 
 		/**
 		 * @brief Constructor.
 		 * @param Value for every element.
 		 */
-		Mat_t(T val)
-		{
-			data[0][0] = val;
-			data[0][1] = val;
-			data[0][2] = val;
-			data[0][3] = val;
-
-			data[1][0] = val;
-			data[1][1] = val;
-			data[1][2] = val;
-			data[1][3] = val;
-
-			data[2][0] = val;
-			data[2][1] = val;
-			data[2][2] = val;
-			data[2][3] = val;
-
-			data[3][0] = val;
-			data[3][1] = val;
-			data[3][2] = val;
-			data[3][3] = val;
-		}
+		Mat_t(float val);
 		
 		/**
 		 * @brief Constructor.
 		 * @param Matrix values.
 		 */
-		Mat_t(T a, T b, T c, T d, T e, T f, T g, T h, T i, T j, T k, T l, T m, T n, T o, T p)
-		{
-			data[0][0] = a;
-			data[0][1] = b;
-			data[0][2] = c;
-			data[0][3] = d;
-
-			data[1][0] = e;
-			data[1][1] = f;
-			data[1][2] = g;
-			data[1][3] = h;
-
-			data[2][0] = i;
-			data[2][1] = j;
-			data[2][2] = k;
-			data[2][3] = l;
-
-			data[3][0] = m;
-			data[3][1] = n;
-			data[3][2] = o;
-			data[3][3] = p;
-		}
+		Mat_t(float a, float b, float c, float d, float e, float f, float g, float h, float i, float j, float k, float l, float m, float n, float o, float p);
 
 		/**
 		 * @brief Copy constructor.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 */
-		template<typename T2>
-		Mat_t(const Mat_t<T2, 4, 4>& other)
-		{
-			data[0][0] = static_cast<T>(other.data[0][0]);
-			data[0][1] = static_cast<T>(other.data[0][1]);
-			data[0][2] = static_cast<T>(other.data[0][2]);
-			data[0][3] = static_cast<T>(other.data[0][3]);
-
-			data[1][0] = static_cast<T>(other.data[1][0]);
-			data[1][1] = static_cast<T>(other.data[1][1]);
-			data[1][2] = static_cast<T>(other.data[1][2]);
-			data[1][3] = static_cast<T>(other.data[1][3]);
-
-			data[2][0] = static_cast<T>(other.data[2][0]);
-			data[2][1] = static_cast<T>(other.data[2][1]);
-			data[2][2] = static_cast<T>(other.data[2][2]);
-			data[2][3] = static_cast<T>(other.data[2][3]);
-
-			data[3][0] = static_cast<T>(other.data[3][0]);
-			data[3][1] = static_cast<T>(other.data[3][1]);
-			data[3][2] = static_cast<T>(other.data[3][2]);
-			data[3][3] = static_cast<T>(other.data[3][3]);
-		}
+		Mat_t(const Mat_t<4, 4>& other);
 
 		/**
 		 * @brief Destructor.
 		 */
 		~Mat_t() = default;
 
-
-
 		/**
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		constexpr size_t rows() const
-		{
-			return 4;
-		}
+		constexpr size_t rows() const;
 
 		/**
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		constexpr size_t columns() const
-		{
-			return 4;
-		}
+		constexpr size_t columns() const;
 
 		/**
 		 * @brief Access operator.
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<T, 4> operator[](size_t index)
-		{
-			dk_assert(index < 4);
-			return Row<T, 4>(data[index]);
-		}
+		Row<float, 4> operator[](size_t index);
 
 		/**
 		 * @brief Access operator.
 		 * @param Row index.
 		 * @return Row at the given index. 
 		 */
-		Row<const T, 4> operator[](size_t index) const
-		{
-			dk_assert(index < 4);
-			return Row<T, 4>(data[index]);
-		}
+		Row<const float, 4> operator[](size_t index) const;
 
 		/**
 		 * @brief Convert the matrix into a string.
 		 * @return The matrix as a string.
 		 */
-		std::string to_string() const
-		{
-			std::string str = "";
-
-			for (size_t i = 0; i < 4; ++i)
-			{
-				str += "[";
-				for (size_t j = 0; j < 4 - 1; ++j)
-					str += std::to_string(data[i][j]) + ", ";
-
-				str += std::to_string(data[i][4 - 1]) + "]\n";
-			}
-			str.resize(str.size() - 1);
-			return str;
-		}
+		std::string to_string() const;
 
 		/**
 		 * @brief Equivilence operator.
 		 * @param Other matrix.
 		 * @return If the two matrices are equal.
 		 */
-		bool operator==(const Mat_t<T, 4, 4>& other) const
-		{
-			return	data[0][0] == other.data[0][0] &&
-					data[0][1] == other.data[0][1] &&
-					data[0][2] == other.data[0][2] &&
-					data[0][3] == other.data[0][3] &&
-					data[1][0] == other.data[1][0] &&
-					data[1][1] == other.data[1][1] &&
-					data[1][2] == other.data[1][2] &&
-					data[1][3] == other.data[1][3] &&
-					data[2][0] == other.data[2][0] &&
-					data[2][1] == other.data[2][1] &&
-					data[2][2] == other.data[2][2] &&
-					data[2][3] == other.data[2][3] &&
-					data[3][0] == other.data[3][0] &&
-					data[3][1] == other.data[3][1] &&
-					data[3][2] == other.data[3][2] &&
-					data[3][3] == other.data[3][3];
-		}
+		bool operator==(const Mat_t<4, 4>& other) const;
 
 		/**
 		 * @brief Unequivilence operator.
 		 * @param Other matrix.
 		 * @return If the two matrices are not equal.
 		 */
-		bool operator!=(const Mat_t<T, 4, 4>& other) const
-		{
-			return !(*this == other);
-		}
+		bool operator!=(const Mat_t<4, 4>& other) const;
 
 		/**
 		 * @brief Assignment operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4>& operator=(const Mat_t<T2, 4, 4>& other)
-		{
-			data[0][0] = static_cast<T>(other.data[0][0]);
-			data[0][1] = static_cast<T>(other.data[0][1]);
-			data[0][2] = static_cast<T>(other.data[0][2]);
-			data[0][3] = static_cast<T>(other.data[0][3]);
-			data[1][0] = static_cast<T>(other.data[1][0]);
-			data[1][1] = static_cast<T>(other.data[1][1]);
-			data[1][2] = static_cast<T>(other.data[1][2]);
-			data[1][3] = static_cast<T>(other.data[1][3]);
-			data[2][0] = static_cast<T>(other.data[2][0]);
-			data[2][1] = static_cast<T>(other.data[2][1]);
-			data[2][2] = static_cast<T>(other.data[2][2]);
-			data[2][3] = static_cast<T>(other.data[2][3]);
-			data[3][0] = static_cast<T>(other.data[3][0]);
-			data[3][1] = static_cast<T>(other.data[3][1]);
-			data[3][2] = static_cast<T>(other.data[3][2]);
-			data[3][3] = static_cast<T>(other.data[3][3]);
-			return *this;
-		}
+		Mat_t<4, 4>& operator=(const Mat_t<4, 4>& other);
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Sum of the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4> operator+(const Mat_t<T2, 4, 4>& other) const
-		{
-			Mat_t<T, 4, 4> mat = *this;
-			mat.data[0][0] += static_cast<T>(other.data[0][0]);
-			mat.data[0][1] += static_cast<T>(other.data[0][1]);
-			mat.data[0][2] += static_cast<T>(other.data[0][2]);
-			mat.data[0][3] += static_cast<T>(other.data[0][3]);
-			mat.data[1][0] += static_cast<T>(other.data[1][0]);
-			mat.data[1][1] += static_cast<T>(other.data[1][1]);
-			mat.data[1][2] += static_cast<T>(other.data[1][2]);
-			mat.data[1][3] += static_cast<T>(other.data[1][3]);
-			mat.data[2][0] += static_cast<T>(other.data[2][0]);
-			mat.data[2][1] += static_cast<T>(other.data[2][1]);
-			mat.data[2][2] += static_cast<T>(other.data[2][2]);
-			mat.data[2][3] += static_cast<T>(other.data[2][3]);
-			mat.data[3][0] += static_cast<T>(other.data[3][0]);
-			mat.data[3][1] += static_cast<T>(other.data[3][1]);
-			mat.data[3][2] += static_cast<T>(other.data[3][2]);
-			mat.data[3][3] += static_cast<T>(other.data[3][3]);
-			return mat;
-		}
+		Mat_t<4, 4> operator+(const Mat_t<4, 4>& other) const;
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return Difference between the two matrices.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4> operator-(const Mat_t<T2, 4, 4>& other) const
-		{
-			Mat_t<T, 4, 4> mat = *this;
-			mat.data[0][0] -= static_cast<T>(other.data[0][0]);
-			mat.data[0][1] -= static_cast<T>(other.data[0][1]);
-			mat.data[0][2] -= static_cast<T>(other.data[0][2]);
-			mat.data[0][3] -= static_cast<T>(other.data[0][3]);
-			mat.data[1][0] -= static_cast<T>(other.data[1][0]);
-			mat.data[1][1] -= static_cast<T>(other.data[1][1]);
-			mat.data[1][2] -= static_cast<T>(other.data[1][2]);
-			mat.data[1][3] -= static_cast<T>(other.data[1][3]);
-			mat.data[2][0] -= static_cast<T>(other.data[2][0]);
-			mat.data[2][1] -= static_cast<T>(other.data[2][1]);
-			mat.data[2][2] -= static_cast<T>(other.data[2][2]);
-			mat.data[2][3] -= static_cast<T>(other.data[2][3]);
-			mat.data[3][0] -= static_cast<T>(other.data[3][0]);
-			mat.data[3][1] -= static_cast<T>(other.data[3][1]);
-			mat.data[3][2] -= static_cast<T>(other.data[3][2]);
-			mat.data[3][3] -= static_cast<T>(other.data[3][3]);
-			return mat;
-		}
+		Mat_t<4, 4> operator-(const Mat_t<4, 4>& other) const;
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
 		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return Product of the two matrices.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, 4, 4> operator*(const Mat_t<T2, 4, P>& other) const
+		template<size_t P>
+		Mat_t<4, P> operator*(const Mat_t<4, P>& other) const
 		{
-			Mat_t<T, 4, P> mat(0);
+			Mat_t<4, P> mat(0);
 
 			for (size_t i = 0; i < 4; ++i)
 				for (size_t j = 0; j < P; ++j)
 					for (size_t k = 0; k < 4; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
+						mat.data[i][j] += data[i][k] * other.data[k][j];
 
 			return mat;
 		}
@@ -2004,551 +904,93 @@ namespace dk
 		 * @param Vector to multiply.
 		 * @return Vector with resulting multiplied values.
 		 */
-		Vec_t<T, 4> operator*(const Vec_t<T, 4>& vec) const
-		{
-			Vec_t<T, 4> new_vec(0);
-			new_vec.data[0] = (data[0][0] * vec.data[0]) + (data[0][1] * vec.data[1]) + (data[0][2] * vec.data[2]) + (data[0][3] * vec.data[3]);
-			new_vec.data[1] = (data[1][0] * vec.data[0]) + (data[1][1] * vec.data[1]) + (data[1][2] * vec.data[2]) + (data[1][3] * vec.data[3]);
-			new_vec.data[2] = (data[2][0] * vec.data[0]) + (data[2][1] * vec.data[1]) + (data[2][2] * vec.data[2]) + (data[2][3] * vec.data[3]);
-			new_vec.data[3] = (data[3][0] * vec.data[0]) + (data[3][1] * vec.data[1]) + (data[3][2] * vec.data[2]) + (data[3][3] * vec.data[3]);
-			return new_vec;
-		}
+		Vec_t<4> operator*(const Vec_t<4>& vec) const;
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return Matrix with multiplied values.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4> operator*(T2 scalar) const
-		{
-			Mat_t<T, 4, 4> mat = *this;
-			mat.data[0][0] *= static_cast<T>(scalar);
-			mat.data[0][1] *= static_cast<T>(scalar);
-			mat.data[0][2] *= static_cast<T>(scalar);
-			mat.data[0][3] *= static_cast<T>(scalar);
-			mat.data[1][0] *= static_cast<T>(scalar);
-			mat.data[1][1] *= static_cast<T>(scalar);
-			mat.data[1][2] *= static_cast<T>(scalar);
-			mat.data[1][3] *= static_cast<T>(scalar);
-			mat.data[2][0] *= static_cast<T>(scalar);
-			mat.data[2][1] *= static_cast<T>(scalar);
-			mat.data[2][2] *= static_cast<T>(scalar);
-			mat.data[2][3] *= static_cast<T>(scalar);
-			mat.data[3][0] *= static_cast<T>(scalar);
-			mat.data[3][1] *= static_cast<T>(scalar);
-			mat.data[3][2] *= static_cast<T>(scalar);
-			mat.data[3][3] *= static_cast<T>(scalar);
-			return mat;
-		}
+		Mat_t<4, 4> operator*(float scalar) const;
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return Matrix with quotient values.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4> operator/(T2 scalar) const
-		{
-			Mat_t<T, 3, 3> mat = *this;
-			mat.data[0][0] /= static_cast<T>(scalar);
-			mat.data[0][1] /= static_cast<T>(scalar);
-			mat.data[0][2] /= static_cast<T>(scalar);
-			mat.data[0][3] /= static_cast<T>(scalar);
-			mat.data[1][0] /= static_cast<T>(scalar);
-			mat.data[1][1] /= static_cast<T>(scalar);
-			mat.data[1][2] /= static_cast<T>(scalar);
-			mat.data[1][3] /= static_cast<T>(scalar);
-			mat.data[2][0] /= static_cast<T>(scalar);
-			mat.data[2][1] /= static_cast<T>(scalar);
-			mat.data[2][2] /= static_cast<T>(scalar);
-			mat.data[2][3] /= static_cast<T>(scalar);
-			mat.data[3][0] /= static_cast<T>(scalar);
-			mat.data[3][1] /= static_cast<T>(scalar);
-			mat.data[3][2] /= static_cast<T>(scalar);
-			mat.data[3][3] /= static_cast<T>(scalar);
-			return mat;
-		}
+		Mat_t<4, 4> operator/(float scalar) const;
 
 		/**
 		 * @brief Addition operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4>& operator+=(const Mat_t<T2, 4, 4>& other)
-		{
-			data[0][0] += static_cast<T>(other.data[0][0]);
-			data[0][1] += static_cast<T>(other.data[0][1]);
-			data[0][2] += static_cast<T>(other.data[0][2]);
-			data[0][3] += static_cast<T>(other.data[0][3]);
-			data[1][0] += static_cast<T>(other.data[1][0]);
-			data[1][1] += static_cast<T>(other.data[1][1]);
-			data[1][2] += static_cast<T>(other.data[1][2]);
-			data[1][3] += static_cast<T>(other.data[1][3]);
-			data[2][0] += static_cast<T>(other.data[2][0]);
-			data[2][1] += static_cast<T>(other.data[2][1]);
-			data[2][2] += static_cast<T>(other.data[2][2]);
-			data[2][3] += static_cast<T>(other.data[2][3]);
-			data[3][0] += static_cast<T>(other.data[3][0]);
-			data[3][1] += static_cast<T>(other.data[3][1]);
-			data[3][2] += static_cast<T>(other.data[3][2]);
-			data[3][3] += static_cast<T>(other.data[3][3]);
-			return *this;
-		}
+		Mat_t<4, 4>& operator+=(const Mat_t<4, 4>& other);
 
 		/**
 		 * @brief Subtraction operator.
-		 * @tparam Type of the other matrix.
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4>& operator-=(const Mat_t<T2, 4, 4>& other)
-		{
-			data[0][0] -= static_cast<T>(other.data[0][0]);
-			data[0][1] -= static_cast<T>(other.data[0][1]);
-			data[0][2] -= static_cast<T>(other.data[0][2]);
-			data[0][3] -= static_cast<T>(other.data[0][3]);
-			data[1][0] -= static_cast<T>(other.data[1][0]);
-			data[1][1] -= static_cast<T>(other.data[1][1]);
-			data[1][2] -= static_cast<T>(other.data[1][2]);
-			data[1][3] -= static_cast<T>(other.data[1][3]);
-			data[2][0] -= static_cast<T>(other.data[2][0]);
-			data[2][1] -= static_cast<T>(other.data[2][1]);
-			data[2][2] -= static_cast<T>(other.data[2][2]);
-			data[2][3] -= static_cast<T>(other.data[2][3]);
-			data[3][0] -= static_cast<T>(other.data[3][0]);
-			data[3][1] -= static_cast<T>(other.data[3][1]);
-			data[3][2] -= static_cast<T>(other.data[3][2]);
-			data[3][3] -= static_cast<T>(other.data[3][3]);
-			return *this;
-		}
+		Mat_t<4, 4>& operator-=(const Mat_t<4, 4>& other);
 
 		/**
 		 * @brief Multiplication operator.
-		 * @tparam Type of the other matrix.
-		 * @tparam Number of columns in the other matrix
 		 * @param Other matrix.
 		 * @return This matrix.
 		 */
-		template<typename T2, size_t P>
-		Mat_t<T, 4, 4>& operator*=(const Mat_t<T2, 4, P>& other)
-		{
-			Mat_t<T, 4, P> mat(0);
-
-			for (size_t i = 0; i < 4; ++i)
-				for (size_t j = 0; j < P; ++j)
-					for (size_t k = 0; k < 4; ++k)
-						mat.data[i][j] += data[i][k] * static_cast<T>(other.data[k][j]);
-
-			*this = mat;
-			return *this;
-		}
+		Mat_t<4, 4>& operator*=(const Mat_t<4, 4>& other);
 
 		/**
 		 * @brief Scalar multiplication operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to multiply.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4> operator*=(T2 scalar)
-		{
-			data[0][0] *= static_cast<T>(scalar);
-			data[0][1] *= static_cast<T>(scalar);
-			data[0][2] *= static_cast<T>(scalar);
-			data[0][3] *= static_cast<T>(scalar);
-			data[1][0] *= static_cast<T>(scalar);
-			data[1][1] *= static_cast<T>(scalar);
-			data[1][2] *= static_cast<T>(scalar);
-			data[1][3] *= static_cast<T>(scalar);
-			data[2][0] *= static_cast<T>(scalar);
-			data[2][1] *= static_cast<T>(scalar);
-			data[2][2] *= static_cast<T>(scalar);
-			data[2][3] *= static_cast<T>(scalar);
-			data[3][0] *= static_cast<T>(scalar);
-			data[3][1] *= static_cast<T>(scalar);
-			data[3][2] *= static_cast<T>(scalar);
-			data[3][3] *= static_cast<T>(scalar);
-			return *this;
-		}
+		Mat_t<4, 4> operator*=(float scalar);
 
 		/**
 		 * @brief Scalar division operator.
-		 * @tparam Type of scalar.
 		 * @param Scalar to divide.
 		 * @return This matrix
 		 */
-		template<typename T2>
-		Mat_t<T, 4, 4> operator/=(T2 scalar)
-		{
-			data[0][0] /= static_cast<T>(scalar);
-			data[0][1] /= static_cast<T>(scalar);
-			data[0][2] /= static_cast<T>(scalar);
-			data[0][3] /= static_cast<T>(scalar);
-			data[1][0] /= static_cast<T>(scalar);
-			data[1][1] /= static_cast<T>(scalar);
-			data[1][2] /= static_cast<T>(scalar);
-			data[1][3] /= static_cast<T>(scalar);
-			data[2][0] /= static_cast<T>(scalar);
-			data[2][1] /= static_cast<T>(scalar);
-			data[2][2] /= static_cast<T>(scalar);
-			data[2][3] /= static_cast<T>(scalar);
-			data[3][0] /= static_cast<T>(scalar);
-			data[3][1] /= static_cast<T>(scalar);
-			data[3][2] /= static_cast<T>(scalar);
-			data[3][3] /= static_cast<T>(scalar);
-			return *this;
-		}
+		Mat_t<4, 4> operator/=(float scalar);
 
 		/**
 		 * @brief Determinant of the matrix.
 		 * @return The determinant.
 		 */
-		T determinant() const
-		{
-			return	(data[0][0]*data[1][1]*data[2][2]*data[3][3]) - (data[0][0]*data[1][1]*data[2][3]*data[3][2]) - 
-					(data[0][0]*data[1][2]*data[2][1]*data[3][3]) + (data[0][0]*data[1][2]*data[2][3]*data[3][1]) + 
-					(data[0][0]*data[1][3]*data[2][1]*data[3][2]) - (data[0][0]*data[1][3]*data[2][2]*data[3][1]) - 
-					(data[0][1]*data[1][0]*data[2][2]*data[3][3]) + (data[0][1]*data[1][0]*data[2][3]*data[3][2]) +
-					(data[0][1]*data[1][2]*data[2][0]*data[3][3]) - (data[0][1]*data[1][2]*data[2][3]*data[3][1]) - 
-					(data[0][1]*data[1][3]*data[2][0]*data[3][2]) + (data[0][1]*data[1][3]*data[2][2]*data[3][1]) + 
-					(data[0][2]*data[1][0]*data[2][1]*data[3][3]) - (data[0][2]*data[1][0]*data[2][3]*data[3][1]) - 
-					(data[0][2]*data[1][1]*data[2][0]*data[3][3]) + (data[0][2]*data[1][1]*data[2][3]*data[3][0]) +
-					(data[0][2]*data[1][3]*data[2][0]*data[3][1]) - (data[0][2]*data[1][3]*data[2][1]*data[3][0]) - 
-					(data[0][3]*data[1][0]*data[2][1]*data[3][2]) + (data[0][3]*data[1][0]*data[2][2]*data[3][1]) + 
-					(data[0][3]*data[1][1]*data[2][0]*data[3][2]) - (data[0][3]*data[1][1]*data[2][2]*data[3][0]) - 
-					(data[0][3]*data[1][2]*data[2][0]*data[3][1]) + (data[0][3]*data[1][2]*data[2][1]*data[3][0]);
-		}
+		float determinant() const;
 
 		/**
 		 * @brief Get the inverse of the matrix.
 		 * @return Inverse of the matrix.
 		 * @note Thanks to the ID Software for this code ;)
 		 */
-		Mat_t<T, 4, 4> inverse() const
-		{
-			// 2x2 sub-determinants required to calculate 4x4 determinant
-			const T det2_01_01 = data[0][0] * data[1][1] - data[0][1] * data[1][0];
-			const T det2_01_02 = data[0][0] * data[1][2] - data[0][2] * data[1][0];
-			const T det2_01_03 = data[0][0] * data[1][3] - data[0][3] * data[1][0];
-			const T det2_01_12 = data[0][1] * data[1][2] - data[0][2] * data[1][1];
-			const T det2_01_13 = data[0][1] * data[1][3] - data[0][3] * data[1][1];
-			const T det2_01_23 = data[0][2] * data[1][3] - data[0][3] * data[1][2];
-
-			// 3x3 sub-determinants required to calculate 4x4 determinant
-			const T det3_201_012 = data[2][0] * det2_01_12 - data[2][1] * det2_01_02 + data[2][2] * det2_01_01;
-			const T det3_201_013 = data[2][0] * det2_01_13 - data[2][1] * det2_01_03 + data[2][3] * det2_01_01;
-			const T det3_201_023 = data[2][0] * det2_01_23 - data[2][2] * det2_01_03 + data[2][3] * det2_01_02;
-			const T det3_201_123 = data[2][1] * det2_01_23 - data[2][2] * det2_01_13 + data[2][3] * det2_01_12;
-
-			const T det = (-det3_201_123 * data[3][0] + det3_201_023 * data[3][1] - det3_201_013 * data[3][2] + det3_201_012 * data[3][3]);
-			dk_assert(det != 0);
-
-			const T rcpDet = 1 / det;
-
-			// remaining 2x2 sub-determinants
-			const T det2_03_01 = data[0][0] * data[3][1] - data[0][1] * data[3][0];
-			const T det2_03_02 = data[0][0] * data[3][2] - data[0][2] * data[3][0];
-			const T det2_03_03 = data[0][0] * data[3][3] - data[0][3] * data[3][0];
-
-			const T det2_03_12 = data[0][1] * data[3][2] - data[0][2] * data[3][1];
-			const T det2_03_13 = data[0][1] * data[3][3] - data[0][3] * data[3][1];
-			const T det2_03_23 = data[0][2] * data[3][3] - data[0][3] * data[3][2];
-
-			const T det2_13_01 = data[1][0] * data[3][1] - data[1][1] * data[3][0];
-			const T det2_13_02 = data[1][0] * data[3][2] - data[1][2] * data[3][0];
-			const T det2_13_03 = data[1][0] * data[3][3] - data[1][3] * data[3][0];
-			const T det2_13_12 = data[1][1] * data[3][2] - data[1][2] * data[3][1];
-			const T det2_13_13 = data[1][1] * data[3][3] - data[1][3] * data[3][1];
-			const T det2_13_23 = data[1][2] * data[3][3] - data[1][3] * data[3][2];
-
-			// remaining 3x3 sub-determinants
-			const T det3_203_012 = data[2][0] * det2_03_12 - data[2][1] * det2_03_02 + data[2][2] * det2_03_01;
-			const T det3_203_013 = data[2][0] * det2_03_13 - data[2][1] * det2_03_03 + data[2][3] * det2_03_01;
-			const T det3_203_023 = data[2][0] * det2_03_23 - data[2][2] * det2_03_03 + data[2][3] * det2_03_02;
-			const T det3_203_123 = data[2][1] * det2_03_23 - data[2][2] * det2_03_13 + data[2][3] * det2_03_12;
-
-			const T det3_213_012 = data[2][0] * det2_13_12 - data[2][1] * det2_13_02 + data[2][2] * det2_13_01;
-			const T det3_213_013 = data[2][0] * det2_13_13 - data[2][1] * det2_13_03 + data[2][3] * det2_13_01;
-			const T det3_213_023 = data[2][0] * det2_13_23 - data[2][2] * det2_13_03 + data[2][3] * det2_13_02;
-			const T det3_213_123 = data[2][1] * det2_13_23 - data[2][2] * det2_13_13 + data[2][3] * det2_13_12;
-
-			const T det3_301_012 = data[3][0] * det2_01_12 - data[3][1] * det2_01_02 + data[3][2] * det2_01_01;
-			const T det3_301_013 = data[3][0] * det2_01_13 - data[3][1] * det2_01_03 + data[3][3] * det2_01_01;
-			const T det3_301_023 = data[3][0] * det2_01_23 - data[3][2] * det2_01_03 + data[3][3] * det2_01_02;
-			const T det3_301_123 = data[3][1] * det2_01_23 - data[3][2] * det2_01_13 + data[3][3] * det2_01_12;
-
-			Mat_t<T, 4, 4> m(0);
-
-			m.data[0][0] = -det3_213_123 * rcpDet;
-			m.data[1][0] = +det3_213_023 * rcpDet;
-			m.data[2][0] = -det3_213_013 * rcpDet;
-			m.data[3][0] = +det3_213_012 * rcpDet;
-
-			m.data[0][1] = +det3_203_123 * rcpDet;
-			m.data[1][1] = -det3_203_023 * rcpDet;
-			m.data[2][1] = +det3_203_013 * rcpDet;
-			m.data[3][1] = -det3_203_012 * rcpDet;
-
-			m.data[0][2] = +det3_301_123 * rcpDet;
-			m.data[1][2] = -det3_301_023 * rcpDet;
-			m.data[2][2] = +det3_301_013 * rcpDet;
-			m.data[3][2] = -det3_301_012 * rcpDet;
-
-			m.data[0][3] = -det3_201_123 * rcpDet;
-			m.data[1][3] = +det3_201_023 * rcpDet;
-			m.data[2][3] = -det3_201_013 * rcpDet;
-			m.data[3][3] = +det3_201_012 * rcpDet;
-
-			return m;
-		}
+		Mat_t<4, 4> inverse() const;
 
 		/** Matrix data. */
-		T data[4][4] = {};
+		float data[4][4] = {};
 	};
 
 #if DUCK_USE_SIMD
 
 	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator+(const Mat_t<float, 4, 4>& other) const
-	{
-		Mat_t<float, 4, 4> mat = *this;
-
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
-			m1 = _mm_add_ps(m1, m2);
-			mat.data[i][0] = m1.m128_f32[0];
-			mat.data[i][1] = m1.m128_f32[1];
-			mat.data[i][2] = m1.m128_f32[2];
-			mat.data[i][3] = m1.m128_f32[3];
-		}
-
-		return mat;
-	}
+	Mat_t<2, 2> Mat_t<2, 2>::operator*(const Mat_t<2, 2>& other) const;
 
 	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator-(const Mat_t<float, 4, 4>& other) const
-	{
-		Mat_t<float, 4, 4> mat = *this;
-
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
-			m1 = _mm_sub_ps(m1, m2);
-			mat.data[i][0] = m1.m128_f32[0];
-			mat.data[i][1] = m1.m128_f32[1];
-			mat.data[i][2] = m1.m128_f32[2];
-			mat.data[i][3] = m1.m128_f32[3];
-		}
-
-		return mat;
-	}
+	Mat_t<3, 3> Mat_t<3, 3>::operator*(const Mat_t<3, 3>& other) const;
 
 	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator*(const Mat_t<float, 4, 4>& other) const
-	{
-		Mat_t<float, 4, 4> mat(0);
-
-		for (size_t i = 0; i < 4; ++i)
-			for(size_t j = 0; j < 4; ++j)
-			{
-				__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-				__m128 m2 = { other.data[0][j], other.data[1][j], other.data[2][j], other.data[3][j] };
-				m1 = _mm_mul_ps(m1, m2);
-				mat.data[i][j] = m1.m128_f32[0] + m1.m128_f32[1] + m1.m128_f32[2] + m1.m128_f32[3];
-			}
-
-		return mat;
-	}
-
-	template<>
-	Vec_t<float, 4> Mat_t<float, 4, 4>::operator*(const Vec_t<float, 4>& vec) const
-	{
-		Vec_t<float, 4> new_vec(0);
-
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { vec.data[0], vec.data[1], vec.data[2], vec.data[3] };
-			m1 = _mm_mul_ps(m1, m2);
-			new_vec.data[i] = m1.m128_f32[0] + m1.m128_f32[1] + m1.m128_f32[2] + m1.m128_f32[3];
-		}
-
-		return new_vec;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator*(float scalar) const
-	{
-		Mat_t<float, 4, 4> mat = *this;
-
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { scalar, scalar, scalar, scalar };
-			m1 = _mm_mul_ps(m1, m2);
-			mat.data[i][0] = m1.m128_f32[0];
-			mat.data[i][1] = m1.m128_f32[1];
-			mat.data[i][2] = m1.m128_f32[2];
-			mat.data[i][3] = m1.m128_f32[3];
-		}
-
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator/(float scalar) const
-	{
-		Mat_t<float, 4, 4> mat = *this;
-
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { scalar, scalar, scalar, scalar };
-			m1 = _mm_div_ps(m1, m2);
-			mat.data[i][0] = m1.m128_f32[0];
-			mat.data[i][1] = m1.m128_f32[1];
-			mat.data[i][2] = m1.m128_f32[2];
-			mat.data[i][3] = m1.m128_f32[3];
-		}
-
-		return mat;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4>& Mat_t<float, 4, 4>::operator+=(const Mat_t<float, 4, 4>& other)
-	{
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
-			m1 = _mm_add_ps(m1, m2);
-			data[i][0] = m1.m128_f32[0];
-			data[i][1] = m1.m128_f32[1];
-			data[i][2] = m1.m128_f32[2];
-			data[i][3] = m1.m128_f32[3];
-		}
-
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4>& Mat_t<float, 4, 4>::operator-=(const Mat_t<float, 4, 4>& other)
-	{
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { other.data[i][0], other.data[i][1], other.data[i][2], other.data[i][3] };
-			m1 = _mm_sub_ps(m1, m2);
-			data[i][0] = m1.m128_f32[0];
-			data[i][1] = m1.m128_f32[1];
-			data[i][2] = m1.m128_f32[2];
-			data[i][3] = m1.m128_f32[3];
-		}
-
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4>& Mat_t<float, 4, 4>::operator*=(const Mat_t<float, 4, 4>& other)
-	{
-		*this = *this * other;
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator*=(float scalar)
-	{
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { scalar, scalar, scalar, scalar };
-			m1 = _mm_mul_ps(m1, m2);
-			data[i][0] = m1.m128_f32[0];
-			data[i][1] = m1.m128_f32[1];
-			data[i][2] = m1.m128_f32[2];
-			data[i][3] = m1.m128_f32[3];
-		}
-
-		return *this;
-	}
-
-	template<>
-	template<>
-	Mat_t<float, 4, 4> Mat_t<float, 4, 4>::operator/=(float scalar)
-	{
-		for (size_t i = 0; i < 4; ++i)
-		{
-			__m128 m1 = { data[i][0], data[i][1], data[i][2], data[i][3] };
-			__m128 m2 = { scalar, scalar, scalar, scalar };
-			m1 = _mm_div_ps(m1, m2);
-			data[i][0] = m1.m128_f32[0];
-			data[i][1] = m1.m128_f32[1];
-			data[i][2] = m1.m128_f32[2];
-			data[i][3] = m1.m128_f32[3];
-		}
-
-		return *this;
-	}
+	Mat_t<4, 4> Mat_t<4, 4>::operator*(const Mat_t<4, 4>& other) const;
 
 #endif
 
-
-
 	/** Standard 4D matrix. */
-	using Mat4 = Mat_t<RealNumber, 4, 4>;
-
-	/** Floating point 4D matrix. */
-	using Mat4f = Mat_t<float, 4, 4>;
-
-	/** Double precision floating point 4D matrix. */
-	using Mat4d = Mat_t<double, 4, 4>;
-
-	/** Signed integer 4D matrix. */
-	using Mat4i = Mat_t<int32_t, 4, 4>;
-
-
+	using Mat4 = Mat_t<4, 4>;
 
 	/** Standard 3D matrix. */
-	using Mat3 = Mat_t<RealNumber, 3, 3>;
-
-	/** Floating point 3D matrix. */
-	using Mat3f = Mat_t<float, 3, 3>;
-
-	/** Double precision floating point 2D matrix. */
-	using Mat3d = Mat_t<double, 3, 3>;
-
-	/** Signed integer 2D matrix. */
-	using Mat3i = Mat_t<int32_t, 3, 3>;
-
-
+	using Mat3 = Mat_t<3, 3>;
 
 	/** Standard 2D matrix. */
-	using Mat2 = Mat_t<RealNumber, 2, 2>;
-
-	/** Floating point 2D matrix. */
-	using Mat2f = Mat_t<float, 2, 2>;
-
-	/** Double precision floating point 2D matrix. */
-	using Mat2d = Mat_t<double, 2, 2>;
-
-	/** Signed integer 2D matrix. */
-	using Mat2i = Mat_t<int32_t, 2, 2>;
+	using Mat2 = Mat_t<2, 2>;
 }
