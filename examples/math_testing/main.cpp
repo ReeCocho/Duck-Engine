@@ -194,6 +194,18 @@ int main()
 		dk_log(m3.to_string() << '\n');
 	}
 
+	// quaternion tests
+	{
+		dk_log("QUAT TESTS");
+
+		dk::Quat q1(dk::Vec3(0.0f, 0.0f, 0.0f));
+		dk::Quat q2(dk::Vec3(90.0f, 0.0f, 0.0f));
+		dk::Quat q3(dk::Vec3(0.0f, 0.0f, 0.0f));
+
+		dk::Vec3 euler = q2.as_euler();
+		dk_log(euler.to_string());
+	}
+
 	std::cin.get();
 	return 0;
 }

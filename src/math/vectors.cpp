@@ -220,9 +220,21 @@ namespace dk
 		return { v1.m128_f32[0], v1.m128_f32[1] };
 	}
 
+	Vec_t<2> Vec_t<2>::operator*(float scalar) const
+	{
+		__m128 v1 = _mm_mul_ps({ x, y, 0, 0 }, { scalar, scalar, 0, 0 });
+		return { v1.m128_f32[0], v1.m128_f32[1] };
+	}
+
 	Vec_t<2> Vec_t<2>::operator/(const Vec_t<2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, 0, 0 }, { other.x, other.y, 0, 0 });
+		return { v1.m128_f32[0], v1.m128_f32[1] };
+	}
+
+	Vec_t<2> Vec_t<2>::operator/(float scalar) const
+	{
+		__m128 v1 = _mm_div_ps({ x, y, 0, 0 }, { scalar, scalar, 0, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1] };
 	}
 
@@ -247,10 +259,24 @@ namespace dk
 		return *this;
 	}
 
+	Vec_t<2>& Vec_t<2>::operator*=(float scalar)
+	{
+		__m128* v1 = reinterpret_cast<__m128*>(data);
+		*v1 = _mm_mul_ps(*v1, { scalar, scalar, 0, 0 });
+		return *this;
+	}
+
 	Vec_t<2>& Vec_t<2>::operator/=(const Vec_t<2>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 0, 0 });
+		return *this;
+	}
+
+	Vec_t<2>& Vec_t<2>::operator/=(float scalar)
+	{
+		__m128* v1 = reinterpret_cast<__m128*>(data);
+		*v1 = _mm_div_ps(*v1, { scalar, scalar, 0, 0 });
 		return *this;
 	}
 
@@ -323,6 +349,12 @@ namespace dk
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
 	}
 
+	Vec_t<3> Vec_t<3>::operator*(float scalar) const
+	{
+		__m128 v1 = _mm_mul_ps({ x, y, z, 0 }, { scalar, scalar, scalar, 0 });
+		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
+	}
+
 	Vec_t<3> Vec_t<3>::operator/(const Vec_t<3>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { other.x, other.y, other.z, 0 });
@@ -332,6 +364,12 @@ namespace dk
 	Vec_t<3> Vec_t<3>::operator/(const Vec_t<2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { other.x, other.y, 1.0f, 0 });
+		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
+	}
+
+	Vec_t<3> Vec_t<3>::operator/(float scalar) const
+	{
+		__m128 v1 = _mm_div_ps({ x, y, z, 0 }, { scalar, scalar, scalar, 0 });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2] };
 	}
 
@@ -377,6 +415,13 @@ namespace dk
 		return *this;
 	}
 
+	Vec_t<3>& Vec_t<3>::operator*=(float scalar)
+	{
+		__m128* v1 = reinterpret_cast<__m128*>(data);
+		*v1 = _mm_mul_ps(*v1, { scalar, scalar, scalar, 0 });
+		return *this;
+	}
+
 	Vec_t<3>& Vec_t<3>::operator/=(const Vec_t<3>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
@@ -388,6 +433,13 @@ namespace dk
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 1, 0 });
+		return *this;
+	}
+
+	Vec_t<3>& Vec_t<3>::operator/=(float scalar)
+	{
+		__m128* v1 = reinterpret_cast<__m128*>(data);
+		*v1 = _mm_div_ps(*v1, { scalar, scalar, scalar, 0 });
 		return *this;
 	}
 
@@ -480,6 +532,12 @@ namespace dk
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
 	}
 
+	Vec_t<4> Vec_t<4>::operator*(float scalar) const
+	{
+		__m128 v1 = _mm_add_ps({ x, y, z, w }, { scalar, scalar, scalar, scalar });
+		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
+	}
+
 	Vec_t<4> Vec_t<4>::operator/(const Vec_t<4>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, other.z, other.w });
@@ -495,6 +553,12 @@ namespace dk
 	Vec_t<4> Vec_t<4>::operator/(const Vec_t<2>& other) const
 	{
 		__m128 v1 = _mm_div_ps({ x, y, z, w }, { other.x, other.y, 1, 1 });
+		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
+	}
+
+	Vec_t<4> Vec_t<4>::operator/(float scalar) const
+	{
+		__m128 v1 = _mm_div_ps({ x, y, z, w }, { scalar, scalar, scalar, scalar });
 		return { v1.m128_f32[0], v1.m128_f32[1], v1.m128_f32[2], v1.m128_f32[3] };
 	}
 
@@ -561,6 +625,13 @@ namespace dk
 		return *this;
 	}
 
+	Vec_t<4>& Vec_t<4>::operator*=(float scalar)
+	{
+		__m128* v1 = reinterpret_cast<__m128*>(data);
+		*v1 = _mm_mul_ps(*v1, { scalar, scalar, scalar, scalar });
+		return *this;
+	}
+
 	Vec_t<4>& Vec_t<4>::operator/=(const Vec_t<4>& other)
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
@@ -579,6 +650,13 @@ namespace dk
 	{
 		__m128* v1 = reinterpret_cast<__m128*>(data);
 		*v1 = _mm_div_ps(*v1, { other.x, other.y, 1, 1 });
+		return *this;
+	}
+
+	Vec_t<4>& Vec_t<4>::operator/=(float scalar)
+	{
+		__m128* v1 = reinterpret_cast<__m128*>(data);
+		*v1 = _mm_div_ps(*v1, { scalar, scalar, scalar, scalar });
 		return *this;
 	}
 
@@ -635,9 +713,19 @@ namespace dk
 		return { x * other.x, y * other.y };
 	}
 
+	Vec_t<2> Vec_t<2>::operator*(float scalar) const
+	{
+		return { x * scalar, y * scalar };
+	}
+
 	Vec_t<2> Vec_t<2>::operator/(const Vec_t<2>& other) const
 	{
 		return { x / other.x, y / other.y };
+	}
+
+	Vec_t<2> Vec_t<2>::operator/(float scalar) const
+	{
+		return { x / scalar, y / scalar };
 	}
 
 	Vec_t<2>& Vec_t<2>::operator+=(const Vec_t<2>& other)
@@ -661,10 +749,24 @@ namespace dk
 		return *this;
 	}
 
+	Vec_t<2>& Vec_t<2>::operator*=(float scalar)
+	{
+		x *= scalar;
+		y *= scalar;
+		return *this;
+	}
+
 	Vec_t<2>& Vec_t<2>::operator/=(const Vec_t<2>& other)
 	{
 		x /= other.x;
 		y /= other.y;
+		return *this;
+	}
+
+	Vec_t<2>& Vec_t<2>::operator/=(float scalar)
+	{
+		x /= scalar;
+		y /= scalar;
 		return *this;
 	}
 
@@ -729,6 +831,11 @@ namespace dk
 		return { x * other.x, y * other.y, z };
 	}
 
+	Vec_t<3> Vec_t<3>::operator*(float scalar) const
+	{
+		return { x * scalar, y * scalar, z * scalar };
+	}
+
 	Vec_t<3> Vec_t<3>::operator/(const Vec_t<3>& other) const
 	{
 		return { x / other.x, y / other.y, z / other.z };
@@ -737,6 +844,11 @@ namespace dk
 	Vec_t<3> Vec_t<3>::operator/(const Vec_t<2>& other) const
 	{
 		return { x / other.x, y / other.y, z };
+	}
+
+	Vec_t<3> Vec_t<3>::operator/(float scalar) const
+	{
+		return { x / scalar, y / scalar, z / scalar };
 	}
 
 	Vec_t<3>& Vec_t<3>::operator+=(const Vec_t<3>& other)
@@ -784,6 +896,14 @@ namespace dk
 		return *this;
 	}
 
+	Vec_t<3>& Vec_t<3>::operator*=(float scalar)
+	{
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		return *this;
+	}
+
 	Vec_t<3>& Vec_t<3>::operator/=(const Vec_t<3>& other)
 	{
 		x /= other.x;
@@ -796,6 +916,14 @@ namespace dk
 	{
 		x /= other.x;
 		y /= other.y;
+		return *this;
+	}
+
+	Vec_t<3>& Vec_t<3>::operator/=(float scalar)
+	{
+		x /= scalar;
+		y /= scalar;
+		z /= scalar;
 		return *this;
 	}
 
@@ -877,6 +1005,11 @@ namespace dk
 		return { x * other.x, y * other.y, z, w };
 	}
 
+	Vec_t<4> Vec_t<4>::operator*(float scalar) const
+	{
+		return { x * scalar, y * scalar, z * scalar, w * scalar };
+	}
+
 	Vec_t<4> Vec_t<4>::operator/(const Vec_t<4>& other) const
 	{
 		return { x / other.x, y / other.y, z / other.z, w / other.w };
@@ -890,6 +1023,11 @@ namespace dk
 	Vec_t<4> Vec_t<4>::operator/(const Vec_t<2>& other) const
 	{
 		return { x / other.x, y / other.y, z, w };
+	}
+
+	Vec_t<4> Vec_t<4>::operator/(float scalar) const
+	{
+		return { x / scalar, y / scalar, z / scalar, w / scalar };
 	}
 
 	Vec_t<4>& Vec_t<4>::operator+=(const Vec_t<4>& other)
@@ -964,6 +1102,15 @@ namespace dk
 		return *this;
 	}
 
+	Vec_t<4>& Vec_t<4>::operator*=(float scalar)
+	{
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		w *= scalar;
+		return *this;
+	}
+
 	Vec_t<4>& Vec_t<4>::operator/=(const Vec_t<4>& other)
 	{
 		x /= other.x;
@@ -985,6 +1132,15 @@ namespace dk
 	{
 		x /= other.x;
 		y /= other.y;
+		return *this;
+	}
+
+	Vec_t<4>& Vec_t<4>::operator/=(float scalar)
+	{
+		x /= scalar;
+		y /= scalar;
+		z /= scalar;
+		w /= scalar;
 		return *this;
 	}
 

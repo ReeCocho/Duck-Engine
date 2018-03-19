@@ -165,6 +165,19 @@ namespace dk
 		}
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return Vector with product values.
+		 */
+		Vec_t<N> operator*(float scalar) const
+		{
+			Vec_t<N> vec = *this;
+			for (size_t i = 0; i < N; ++i)
+				vec.data[i] *= scalar;
+			return vec;
+		}
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return Vector with quotient values.
@@ -174,6 +187,19 @@ namespace dk
 			Vec_t<N> new_vec = *this;
 			for (size_t i = 0; i < N; ++i) new_vec.data[i] /= other.data[i];
 			return new_vec;
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return Vector with quotient values.
+		 */
+		Vec_t<N> operator/(float scalar) const
+		{
+			Vec_t<N> vec = *this;
+			for (size_t i = 0; i < N; ++i)
+				vec.data[i] /= scalar;
+			return vec;
 		}
 
 
@@ -212,6 +238,18 @@ namespace dk
 		}
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<N>& operator*=(float scalar)
+		{
+			for (size_t i = 0; i < N; ++i)
+				data[i] *= scalar;
+			return *this;
+		}
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return This vector.
@@ -220,6 +258,18 @@ namespace dk
 		Vec_t<N>& operator/=(const Vec_t<N>& other)
 		{
 			for (size_t i = 0; i < N; ++i) data[i] /= other.data[i];
+			return *this;
+		}
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<N>& operator/=(float scalar)
+		{
+			for (size_t i = 0; i < N; ++i)
+				data[i] /= scalar;
 			return *this;
 		}
 
@@ -385,11 +435,25 @@ namespace dk
 		Vec_t<2> operator*(const Vec_t<2>& other) const;
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return Vector with product values.
+		 */
+		Vec_t<2> operator*(float scalar) const;
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return Vector with quotient values.
 		 */
 		Vec_t<2> operator/(const Vec_t<2>& other) const;
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return Vector with quotient values.
+		 */
+		Vec_t<2> operator/(float scalar) const;
 
 		/**
 		 * @brief Addition operator.
@@ -413,11 +477,25 @@ namespace dk
 		Vec_t<2>& operator*=(const Vec_t<2>& other);
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<2>& operator*=(float scalar);
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return This vector.
 		 */
 		Vec_t<2>& operator/=(const Vec_t<2>& other);
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<2>& operator/=(float scalar);
 
 		/**
 		 * @brief Assignment operator.
@@ -599,6 +677,13 @@ namespace dk
 		Vec_t<3> operator*(const Vec_t<2>& other) const;
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return Vector with product values.
+		 */
+		Vec_t<3> operator*(float scalar) const;
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return Vector with quotient values.
@@ -611,6 +696,13 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		Vec_t<3> operator/(const Vec_t<2>& other) const;
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return Vector with quotient values.
+		 */
+		Vec_t<3> operator/(float scalar) const;
 
 
 
@@ -657,6 +749,13 @@ namespace dk
 		Vec_t<3>& operator*=(const Vec_t<2>& other);
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<3>& operator*=(float scalar);
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return This vector.
@@ -669,6 +768,13 @@ namespace dk
 		 * @return This vector.
 		 */
 		Vec_t<3>& operator/=(const Vec_t<2>& other);
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<3>& operator/=(float scalar);
 
 		/**
 		 * @brief Assignment operator.
@@ -900,6 +1006,13 @@ namespace dk
 		Vec_t<4> operator*(const Vec_t<2>& other) const;
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return Vector with product values.
+		 */
+		Vec_t<4> operator*(float scalar) const;
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return Vector with quotient values.
@@ -919,6 +1032,13 @@ namespace dk
 		 * @return Vector with quotient values.
 		 */
 		Vec_t<4> operator/(const Vec_t<2>& other) const;
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return Vector with quotient values.
+		 */
+		Vec_t<4> operator/(float scalar) const;
 
 		/**
 		 * @brief Addition operator.
@@ -984,6 +1104,13 @@ namespace dk
 		Vec_t<4>& operator*=(const Vec_t<2>& other);
 
 		/**
+		 * @brief Multiplication operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<4>& operator*=(float scalar);
+
+		/**
 		 * @brief Division operator.
 		 * @param Other vector.
 		 * @return This vector.
@@ -1003,6 +1130,13 @@ namespace dk
 		 * @return This vector.
 		 */
 		Vec_t<4>& operator/=(const Vec_t<2>& other);
+
+		/**
+		 * @brief Division operator.
+		 * @param Scalar.
+		 * @return This vector.
+		 */
+		Vec_t<4>& operator/=(float scalar);
 
 		/**
 		 * @brief Assignment operator.
