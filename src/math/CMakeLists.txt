@@ -5,6 +5,7 @@ set(DUCK_MATH_HDRS
 	matrices.hpp
 	quaternions.hpp
 	vectors.hpp
+	transformations.hpp
 )
 
 # Sources
@@ -12,6 +13,7 @@ set(DUCK_MATH_SRCS
 	matrices.cpp
 	quaternions.cpp
 	vectors.cpp
+	transformations.cpp
 )
 
 # Math lib

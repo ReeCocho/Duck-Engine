@@ -2,7 +2,7 @@
 
 /**
  * @file config.hpp
- * @brief Configurationg for math.
+ * @brief Configuration for math.
  * @author Connor J. Bramham (ReeCocho)
  */
 

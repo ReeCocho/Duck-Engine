@@ -810,6 +810,13 @@ namespace dk
 		float dot(const Vec_t<3>& other) const;
 
 		/**
+		 * @brief Get the cross product between this vector and another.
+		 * @param Other vector.
+		 * @return Result of the cross product.
+		 */
+		Vec_t<3> cross(const Vec_t<3>& other) const;
+
+		/**
 		 * @brief Normalize the vector.
 		 * @return This vector.
 		 */
@@ -1199,6 +1206,100 @@ namespace dk
 			float data[4];
 		};
 	};
+
+
+
+	/**
+	 * @brief Compute the angle between two vectors.
+	 * @tparam Vector dimension.
+	 * @param First vector.
+	 * @param Second vector.
+	 * @return Angle between the two vectors.
+	 */
+	template<size_t N>
+	float angle(const Vec_t<N>& v1, const Vec_t<N>& v2)
+	{
+		const float m1 = v1.magnitude();
+		const float m2 = v2.magnitude();
+		dk_assert(m1 > 0 && m2 > 0);
+		return std::acosf(v1.dot(v2) / (m1 * m2)) / DUCK_RAD_CONST;
+	}
+
+	/**
+	 * @brief Compute the distance between two points (As vectors.)
+	 * @tparam Vector dimension.
+	 * @param First point.
+	 * @param Second point.
+	 * @return Distance between the two poins.
+	 */
+	template<size_t N>
+	float distance(const Vec_t<N>& p1, const Vec_t<N>& p2)
+	{
+		return (p2 - p1).magnitude();
+	}
+
+	/**
+	 * @brief Linearlly interpolate between two vectors.
+	 * @tparam Vector dimension.
+	 * @param Current vector.
+	 * @param Target vector.
+	 * @param Interpolant.
+	 * @note The interpolant will be clamped between 0 and 1.
+	 * @return Inerpolantion between the two points.
+	 */
+	template<size_t N>
+	Vec_t<N> lerp(const Vec_t<N>& v1, const Vec_t<N>& v2, float interpolant)
+	{
+		const float ni = interpolant > 1.0f ? 1.0f : (interpolant < 0.0f ? 0.0f : interpolant);
+		return (v1 * (1.0f - ni)) + (v2 * ni);
+	}
+
+	/**
+	 * @brief Spherically interpolate between two vectors.
+	 * @tparam Vector dimension.
+	 * @param Current vector.
+	 * @param Target vector.
+	 * @param Interpolant.
+	 * @note The interpolant will be clamped between 0 and 1.
+	 * @return Spherical interpolation between the two points.
+	 */
+	template<size_t N>
+	Vec_t<N> slerp(const Vec_t<N>& v1, const Vec_t<N>& v2, float interpolant)
+	{
+		const float ni = interpolant > 1.0f ? 1.0f : (interpolant < 0.0f ? 0.0f : interpolant);
+		const float om = angle(v1, v2) * DUCK_RAD_CONST;
+		return (v1 * (std::sinf((1.0f - ni) * om)) / std::sinf(om)) + ((v2 * std::sinf(ni * om)) / std::sinf(om));
+	}
+
+	/**
+	 * @brief Move a point in a straint line towards another point.
+	 * @tparam Vector dimension.
+	 * @param Current point.
+	 * @param Target point.
+	 * @param Distance delta.
+	 * @param Current point that is now distance delta units closer to the target.
+	 * @note Negative values of distance delta are valid.
+	 */
+	template<size_t N>
+	Vec_t<N> move_towards(const Vec_t<N>& p1, const Vec_t<N>& p2, float delta)
+	{
+		const float nd = delta / (p2 - p1).magnitude();
+		return lerp(p1, p2, nd);
+	}
+
+	/**
+	 * @brief Reflect a vector off a plane defined by a surface normal.
+	 * @tparam Vector dimension.
+	 * @param Vector to reflect.
+	 * @param Normal the the surface.
+	 * @return Reflected vector.
+	 */
+	template<size_t N>
+	Vec_t<N> reflect(const Vec_t<N>& vec, const Vec_t<N>& norm)
+	{
+		const Vec_t<N> normalized_norm = norm.normalized();
+		return vec - (normalized_norm * 2.0f * vec.dot(normalized_norm));
+	}
 
 
 

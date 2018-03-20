@@ -458,6 +458,19 @@ namespace dk
 		return v3.m128_f32[0] + v3.m128_f32[1] + v3.m128_f32[2];
 	}
 
+	Vec_t<3> Vec_t<3>::cross(const Vec_t<3>& other) const
+	{
+		__m128 v1 = { y, z, z, x };
+		__m128 v2 = { other.z, other.y, other.x, other.z };
+		v1 = _mm_mul_ps(v1, v2);
+		return 
+		{
+			v1.m128_f32[0] - v1.m128_f32[1],
+			v1.m128_f32[2] - v1.m128_f32[3],
+			(x * other.y) - (y * other.x)
+		};
+	}
+
 	Vec_t<3>& Vec_t<3>::normalize()
 	{
 		float mag = magnitude();
@@ -935,6 +948,16 @@ namespace dk
 	float Vec_t<3>::dot(const Vec_t<3>& other) const
 	{
 		return (x*other.x) + (y*other.y) + (z*other.z);
+	}
+
+	Vec_t<3> Vec_t<3>::cross(const Vec_t<3>& other) const
+	{
+		return
+		{
+			(y * other.z) - (z * other.y),
+			(z * other.x) - (x * other.z),
+			(x * other.y) - (y * other.x)
+		};
 	}
 
 	Vec_t<3>& Vec_t<3>::normalize()

@@ -278,4 +278,34 @@ namespace dk
 			float data[4];
 		};
 	};
+
+
+
+	/**
+	 * @brief Compute the angle between two quaternions.
+	 * @param First quaternion.
+	 * @param Second quaternion.
+	 * @return Angle between the two quaternions.
+	 */
+	float angle(const Quat& q1, const Quat& q2);
+
+	/**
+	 * @brief Lerp between two quaternions and normalize the result.
+	 * @param First quaternion.
+	 * @param Second quaternion.
+	 * @param Interpolant.
+	 * @note The interpolant will be clamped between 0 and 1.
+	 * @return Lerped quaternion.
+	 */
+	Quat lerp(const Quat& q1, const Quat& q2, float interpolant);
+
+	/**
+	 * @brief Spherically interpolant between two quaternions and normalize the result.
+	 * @param First quaternion.
+	 * @param Second quaternion.
+	 * @param Interpolant.
+	 * @note The interpolant will be clamped between 0 and 1.
+	 * @return Slerped quaternion.
+	 */
+	Quat slerp(const Quat& q1, const Quat& q2, float interpolant);
 }

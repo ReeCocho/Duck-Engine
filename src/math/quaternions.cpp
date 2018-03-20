@@ -75,12 +75,12 @@ namespace dk
 
 	Quat& Quat::euler_angles(const Vec_t<3>& euler)
 	{
-		const float cy = static_cast<float>(std::cos(euler.y * DUCK_RAD_CONST * 0.5f));
-		const float sy = static_cast<float>(std::sin(euler.y * DUCK_RAD_CONST * 0.5f));
-		const float cr = static_cast<float>(std::cos(euler.z * DUCK_RAD_CONST * 0.5f));
-		const float sr = static_cast<float>(std::sin(euler.z * DUCK_RAD_CONST * 0.5f));
-		const float cp = static_cast<float>(std::cos(euler.x * DUCK_RAD_CONST * 0.5f));
-		const float sp = static_cast<float>(std::sin(euler.x * DUCK_RAD_CONST * 0.5f));
+		const float cy = static_cast<float>(std::cosf(euler.y * DUCK_RAD_CONST * 0.5f));
+		const float sy = static_cast<float>(std::sinf(euler.y * DUCK_RAD_CONST * 0.5f));
+		const float cr = static_cast<float>(std::cosf(euler.z * DUCK_RAD_CONST * 0.5f));
+		const float sr = static_cast<float>(std::sinf(euler.z * DUCK_RAD_CONST * 0.5f));
+		const float cp = static_cast<float>(std::cosf(euler.x * DUCK_RAD_CONST * 0.5f));
+		const float sp = static_cast<float>(std::sinf(euler.x * DUCK_RAD_CONST * 0.5f));
 
 		w = cy * cr * cp + sy * sr * sp;
 		x = cy * sr * cp - sy * cr * sp;
@@ -96,22 +96,38 @@ namespace dk
 		// roll (z-axis rotation)
 		const float sinr = 2.0f * (w * x + y * z);
 		const float cosr = 1.0f - (2.0f * (x * x + y * y));
-		euler.z = std::atan2(sinr, cosr);
+		euler.z = std::atan2f(sinr, cosr);
 
 		// pitch (x-axis rotation)
 		const float sinp = 2.0f * (w * y - z * x);
 		if (std::fabs(sinp) >= 1.0f)
 			euler.x = std::copysign(DUCK_PI / 2.0f, sinp); // use 90 degrees if out of range
 		else
-			euler.x = std::asin(sinp);
+			euler.x = std::asinf(sinp);
 
 		// yaw (y-axis rotation)
 		const float siny = 2.0f * (w * z + x * y);
 		const float cosy = 1.0f - (2.0f * (y * y + z * z));
-		euler.y = std::atan2(siny, cosy);
+		euler.y = std::atan2f(siny, cosy);
 		euler /= DUCK_RAD_CONST;
 
 		return euler;
+	}
+
+	float angle(const Quat& q1, const Quat& q2)
+	{
+		const float d = q1.dot(q2);
+		return std::acosf((2.0f * d * d) - 1.0f);
+	}
+
+	Quat lerp(const Quat& q1, const Quat& q2, float interpolant)
+	{
+		return lerp(Vec_t<4>(q1.x, q2.y, q2.z, q2.w), Vec_t<4>(q2.x, q2.y, q2.z, q2.w), interpolant);
+	}
+
+	Quat slerp(const Quat& q1, const Quat& q2, float interpolant)
+	{
+		return slerp(Vec_t<4>(q1.x, q2.y, q2.z, q2.w), Vec_t<4>(q2.x, q2.y, q2.z, q2.w), interpolant);
 	}
 }
 
