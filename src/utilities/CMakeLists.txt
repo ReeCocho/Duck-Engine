@@ -1,15 +1,18 @@
 # Headers
 set(DUCK_UTILS_HDRS
-	${CMAKE_SOURCE_DIR}/src/utilities/common.hpp
-	${CMAKE_SOURCE_DIR}/src/utilities/debugging.hpp
-	${CMAKE_SOURCE_DIR}/src/utilities/macros.hpp
+	common.hpp
+	debugging.hpp
+	macros.hpp
+	resource_allocator.hpp
+)
+
+# Sources
+set(DUCK_UTILS_SRCS
+	resource_allocator.cpp
 )
 
 # Utilities lib
-add_library(Duck-Utilities INTERFACE)
-
-if(MSVC)
-    add_custom_target(Duck-Utilities.headers SOURCES ${DUCK_UTILS_HDRS})
-endif()
-
-target_sources(Duck-Utilities INTERFACE ${DUCK_UTILS_HDRS})
+add_library(Duck-Utilities
+	${DUCK_UTILS_HDRS}
+	${DUCK_UTILS_SRCS}
+)
