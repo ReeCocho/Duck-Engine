@@ -1,1 +1,1 @@
-add_subdirectory(math_testing)
+add_subdirectory(testing)

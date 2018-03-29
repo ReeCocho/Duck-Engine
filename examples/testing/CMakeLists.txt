@@ -1,12 +1,13 @@
 # Executable
 add_executable (
-	MathTesting 
+	Testing 
 	main.cpp
 )
 
 # Libraries
 target_link_libraries(
-	MathTesting
+	Testing
 	Duck-Utilities
 	Duck-Math
+	Duck-Graphics
 )
