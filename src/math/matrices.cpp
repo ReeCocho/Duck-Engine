@@ -41,16 +41,6 @@ namespace dk
 		data[1][1] = other.data[1][1];
 	}
 
-	constexpr size_t Mat_t<2, 2>::rows() const
-	{
-		return 2;
-	}
-
-	constexpr size_t Mat_t<2, 2>::columns() const
-	{
-		return 2;
-	}
-
 	Row<float, 2> Mat_t<2, 2>::operator[](size_t index)
 	{
 		dk_assert(index < 2);
@@ -180,16 +170,6 @@ namespace dk
 		data[2][0] = other.data[2][0];
 		data[2][1] = other.data[2][1];
 		data[2][2] = other.data[2][2];
-	}
-
-	constexpr size_t Mat_t<3, 3>::rows() const
-	{
-		return 3;
-	}
-
-	constexpr size_t Mat_t<3, 3>::columns() const
-	{
-		return 3;
 	}
 
 	Row<float, 3> Mat_t<3, 3>::operator[](size_t index)
@@ -367,16 +347,6 @@ namespace dk
 		data[3][1] = other.data[3][1];
 		data[3][2] = other.data[3][2];
 		data[3][3] = other.data[3][3];
-	}
-
-	constexpr size_t Mat_t<4, 4>::rows() const
-	{
-		return 4;
-	}
-
-	constexpr size_t Mat_t<4, 4>::columns() const
-	{
-		return 4;
 	}
 
 	Row<float, 4> Mat_t<4, 4>::operator[](size_t index)

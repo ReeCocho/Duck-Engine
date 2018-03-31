@@ -421,13 +421,13 @@ namespace dk
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		constexpr size_t rows() const;
+		size_t rows() const { return 2; }
 
 		/**
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		constexpr size_t columns() const;
+		size_t columns() const { return 2; }
 
 		/**
 		 * @brief Access operator.
@@ -620,13 +620,13 @@ namespace dk
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		constexpr size_t rows() const;
+		size_t rows() const { return 3; }
 
 		/**
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		constexpr size_t columns() const;
+		size_t columns() const { return 3; }
 
 		/**
 		 * @brief Access operator.
@@ -817,13 +817,13 @@ namespace dk
 		 * @brief Get number of rows.
 		 * @return Number of rows.
 		 */
-		constexpr size_t rows() const;
+		size_t rows() const { return 4; }
 
 		/**
 		 * @brief Get number of columns.
 		 * @return Number of columns.
 		 */
-		constexpr size_t columns() const;
+		size_t columns() const { return 4; }
 
 		/**
 		 * @brief Access operator.
