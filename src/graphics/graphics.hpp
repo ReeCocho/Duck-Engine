@@ -11,6 +11,7 @@
 #include <memory>
 #include <utilities\debugging.hpp>
 #include "vulkan_utilities.hpp"
+#include "device_manager.hpp"
 
 #if DUCK_DEBUG_VULKAN
 #include "debugging.hpp"
@@ -117,5 +118,11 @@ namespace dk
 #if DUCK_DEBUG_VULKAN
 		std::unique_ptr<VkDebugger> m_debugger;
 #endif
+		
+		/** Vulkan surface to draw on. */
+		vk::SurfaceKHR m_vk_surface;
+
+		/** Device manager. */
+		std::unique_ptr<VkDeviceManager> m_device_manager;
 	};
 }
