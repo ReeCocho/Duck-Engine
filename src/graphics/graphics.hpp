@@ -8,8 +8,13 @@
 
 /** Includes. */
 #include <string>
+#include <memory>
 #include <utilities\debugging.hpp>
 #include "vulkan_utilities.hpp"
+
+#if DUCK_DEBUG_VULKAN
+#include "debugging.hpp"
+#endif
 
 namespace dk
 {
@@ -107,5 +112,10 @@ namespace dk
 
 		/** Vulkan instance. */
 		vk::Instance m_vk_instance;
+
+		/** Debugger */
+#if DUCK_DEBUG_VULKAN
+		std::unique_ptr<VkDebugger> m_debugger;
+#endif
 	};
 }

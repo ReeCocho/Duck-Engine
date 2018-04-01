@@ -10,7 +10,7 @@
 #include <string>
 #include <cmath>
 #include <utilities/common.hpp>
-#include "config.hpp"
+#include <config.hpp>
 
 #if DUCK_USE_SIMD
 	#include <emmintrin.h>

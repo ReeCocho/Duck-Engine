@@ -1,7 +1,6 @@
 # Headers
 set(DUCK_MATH_HDRS
 	common.hpp
-	config.hpp
 	matrices.hpp
 	quaternions.hpp
 	vectors.hpp

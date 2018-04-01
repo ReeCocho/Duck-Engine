@@ -2,7 +2,7 @@
 
 /**
  * @file config.hpp
- * @brief Configuration for math.
+ * @brief Configuration for Duck.
  * @author Connor J. Bramham (ReeCocho)
  */
 
@@ -14,6 +14,9 @@
 
 /** Tell Duck Math whether you want to use radians or degrees. */
 #define DUCK_USE_RADIANS 0
+
+/** Tell Duck Graphics whether to use debugging for Vulkan. */
+#define DUCK_DEBUG_VULKAN 1
 
 #if DUCK_USE_RADIANS
 	#define DUCK_RAD_CONST 1.0f
