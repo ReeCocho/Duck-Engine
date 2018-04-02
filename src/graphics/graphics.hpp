@@ -57,13 +57,17 @@ namespace dk
 			return m_vk_instance;
 		}
 
+		VkDeviceManager* get_device_manager()
+		{
+			return m_device_manager.get();
+		}
+
 		/**
 		 * @brief Get physical device.
 		 * @return Physical device.
 		 */
-		vk::PhysicalDevice get_physical_device() const
+		const vk::PhysicalDevice& get_physical_device() const
 		{
-			auto test = m_device_manager->get_physical_device();
 			return m_device_manager->get_physical_device();
 		}
 

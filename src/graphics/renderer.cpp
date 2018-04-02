@@ -12,8 +12,6 @@ namespace dk
 {
 	Renderer::Renderer(Graphics* graphics) : m_graphics(graphics)
 	{
-		auto test = graphics->get_physical_device();
-
 		// Get swapchain details
 		SwapChainSupportDetails swap_chain_support = query_swap_chain_support(m_graphics->get_physical_device(), m_graphics->get_surface());
 		vk::SurfaceFormatKHR surface_format = choose_swap_surface_format(swap_chain_support.formats);

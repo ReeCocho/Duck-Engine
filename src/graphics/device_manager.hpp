@@ -36,9 +36,8 @@ namespace dk
 		 * @brief Get physical device.
 		 * @return Physical device.
 		 */
-		vk::PhysicalDevice get_physical_device() const
+		const vk::PhysicalDevice& get_physical_device() const
 		{
-			float test = 1;
 			return m_vk_physical_device;
 		}
 

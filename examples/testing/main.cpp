@@ -6,7 +6,7 @@ int main()
 {
 	{
 		dk::Graphics graphics("Test window", 1280, 720);
-		auto test = graphics.get_width();
+		graphics.get_device_manager()->get_physical_device();
 		dk::Renderer renderer(&graphics);
 		bool running = true;
 

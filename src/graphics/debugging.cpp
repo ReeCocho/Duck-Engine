@@ -17,9 +17,9 @@ namespace dk
 		createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;		// Debug flags
 		createInfo.pfnCallback = debug_callback;												// Debug function
 
-																								// Create debug function
+		// Create debug function
 		auto func = (PFN_vkCreateDebugReportCallbackEXT)m_vk_instance.getProcAddr("vkCreateDebugReportCallbackEXT");
-		assert(func != nullptr);
+		assert(func);
 
 		// Create debug callback
 		VkDebugReportCallbackEXT callback = VK_NULL_HANDLE;
