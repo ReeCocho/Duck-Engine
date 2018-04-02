@@ -1,10 +1,13 @@
 #include "math\common.hpp"
 #include "graphics\graphics.hpp"
+#include "graphics\renderer.hpp"
 
 int main()
 {
 	{
 		dk::Graphics graphics("Test window", 1280, 720);
+		auto test = graphics.get_width();
+		dk::Renderer renderer(&graphics);
 		bool running = true;
 
 		while (running)

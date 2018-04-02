@@ -109,20 +109,28 @@ namespace dk
 #endif
 
 		// Create device manager
-		m_device_manager = std::make_unique<VkDeviceManager>(m_vk_instance, m_vk_surface, layers);
+		const std::vector<const char*> device_extensions = 
+		{
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
+
+		m_device_manager = std::make_unique<VkDeviceManager>(m_vk_instance, m_vk_surface, layers, device_extensions);
 	}
 
 	Graphics::~Graphics()
 	{
+		// Wait for logical device to finish whatever it was doing
+		m_device_manager->get_logical_deivce().waitIdle();
+
 		// Destroy device manager
-		m_device_manager = nullptr;
+		m_device_manager.reset();
 
 		// Destroy surface
 		m_vk_instance.destroySurfaceKHR(m_vk_surface);
 
 		// Destroy debugger
 #if DUCK_DEBUG_VULKAN
-		m_debugger = nullptr;
+		m_debugger.reset();
 #endif
 
 		// Destroy Vulkan instance

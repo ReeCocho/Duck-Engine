@@ -1,4 +1,5 @@
 #include <utilities\debugging.hpp>
+#include <set>
 #include "vulkan_utilities.hpp"
 
 namespace dk
@@ -47,7 +48,18 @@ namespace dk
 		return found_extensions;
 	}
 
-	vk::PhysicalDevice find_suitable_physical_device(const vk::Instance& instance)
+	bool check_device_extension_support(const vk::PhysicalDevice& device, const std::vector<const char*>& extensions)
+	{
+		std::vector<vk::ExtensionProperties> available_extensions = device.enumerateDeviceExtensionProperties();
+		std::set<std::string> required_extensions(extensions.begin(), extensions.end());
+
+		for (const auto& extension : available_extensions)
+			required_extensions.erase(extension.extensionName);
+
+		return required_extensions.empty();
+	}
+
+	vk::PhysicalDevice find_suitable_physical_device(const vk::Instance& instance, const std::vector<const char*>& extensions, const vk::SurfaceKHR& surface)
 	{
 		// Current physical device
 		vk::PhysicalDevice physical_device(static_cast<VkPhysicalDevice>(VK_NULL_HANDLE));
@@ -90,6 +102,17 @@ namespace dk
 			// Image dimension is a big factor
 			current_device_score += properties.limits.maxImageDimension2D;
 
+			// Make sure extensions are supported
+			if (!check_device_extension_support(device, extensions))
+				current_device_score = 0;
+			else if(surface)
+			{
+				// Make sure swap chain is supported (If requested)
+				SwapChainSupportDetails swap_chain_support = query_swap_chain_support(device, surface);
+				if (swap_chain_support.formats.empty() || swap_chain_support.present_modes.empty())
+					current_device_score = 0;
+			}
+
 			// Pick device
 			if (current_device_score > device_score)
 			{
@@ -129,5 +152,66 @@ namespace dk
 		}
 
 		return qfi;
+	}
+
+	SwapChainSupportDetails query_swap_chain_support(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface)
+	{
+		SwapChainSupportDetails details = {};
+		details.capabilities = device.getSurfaceCapabilitiesKHR(surface);
+		details.formats = device.getSurfaceFormatsKHR(surface);
+		details.present_modes = device.getSurfacePresentModesKHR(surface);
+		return details;
+	}
+
+	vk::SurfaceFormatKHR choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& avalaible_formats)
+	{
+		if (avalaible_formats.size() == 1 && avalaible_formats[0].format == vk::Format::eUndefined)
+			return { vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
+
+		for (const auto& available_format : avalaible_formats)
+			if (available_format.format == vk::Format::eB8G8R8A8Unorm && available_format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+				return available_format;
+
+		return avalaible_formats[0];
+	}
+
+	vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& presentation_modes, bool force_immediate)
+	{
+		// Fifo by default
+		vk::PresentModeKHR best_mode = vk::PresentModeKHR::eFifo;
+
+		// Prefer mailbox only if force_immediate is false. Otherwhise prefer immediate mode.
+		for (const auto& present_mode : presentation_modes) 
+		{
+			if (present_mode == vk::PresentModeKHR::eMailbox) 
+			{
+				if (force_immediate)
+					best_mode = present_mode;
+				else
+					return present_mode;
+			}
+			else if (present_mode == vk::PresentModeKHR::eImmediate) 
+			{
+				if (force_immediate) return present_mode;
+				best_mode = present_mode;
+			}
+		}
+
+		return best_mode;
+	}
+
+	vk::Extent2D choose_swap_extent(const vk::SurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height)
+	{
+		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+			return capabilities.currentExtent;
+		else 
+		{
+			vk::Extent2D actual_extent = { width, height };
+
+			actual_extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actual_extent.width));
+			actual_extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actual_extent.height));
+
+			return actual_extent;
+		}
 	}
 }

@@ -11,10 +11,10 @@
 
 namespace dk
 {
-	VkDeviceManager::VkDeviceManager(const vk::Instance& instance, const vk::SurfaceKHR& surface, const std::vector<const char*>& layers) : m_vk_instance(instance)
+	VkDeviceManager::VkDeviceManager(const vk::Instance& instance, const vk::SurfaceKHR& surface, const std::vector<const char*>& layers, const std::vector<const char*>& extensions) : m_vk_instance(instance)
 	{
 		// Find physical device
-		m_vk_physical_device = find_suitable_physical_device(m_vk_instance);
+		m_vk_physical_device = find_suitable_physical_device(m_vk_instance, extensions, surface);
 		dk_assert(m_vk_physical_device);
 
 		// Find queue family indices
@@ -43,13 +43,15 @@ namespace dk
 		create_info.pEnabledFeatures = &device_features;
 		create_info.enabledLayerCount = static_cast<uint32_t>(layers.size());
 		create_info.ppEnabledLayerNames = layers.data();
+		create_info.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		create_info.ppEnabledExtensionNames = extensions.data();
 
 		m_vk_logical_device = m_vk_physical_device.createDevice(create_info);
 		dk_assert(m_vk_logical_device);
 
 		// Get queues
-		m_vk_graphics_queue = m_vk_logical_device.getQueue(m_queue_family_indices.graphics_family, 0);
-		m_vk_present_queue = m_vk_logical_device.getQueue(m_queue_family_indices.present_family, 0);
+		m_vk_graphics_queue = m_vk_logical_device.getQueue(static_cast<uint32_t>(m_queue_family_indices.graphics_family), 0);
+		m_vk_present_queue = m_vk_logical_device.getQueue(static_cast<uint32_t>(m_queue_family_indices.present_family), 0);
 	}
 
 	VkDeviceManager::~VkDeviceManager()

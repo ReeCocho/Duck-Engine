@@ -39,6 +39,21 @@ namespace dk
 		}
 	};
 
+	/**
+	 * @brief Information needed for swap chain creation.
+	 */
+	struct SwapChainSupportDetails 
+	{
+		/** Surface capabilities. */
+		vk::SurfaceCapabilitiesKHR capabilities = {};
+
+		/** Color space formats. */
+		std::vector<vk::SurfaceFormatKHR> formats = {};
+
+		/** Presentation modes. */
+		std::vector<vk::PresentModeKHR> present_modes = {};
+	};
+
 
 
 	/**
@@ -57,12 +72,22 @@ namespace dk
 	std::vector<const char*> get_extensions(const std::vector<const char*>& extensions);
 
 	/**
+	 * @brief Check device extension support.
+	 * @param Physical device.
+	 * @param Device extensions.
+	 * @return If the device supports every extension.
+	 */
+	bool check_device_extension_support(const vk::PhysicalDevice& device, const std::vector<const char*>& extensions);
+
+	/**
 	 * @brief Find a suitable physical device.
 	 * @param Vulkan instance.
+	 * @param Extensions required.
+	 * @param Optional surface for swapchain support.
 	 * @return The best physical device found.
 	 * @note If no device was found, this function will return a VK_NULL_HANDLE.
 	 */
-	vk::PhysicalDevice find_suitable_physical_device(const vk::Instance& instance);
+	vk::PhysicalDevice find_suitable_physical_device(const vk::Instance& instance, const std::vector<const char*>& extensions = {}, const vk::SurfaceKHR& surface = {});
 
 	/**
 	 * @brief Find a physical devices queue family indices.
@@ -71,4 +96,34 @@ namespace dk
 	 * @return Devices queue family indices.
 	 */
 	QueueFamilyIndices find_queue_family_indices(const vk::PhysicalDevice& physical_device, const vk::SurfaceKHR& surface);
+
+	/**
+	 * @brief Get swapchain support details from a physical device.
+	 * @param Physical device to check.
+	 * @param Surface to check details of.
+	 * @return Swap chain support details.
+	 */
+	SwapChainSupportDetails query_swap_chain_support(const vk::PhysicalDevice& device, const vk::SurfaceKHR& surface);
+
+	/**
+	 * @brief Choose an appropriate surface format from avaliable formats.
+	 * @param Avaliable formats.
+	 * @return Best format.
+	 */
+	vk::SurfaceFormatKHR choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& avalaible_formats);
+
+	/**
+	 * @brief Choose an appropriate presentation mode.
+	 * @param Available presentation modes.
+	 * @param Force immediate mode.
+	 */
+	vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& presentation_modes, bool force_immediate = false);
+
+	/**
+	 * @brief Choose an appropriate swap chain image extent.
+	 * @param Capabilities of the swap chain in question.
+	 * @param Prefered width.
+	 * @param Prefered height.
+	 */
+	vk::Extent2D choose_swap_extent(const vk::SurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height);
 }

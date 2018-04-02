@@ -4,6 +4,7 @@ set(DUCK_GRAPHICS_HDRS
 	vulkan_utilities.hpp
 	debugging.hpp
 	device_manager.hpp
+	renderer.hpp
 )
 
 # Sources
@@ -12,6 +13,7 @@ set(DUCK_GRAPHICS_SRCS
 	vulkan_utilities.cpp
 	debugging.cpp
 	device_manager.cpp
+	renderer.cpp
 )
 
 # Graphics lib
