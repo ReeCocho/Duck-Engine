@@ -5,6 +5,7 @@ set(DUCK_GRAPHICS_HDRS
 	debugging.hpp
 	device_manager.hpp
 	renderer.hpp
+	swapchain_manager.hpp
 )
 
 # Sources
@@ -14,6 +15,7 @@ set(DUCK_GRAPHICS_SRCS
 	debugging.cpp
 	device_manager.cpp
 	renderer.cpp
+	swapchain_manager.cpp
 )
 
 # Graphics lib

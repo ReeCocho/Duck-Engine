@@ -16,7 +16,7 @@
 #define DUCK_USE_RADIANS 0
 
 /** Tell Duck Graphics whether to use debugging for Vulkan. */
-#define DUCK_DEBUG_VULKAN 0
+#define DUCK_DEBUG_VULKAN 1
 
 #if DUCK_USE_RADIANS
 	#define DUCK_RAD_CONST 1.0f

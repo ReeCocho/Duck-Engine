@@ -57,9 +57,9 @@ namespace dk
 			return m_vk_instance;
 		}
 
-		VkDeviceManager* get_device_manager()
+		VkDeviceManager& get_device_manager()
 		{
-			return m_device_manager.get();
+			return *m_device_manager.get();
 		}
 
 		/**
@@ -145,16 +145,18 @@ namespace dk
 
 		/** Vulkan instance. */
 		vk::Instance m_vk_instance;
-
-		/** Debugger */
-#if DUCK_DEBUG_VULKAN
-		std::unique_ptr<VkDebugger> m_debugger;
-#endif
 		
 		/** Vulkan surface to draw on. */
 		vk::SurfaceKHR m_vk_surface;
 
 		/** Device manager. */
 		std::unique_ptr<VkDeviceManager> m_device_manager;
+
+		// NOTE: For whatever stupid reason, I have to put the debugger AFTER
+		// everything else otherwise you access an invalid memory location.
+		/** Debugger */
+#if DUCK_DEBUG_VULKAN
+		std::unique_ptr<VkDebugger> m_debugger;
+#endif
 	};
 }

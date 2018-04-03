@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include "graphics.hpp"
+#include "swapchain_manager.hpp"
 
 namespace dk
 {
@@ -22,14 +23,23 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Graphics context.
 		 */
-		Renderer(Graphics* graphics);
+		Renderer(Graphics& graphics);
 
 		/**
 		 * @brief Destructor.
 		 */
 		virtual ~Renderer();
 
-	protected:
+		/**
+		 * @brief Get graphics context.
+		 * @return Graphics context.
+		 */
+		Graphics& get_graphics() const
+		{
+			return m_graphics;
+		}
+
+	private:
 
 		/**
 		 * @brief Copy constructor.
@@ -47,9 +57,9 @@ namespace dk
 
 
 		/** Graphics context. */
-		Graphics* m_graphics;
+		Graphics& m_graphics;
 
-		/** Swapchain. */
-		vk::SwapchainKHR m_vk_swapchain;
+		/** Swapchain manager. */
+		VkSwapchainManager m_swapchain_manager;
 	};
 }

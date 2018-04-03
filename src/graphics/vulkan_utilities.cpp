@@ -105,7 +105,7 @@ namespace dk
 			// Make sure extensions are supported
 			if (!check_device_extension_support(device, extensions))
 				current_device_score = 0;
-			else if(surface)
+			else if (surface)
 			{
 				// Make sure swap chain is supported (If requested)
 				SwapChainSupportDetails swap_chain_support = query_swap_chain_support(device, surface);
@@ -117,7 +117,7 @@ namespace dk
 			if (current_device_score > device_score)
 			{
 				physical_device = device;
-				current_device_score = device_score;
+				device_score = current_device_score;
 			}
 		}
 
@@ -145,7 +145,7 @@ namespace dk
 			if (queue_family.queueCount > 0 && present_support)
 				qfi.present_family = i;
 
-			if (qfi.is_complete())
+			if (qfi.is_complete() && qfi.graphics_family != qfi.present_family)
 				break;
 
 			++i;

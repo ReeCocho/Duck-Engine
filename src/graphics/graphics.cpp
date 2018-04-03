@@ -62,7 +62,7 @@ namespace dk
 			"VK_LAYER_LUNARG_standard_validation"
 #endif
 		};
-		layers = get_layers(layers);
+		dk_assert(layers.size() == get_layers(layers).size());
 
 		// Check for Vulkan extensions
 		std::vector<const char*> extensions =
@@ -76,8 +76,7 @@ namespace dk
 		// Add extensions required by SDL
 		for (size_t i = 0; i < sdl_extension_count; ++i)
 			extensions.push_back(sdl_extensions[i]);
-
-		extensions = get_extensions(extensions);
+		dk_assert(extensions.size() == get_extensions(extensions).size());
 		
 		// Create Vulkan instance
 		vk::InstanceCreateInfo createInfo = {};
