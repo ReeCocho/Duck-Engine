@@ -39,6 +39,20 @@ namespace dk
 			return m_graphics;
 		}
 
+		/**
+		 * @brief Get render pass used by shaders.
+		 * @return Render pass.
+		 */
+		const vk::RenderPass& get_shader_render_pass() const
+		{
+			return m_vk_shader_pass;
+		}
+
+	protected:
+
+		/** Render pass used for shaders. */
+		vk::RenderPass m_vk_shader_pass;
+
 	private:
 
 		/**

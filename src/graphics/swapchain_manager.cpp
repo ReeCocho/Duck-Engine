@@ -69,11 +69,38 @@ namespace dk
 		// Store extent and surface format.
 		m_vk_image_format = surface_format.format;
 		m_vk_extent = extent;
+
+		// Create image views
+		m_vk_image_views = {};
+		m_vk_image_views.resize(m_vk_images.size());
+
+		for (size_t i = 0; i < m_vk_image_views.size(); ++i)
+		{
+			vk::ImageViewCreateInfo create_info = {};
+			create_info.image = m_vk_images[i];
+			create_info.viewType = vk::ImageViewType::e2D;
+			create_info.format = m_vk_image_format;
+			create_info.components.r = vk::ComponentSwizzle::eIdentity;
+			create_info.components.g = vk::ComponentSwizzle::eIdentity;
+			create_info.components.b = vk::ComponentSwizzle::eIdentity;
+			create_info.components.a = vk::ComponentSwizzle::eIdentity;
+			create_info.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+			create_info.subresourceRange.baseMipLevel = 0;
+			create_info.subresourceRange.levelCount = 1;
+			create_info.subresourceRange.baseArrayLayer = 0;
+			create_info.subresourceRange.layerCount = 1;
+
+			m_vk_image_views[i] = m_vk_logical_device.createImageView(create_info);
+			dk_assert(m_vk_image_views[i]);
+		}
 	}
 
 	VkSwapchainManager::~VkSwapchainManager()
 	{
 		// Cleanup
+		for (auto& image_view : m_vk_image_views)
+			m_vk_logical_device.destroyImageView(image_view);
+
 		m_vk_logical_device.destroySwapchainKHR(m_vk_swapchain);
 	}
 }

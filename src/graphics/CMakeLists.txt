@@ -6,6 +6,9 @@ set(DUCK_GRAPHICS_HDRS
 	device_manager.hpp
 	renderer.hpp
 	swapchain_manager.hpp
+	texture.hpp
+	shader.hpp
+	forward_renderer.hpp
 )
 
 # Sources
@@ -16,6 +19,9 @@ set(DUCK_GRAPHICS_SRCS
 	device_manager.cpp
 	renderer.cpp
 	swapchain_manager.cpp
+	texture.cpp
+	shader.cpp
+	forward_renderer.cpp
 )
 
 # Graphics lib

@@ -214,4 +214,16 @@ namespace dk
 			return actual_extent;
 		}
 	}
+
+	vk::ShaderModule create_shader_module(const vk::Device& logical_device, const std::vector<char>& byte_code)
+	{
+		vk::ShaderModuleCreateInfo create_info = {};
+		create_info.codeSize = byte_code.size();
+		create_info.pCode = reinterpret_cast<const uint32_t*>(byte_code.data());
+
+		vk::ShaderModule shader_module = logical_device.createShaderModule(create_info);
+		dk_assert(shader_module);
+
+		return shader_module;
+	}
 }

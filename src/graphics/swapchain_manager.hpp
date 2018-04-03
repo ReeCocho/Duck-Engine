@@ -104,6 +104,9 @@ namespace dk
 		/** Swapchain images. */
 		std::vector<vk::Image> m_vk_images;
 
+		/** Swapchain image views. */
+		std::vector<vk::ImageView> m_vk_image_views;
+
 		/** Format of swapchain images. */
 		vk::Format m_vk_image_format;
 

@@ -126,4 +126,12 @@ namespace dk
 	 * @param Prefered height.
 	 */
 	vk::Extent2D choose_swap_extent(const vk::SurfaceCapabilitiesKHR& capabilities, uint32_t width, uint32_t height);
+
+	/**
+	 * @brief Create a shader module.
+	 * @param Logical device.
+	 * @param Shader byte code.
+	 * @return Shader module.
+	 */
+	vk::ShaderModule create_shader_module(const vk::Device& logical_device, const std::vector<char>& byte_code);
 }
