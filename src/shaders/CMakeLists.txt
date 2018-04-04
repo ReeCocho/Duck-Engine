@@ -25,3 +25,12 @@ add_custom_target(
     DEPENDS 
 	${SPIRV_BINARY_FILES}
 )
+
+add_dependencies(Testing Shaders)
+
+add_custom_command(OUTPUT Testing
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Testing>/../shaders/"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${PROJECT_BINARY_DIR}/shaders"
+	"$<TARGET_FILE_DIR:Testing>/../shaders"
+)

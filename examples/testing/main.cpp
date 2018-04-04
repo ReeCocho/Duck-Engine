@@ -6,7 +6,7 @@
 int main()
 {
 	{
-		dk::Graphics graphics("Test window", 1280, 720);
+		dk::Graphics graphics(1, "Test window", 1280, 720);
 		dk::ForwardRenderer renderer(graphics);
 		bool running = true;
 

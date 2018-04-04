@@ -62,6 +62,9 @@ namespace dk
 		/** Render pass used for shaders. */
 		vk::RenderPass m_vk_shader_pass;
 
+		/** Framebuffers. */
+		std::vector<vk::Framebuffer> m_vk_framebuffers;
+
 	private:
 
 		/**

@@ -12,6 +12,7 @@
 #include <utilities\debugging.hpp>
 #include "vulkan_utilities.hpp"
 #include "device_manager.hpp"
+#include "command_manager.hpp"
 
 #if DUCK_DEBUG_VULKAN
 #include "debugging.hpp"
@@ -28,11 +29,12 @@ namespace dk
 
 		/**
 		 * @brief Constructor.
+		 * @param Thread count.
 		 * @param Window name.
 		 * @param Window width.
 		 * @param Window height.
 		 */
-		Graphics(const std::string& name, int width, int height);
+		Graphics(size_t thread_count, const std::string& name, int width, int height);
 
 		/**
 		 * @brief Destructor.
@@ -57,9 +59,22 @@ namespace dk
 			return m_vk_instance;
 		}
 
+		/**
+		 * @brief Get the device manager.
+		 * @return The device manager.
+		 */
 		VkDeviceManager& get_device_manager()
 		{
 			return *m_device_manager.get();
+		}
+
+		/**
+		 * @brief Get the command manager.
+		 * @return The command manager.
+		 */
+		VkCommandManager& get_command_manager()
+		{
+			return *m_command_manager.get();
 		}
 
 		/**
@@ -151,6 +166,9 @@ namespace dk
 
 		/** Device manager. */
 		std::unique_ptr<VkDeviceManager> m_device_manager;
+
+		/** Command manager. */
+		std::unique_ptr<VkCommandManager> m_command_manager;
 
 		// NOTE: For whatever stupid reason, I have to put the debugger AFTER
 		// everything else otherwise you access an invalid memory location.

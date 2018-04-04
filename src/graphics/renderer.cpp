@@ -19,13 +19,19 @@ namespace dk
 			m_graphics.get_surface(), 
 			m_graphics.get_width(), 
 			m_graphics.get_height()
-		)
+		),
+		m_vk_framebuffers(m_swapchain_manager.get_image_count())
 	{
 		
 	}
 
 	Renderer::~Renderer()
 	{
+		// Destroy framebuffers
+		for (auto& framebuffer : m_vk_framebuffers)
+			m_graphics.get_logical_device().destroyFramebuffer(framebuffer);
+
+		// Destroy shader render pass
 		m_graphics.get_logical_device().destroyRenderPass(m_vk_shader_pass);
 	}
 }

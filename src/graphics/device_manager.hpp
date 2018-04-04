@@ -68,6 +68,15 @@ namespace dk
 			return m_vk_present_queue;
 		}
 
+		/**
+		 * @brief Get queue family indices.
+		 * @return Queue family indices.
+		 */
+		QueueFamilyIndices get_queue_family_indices() const
+		{
+			return m_queue_family_indices;
+		}
+
 	private:
 
 		/**

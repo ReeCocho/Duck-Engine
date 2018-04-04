@@ -1,0 +1,63 @@
+/**
+ * @file command_manager.cpp
+ * @brief Command manager source.
+ * @author Connor J. Bramham (ReeCocho)
+ */
+
+/** Includes. */
+#include <utilities\debugging.hpp>
+#include "command_manager.hpp"
+
+namespace dk
+{
+	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager& command_manager, const vk::Device logical_device, vk::CommandBufferLevel level, size_t thread) :
+		m_command_manager(command_manager),
+		m_vk_logical_device(logical_device),
+		m_vk_level(level),
+		m_thread(thread)
+	{
+		vk::CommandBufferAllocateInfo alloc_info = {};
+		alloc_info.commandPool = m_command_manager.get_pool(m_thread);
+		alloc_info.level = level;
+		alloc_info.commandBufferCount = 1;
+
+		m_vk_command_buffer = m_vk_logical_device.allocateCommandBuffers(alloc_info)[0];
+		dk_assert(m_vk_command_buffer);
+	}
+
+	void VkManagedCommandBuffer::free()
+	{
+		
+	}
+
+
+
+	VkCommandManager::VkCommandManager(const vk::Device& logical_device, QueueFamilyIndices qfi, size_t thread_count) : m_vk_logical_device(logical_device)
+	{
+		m_vk_pools = std::vector<vk::CommandPool>(thread_count);
+
+		// Create command pools
+		for (auto& pool : m_vk_pools)
+		{
+			vk::CommandPoolCreateInfo pool_info = {};
+			pool_info.queueFamilyIndex = qfi.graphics_family;
+
+			pool = m_vk_logical_device.createCommandPool(pool_info);
+			dk_assert(pool);
+		}
+	}
+
+	VkCommandManager::~VkCommandManager()
+	{
+		// Destroy pools
+		for (auto& pool : m_vk_pools)
+			m_vk_logical_device.destroyCommandPool(pool);
+	}
+
+	VkManagedCommandBuffer VkCommandManager::allocate_command_buffer(vk::CommandBufferLevel level)
+	{
+		auto cb = VkManagedCommandBuffer(*this, m_vk_logical_device, level, m_next_pool);
+		m_next_pool = (m_next_pool + 1) % m_vk_pools.size();
+		return cb;
+	}
+}

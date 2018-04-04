@@ -61,6 +61,28 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get number of images.
+		 * @return Number of images.
+		 * @note The number of images is the 
+		 * same as the number of image views
+		 */
+		size_t get_image_count() const
+		{
+			return m_vk_images.size();
+		}
+
+		/**
+		 * @brief Get image view at index n.
+		 * @param Index view n of image.
+		 * @return Image view at index n.
+		 */
+		const vk::ImageView& get_image_view(size_t n) const
+		{
+			dk_assert(n < m_vk_image_views.size());
+			return m_vk_image_views[n];
+		}
+
+		/**
 		 * @brief Get swapchain image format.
 		 * @return Swapchain image format.
 		 */

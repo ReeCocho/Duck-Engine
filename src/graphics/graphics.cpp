@@ -10,11 +10,12 @@
 
 namespace dk
 {
-	Graphics::Graphics(const std::string& name, int width, int height) : m_name(name)
+	Graphics::Graphics(size_t thread_count, const std::string& name, int width, int height) : m_name(name)
 	{
 		// Bounds checking
 		dk_assert(width > 0);
 		dk_assert(height > 0);
+		dk_assert(thread_count > 0);
 
 		// Initialize SDL video
 		if (SDL_Init(SDL_INIT_VIDEO | SDL_VIDEO_VULKAN) != 0)
@@ -114,12 +115,18 @@ namespace dk
 		};
 
 		m_device_manager = std::make_unique<VkDeviceManager>(m_vk_instance, m_vk_surface, layers, device_extensions);
+
+		// Create command manager
+		m_command_manager = std::make_unique<VkCommandManager>(get_logical_device(), m_device_manager->get_queue_family_indices(), thread_count);
 	}
 
 	Graphics::~Graphics()
 	{
 		// Wait for logical device to finish whatever it was doing
 		m_device_manager->get_logical_deivce().waitIdle();
+
+		// Destroy command manager
+		m_command_manager.reset();
 
 		// Destroy device manager
 		m_device_manager.reset();
