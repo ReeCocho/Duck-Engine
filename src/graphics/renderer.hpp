@@ -9,9 +9,27 @@
 /** Includes. */
 #include "graphics.hpp"
 #include "swapchain_manager.hpp"
+#include "shader.hpp"
 
 namespace dk
 {
+	/**
+	 * @brief An object that can be rendered onto the screen.
+	 */
+	struct RenderableObject
+	{
+		/** Command buffer to record to. */
+		VkManagedCommandBuffer command_buffer;
+
+		/** Shader. */
+		Shader* shader;
+
+		/** Descriptor sets. */
+		std::vector<vk::DescriptorSet> descriptor_sets;
+	};
+
+
+
 	/**
 	 * @brief Base renderer.
 	 */
@@ -70,8 +88,24 @@ namespace dk
 		 * @brief Render everything to the screen.
 		 */
 		virtual void render() = 0;
+		
+		/**
+		 * @brief Submit a renderable object.
+		 * @param Renderable object.
+		 */
+		void draw(const RenderableObject& ro)
+		{
+			m_renderable_objects.push_back(ro);
+		}
 
 	protected:
+
+		/**
+		 * @brief Clear the rendering queues.
+		 */
+		void flush_queues();
+
+
 
 		/** Render pass used for shaders. */
 		vk::RenderPass m_vk_shader_pass;
@@ -84,6 +118,9 @@ namespace dk
 
 		/** Semaphore to indicate an image is available for rendering too. */
 		vk::Semaphore m_vk_image_available;
+
+		/** List of renderable objects. */
+		std::vector<RenderableObject> m_renderable_objects;
 
 	private:
 

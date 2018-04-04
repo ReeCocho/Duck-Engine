@@ -55,7 +55,6 @@ namespace dk
 			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
 			dk_assert(m_vk_framebuffers[i]);
 		}
-
 	}
 
 	ForwardRenderer::~ForwardRenderer()
@@ -71,9 +70,9 @@ namespace dk
 		// Get image index to render too
 		uint32_t image_index = get_graphics().get_logical_device().acquireNextImageKHR
 		(
-			get_swapchain_manager().get_swapchain(), 
-			std::numeric_limits<uint64_t>::max(), 
-			m_vk_image_available, 
+			get_swapchain_manager().get_swapchain(),
+			std::numeric_limits<uint64_t>::max(),
+			m_vk_image_available,
 			vk::Fence()
 		).value;
 
@@ -103,6 +102,9 @@ namespace dk
 
 		// Present to screen
 		get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
+
+		// Clear rendering queues
+		flush_queues();
 	}
 
 	void ForwardRenderer::generate_primary_command_buffer(uint32_t image_index)
@@ -124,13 +126,56 @@ namespace dk
 		render_pass_info.pClearValues = &clear_color;
 
 		// Begin render pass
-		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
+		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
-		// vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-		// vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+		// Draw everything
+		vk::CommandBufferInheritanceInfo inheritance_info = {};
+		inheritance_info.setRenderPass(m_vk_shader_pass);
+		inheritance_info.setFramebuffer(m_vk_framebuffers[image_index]);
+
+		auto command_buffers = generate_renderable_command_buffers(inheritance_info);
+		if(command_buffers.size() > 0) 
+			get_primary_command_buffer().executeCommands(command_buffers);
 
 		// End render pass and command buffer
 		get_primary_command_buffer().endRenderPass();
 		get_primary_command_buffer().end();
+	}
+
+	std::vector<vk::CommandBuffer> ForwardRenderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
+	{
+		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
+
+		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
+		{
+			command_buffers[i] = m_renderable_objects[i].command_buffer.get_command_buffer();
+
+			vk::CommandBufferBeginInfo begin_info = {};
+			begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+			begin_info.pInheritanceInfo = &inheritance_info;
+
+			// Draw
+			command_buffers[i].begin(begin_info);
+
+			// Set viewport
+			vk::Viewport viewport = {};
+			viewport.setHeight(static_cast<float>(get_graphics().get_height()));
+			viewport.setWidth(static_cast<float>(get_graphics().get_width()));
+			viewport.setMinDepth(0);
+			viewport.setMaxDepth(1);
+			command_buffers[i].setViewport(0, 1, &viewport);
+
+			// Set scissor
+			vk::Rect2D scissor = {};
+			scissor.setExtent(get_swapchain_manager().get_image_extent());
+			scissor.setOffset({ 0, 0 });
+			command_buffers[i].setScissor(0, 1, &scissor);
+
+			command_buffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_graphics_pipeline());
+			command_buffers[i].draw(3, 1, 0, 0);
+			command_buffers[i].end();
+		}
+
+		return command_buffers;
 	}
 }

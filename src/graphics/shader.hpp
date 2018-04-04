@@ -43,6 +43,15 @@ namespace dk
 		 */
 		void free();
 
+		/**
+		 * @brief Get graphics pipeline.
+		 * @return Graphics pipeline.
+		 */
+		vk::Pipeline& get_graphics_pipeline()
+		{
+			return m_vk_graphics_pipeline;
+		}
+
 	private:
 
 		/** Graphics context. */

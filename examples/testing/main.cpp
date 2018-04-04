@@ -15,6 +15,14 @@ int main()
 							dk::read_binary_file("shaders/standard.vert.spv"),
 							dk::read_binary_file("shaders/standard.frag.spv"));
 
+		auto command_buffer = graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
+		dk::RenderableObject renderable =
+		{
+			command_buffer,
+			&shader,
+			{}
+		};
+
 		while (running)
 		{
 			// Loop through events
@@ -25,9 +33,14 @@ int main()
 					running = false;
 			}
 
+			renderer.draw(renderable);
 			renderer.render();
 		}
 
+		// Wait for presentation to finish
+		graphics.get_device_manager().get_present_queue().waitIdle();
+
+		command_buffer.free();
 		shader.free();
 	}
 

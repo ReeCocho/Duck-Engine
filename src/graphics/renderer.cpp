@@ -20,7 +20,8 @@ namespace dk
 			m_graphics.get_width(), 
 			m_graphics.get_height()
 		),
-		m_vk_framebuffers({})
+		m_vk_framebuffers({}),
+		m_renderable_objects({})
 	{
 		// Resize framebuffers
 		m_vk_framebuffers.resize(m_swapchain_manager.get_image_count());
@@ -51,6 +52,8 @@ namespace dk
 	Renderer::~Renderer()
 	{
 		// Wait for logical device
+		m_graphics.get_device_manager().get_graphics_queue().waitIdle();
+		m_graphics.get_device_manager().get_present_queue().waitIdle();
 		m_graphics.get_logical_device().waitIdle();
 
 		// Destroy semaphores
@@ -66,5 +69,10 @@ namespace dk
 
 		// Destroy shader render pass
 		m_graphics.get_logical_device().destroyRenderPass(m_vk_shader_pass);
+	}
+
+	void Renderer::flush_queues()
+	{
+		m_renderable_objects.clear();
 	}
 }

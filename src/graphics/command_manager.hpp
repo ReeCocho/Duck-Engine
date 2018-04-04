@@ -27,7 +27,7 @@ namespace dk
 		 * @param Command buffer level.
 		 * @param Thread created for.
 		 */
-		VkManagedCommandBuffer(VkCommandManager& command_manager, const vk::Device logical_device, vk::CommandBufferLevel level, size_t thread);
+		VkManagedCommandBuffer(VkCommandManager& command_manager, const vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread);
 
 		/**
 		 * @brief Destructor.
