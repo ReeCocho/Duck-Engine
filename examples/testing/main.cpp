@@ -24,6 +24,8 @@ int main()
 				if (evt.type == SDL_QUIT)
 					running = false;
 			}
+
+			renderer.render();
 		}
 
 		shader.free();

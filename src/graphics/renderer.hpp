@@ -57,6 +57,20 @@ namespace dk
 			return m_vk_shader_pass;
 		}
 
+		/**
+		 * @brief Get primary graphics command buffer.
+		 * @return Graphics command buffer.
+		 */
+		vk::CommandBuffer& get_primary_command_buffer()
+		{
+			return m_vk_primary_command_buffer;
+		}
+
+		/**
+		 * @brief Render everything to the screen.
+		 */
+		virtual void render() = 0;
+
 	protected:
 
 		/** Render pass used for shaders. */
@@ -64,6 +78,12 @@ namespace dk
 
 		/** Framebuffers. */
 		std::vector<vk::Framebuffer> m_vk_framebuffers;
+
+		/** Semaphore to indicate rendering has finished. */
+		vk::Semaphore m_vk_rendering_finished;
+
+		/** Semaphore to indicate an image is available for rendering too. */
+		vk::Semaphore m_vk_image_available;
 
 	private:
 
@@ -87,5 +107,11 @@ namespace dk
 
 		/** Swapchain manager. */
 		VkSwapchainManager m_swapchain_manager;
+
+		/** Command pool. */
+		vk::CommandPool m_vk_command_pool;
+
+		/** Primary graphics command buffer. */
+		vk::CommandBuffer m_vk_primary_command_buffer;
 	};
 }

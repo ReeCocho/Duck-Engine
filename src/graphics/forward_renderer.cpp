@@ -62,4 +62,75 @@ namespace dk
 	{
 
 	}
+
+	void ForwardRenderer::render()
+	{
+		// Wait for present queue to finish if needed
+		get_graphics().get_device_manager().get_present_queue().waitIdle();
+
+		// Get image index to render too
+		uint32_t image_index = get_graphics().get_logical_device().acquireNextImageKHR
+		(
+			get_swapchain_manager().get_swapchain(), 
+			std::numeric_limits<uint64_t>::max(), 
+			m_vk_image_available, 
+			vk::Fence()
+		).value;
+
+		// Prepare primary command buffer
+		generate_primary_command_buffer(image_index);
+
+		vk::SubmitInfo submit_info = {};
+
+		std::array<vk::PipelineStageFlags, 1> wait_stages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+		submit_info.waitSemaphoreCount = 1;
+		submit_info.pWaitSemaphores = &m_vk_image_available;
+		submit_info.pWaitDstStageMask = wait_stages.data();
+		submit_info.commandBufferCount = 1;
+		submit_info.pCommandBuffers = &get_primary_command_buffer();
+		submit_info.signalSemaphoreCount = 1;
+		submit_info.pSignalSemaphores = &m_vk_rendering_finished;
+
+		// Submit to queue
+		get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
+
+		vk::PresentInfoKHR present_info = {};
+		present_info.waitSemaphoreCount = 1;
+		present_info.pWaitSemaphores = &m_vk_rendering_finished;
+		present_info.swapchainCount = 1;
+		present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
+		present_info.pImageIndices = &image_index;
+
+		// Present to screen
+		get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
+	}
+
+	void ForwardRenderer::generate_primary_command_buffer(uint32_t image_index)
+	{
+		// Begin recording to primary command buffer
+		vk::CommandBufferBeginInfo begin_info = {};
+		begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+
+		get_primary_command_buffer().begin(begin_info);
+
+		vk::RenderPassBeginInfo render_pass_info = {};
+		render_pass_info.renderPass = m_vk_shader_pass;
+		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
+		render_pass_info.renderArea.offset = { 0, 0 };
+		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
+
+		vk::ClearValue clear_color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
+		render_pass_info.clearValueCount = 1;
+		render_pass_info.pClearValues = &clear_color;
+
+		// Begin render pass
+		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
+
+		// vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+		// vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+
+		// End render pass and command buffer
+		get_primary_command_buffer().endRenderPass();
+		get_primary_command_buffer().end();
+	}
 }

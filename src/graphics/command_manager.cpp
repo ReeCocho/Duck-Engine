@@ -41,6 +41,7 @@ namespace dk
 		{
 			vk::CommandPoolCreateInfo pool_info = {};
 			pool_info.queueFamilyIndex = qfi.graphics_family;
+			pool_info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
 			pool = m_vk_logical_device.createCommandPool(pool_info);
 			dk_assert(pool);
