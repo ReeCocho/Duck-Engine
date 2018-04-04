@@ -21,11 +21,11 @@ namespace dk
 			m_graphics.get_height()
 		)
 	{
-
+		
 	}
 
 	Renderer::~Renderer()
 	{
-
+		m_graphics.get_logical_device().destroyRenderPass(m_vk_shader_pass);
 	}
 }

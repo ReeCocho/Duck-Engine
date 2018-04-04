@@ -21,12 +21,14 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context the shader is bound to.
+		 * @param Render pass used by the shader.
 		 * @param Vertex shader byte code.
 		 * @param Fragment shader byte code.
 		 */
 		Shader
 		(
 			Graphics& graphics, 
+			const vk::RenderPass& render_pass,
 			const std::vector<char>& vert_byte_code, 
 			const std::vector<char>& frag_byte_code
 		);
@@ -54,5 +56,8 @@ namespace dk
 
 		/** Graphics pipeline layout */
 		vk::PipelineLayout m_vk_pipeline_layout;
+
+		/** Graphics pipeline. */
+		vk::Pipeline m_vk_graphics_pipeline;
 	};
 }

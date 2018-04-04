@@ -1,13 +1,19 @@
 #include "math\common.hpp"
 #include "graphics\graphics.hpp"
-#include "graphics\renderer.hpp"
+#include "graphics\forward_renderer.hpp"
+#include "graphics\shader.hpp"
 
 int main()
 {
 	{
 		dk::Graphics graphics("Test window", 1280, 720);
-		dk::Renderer renderer(graphics);
+		dk::ForwardRenderer renderer(graphics);
 		bool running = true;
+
+		dk::Shader shader(	graphics, 
+							renderer.get_shader_render_pass(), 
+							dk::read_binary_file("shaders/standard.vert.spv"),
+							dk::read_binary_file("shaders/standard.frag.spv"));
 
 		while (running)
 		{
@@ -19,6 +25,8 @@ int main()
 					running = false;
 			}
 		}
+
+		shader.free();
 	}
 
 	std::cin.get();

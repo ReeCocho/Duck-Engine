@@ -12,6 +12,7 @@ namespace dk
 	Shader::Shader
 	(
 		Graphics& graphics,
+		const vk::RenderPass& render_pass,
 		const std::vector<char>& vert_byte_code,
 		const std::vector<char>& frag_byte_code
 	) : m_graphics(graphics)
@@ -122,10 +123,29 @@ namespace dk
 
 		m_vk_pipeline_layout = m_graphics.get_logical_device().createPipelineLayout(pipeline_layout_info);
 		dk_assert(m_vk_pipeline_layout);
+
+		// Create graphics pipeline
+		vk::GraphicsPipelineCreateInfo pipeline_info = {};
+		pipeline_info.stageCount = static_cast<uint32_t>(shader_stages.size());
+		pipeline_info.pStages = shader_stages.data();
+		pipeline_info.pVertexInputState = &vertex_input_info;
+		pipeline_info.pInputAssemblyState = &input_assembly;
+		pipeline_info.pViewportState = &viewport_state;
+		pipeline_info.pRasterizationState = &rasterizer;
+		pipeline_info.pMultisampleState = &multisampling;
+		pipeline_info.pDepthStencilState = nullptr;
+		pipeline_info.pColorBlendState = &color_blending;
+		pipeline_info.pDynamicState = &dynamic_state;
+		pipeline_info.layout = m_vk_pipeline_layout;
+		pipeline_info.renderPass = render_pass;
+		pipeline_info.subpass = 0;
+
+		m_vk_graphics_pipeline = m_graphics.get_logical_device().createGraphicsPipeline(vk::PipelineCache(), pipeline_info);
 	}
 
 	void Shader::free()
 	{
+		m_graphics.get_logical_device().destroyPipeline(m_vk_graphics_pipeline);
 		m_graphics.get_logical_device().destroyPipelineLayout(m_vk_pipeline_layout);
 		m_graphics.get_logical_device().destroyShaderModule(m_vk_vertex_shader_module);
 		m_graphics.get_logical_device().destroyShaderModule(m_vk_fragment_shader_module);

@@ -23,3 +23,4 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 # Add subdirectories
 add_subdirectory(src)
 add_subdirectory(examples)
+add_subdirectory(src/shaders)

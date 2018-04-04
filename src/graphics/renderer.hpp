@@ -40,6 +40,15 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get swapchain manager.
+		 * @return Swapchain manager.
+		 */
+		VkSwapchainManager& get_swapchain_manager()
+		{
+			return m_swapchain_manager;
+		}
+
+		/**
 		 * @brief Get render pass used by shaders.
 		 * @return Render pass.
 		 */

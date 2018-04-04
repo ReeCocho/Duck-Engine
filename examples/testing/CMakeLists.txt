@@ -13,3 +13,9 @@ target_link_libraries(
 	Duck-Math
 	Duck-Graphics
 )
+
+add_custom_command(TARGET Testing POST_BUILD 
+	COMMAND "${CMAKE_COMMAND}" -E copy_directory 
+	"${PROJECT_BINARY_DIR}/shaders"
+    "$<TARGET_FILE_DIR:Testing>/../shaders" 
+)
