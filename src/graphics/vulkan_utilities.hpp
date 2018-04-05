@@ -54,6 +54,28 @@ namespace dk
 		std::vector<vk::PresentModeKHR> present_modes = {};
 	};
 
+	/**
+	 * @brief Vulkan buffer with memory.
+	 */
+	struct VkMemBuffer
+	{
+		/** Buffer. */
+		vk::Buffer buffer;
+
+		/** Memory. */
+		vk::DeviceMemory memory;
+
+		/**
+		 * @brief Free both the buffer and the memory.
+		 * @param Logical device.
+		 */
+		void free(const vk::Device& logical_device)
+		{
+			logical_device.destroyBuffer(buffer);
+			logical_device.freeMemory(memory);
+		}
+	};
+
 
 
 	/**
@@ -134,4 +156,12 @@ namespace dk
 	 * @return Shader module.
 	 */
 	vk::ShaderModule create_shader_module(const vk::Device& logical_device, const std::vector<char>& byte_code);
+
+	/**
+	 * @brief Find an appropriate memory type.
+	 * @param Physical device.
+	 * @param Filter for types we want.
+	 * @param Required properties.
+	 */
+	uint32_t find_memory_type(const vk::PhysicalDevice& physical_device, uint32_t type_filter, vk::MemoryPropertyFlags properties);
 }

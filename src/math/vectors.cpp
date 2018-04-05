@@ -29,7 +29,7 @@ namespace dk
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 	}
 
-	constexpr size_t Vec_t<2>::size() const
+	size_t Vec_t<2>::size() const
 	{
 		return 2;
 	}
@@ -82,7 +82,7 @@ namespace dk
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
 	}
 
-	constexpr size_t Vec_t<3>::size() const
+	size_t Vec_t<3>::size() const
 	{
 		return 3;
 	}
@@ -158,7 +158,7 @@ namespace dk
 		return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w) + ")";
 	}
 
-	constexpr size_t Vec_t<4>::size() const
+	size_t Vec_t<4>::size() const
 	{
 		return 4;
 	}

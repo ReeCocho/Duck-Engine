@@ -397,7 +397,7 @@ namespace dk
 		 * @brief Get the number of elements in the vector.
 		 * @return Number of elements in the vector.
 		 */
-		constexpr size_t size() const;
+		size_t size() const;
 
 		/**
 		 * @brief Equivelence operator.
@@ -604,7 +604,7 @@ namespace dk
 		 * @brief Get the number of elements in the vector.
 		 * @return Number of elements in the vector.
 		 */
-		constexpr size_t size() const;
+		size_t size() const;
 
 		/**
 		 * @brief Equivelence operator.
@@ -904,7 +904,7 @@ namespace dk
 		 * @brief Get the number of elements in the vector.
 		 * @return Number of elements in the vector.
 		 */
-		constexpr size_t size() const;
+		size_t size() const;
 
 		/**
 		 * @brief Equivelence operator.

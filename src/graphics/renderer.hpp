@@ -10,6 +10,7 @@
 #include "graphics.hpp"
 #include "swapchain_manager.hpp"
 #include "shader.hpp"
+#include "mesh.hpp"
 
 namespace dk
 {
@@ -23,6 +24,9 @@ namespace dk
 
 		/** Shader. */
 		Shader* shader;
+
+		/** Mesh. */
+		Mesh* mesh;
 
 		/** Descriptor sets. */
 		std::vector<vk::DescriptorSet> descriptor_sets;

@@ -172,7 +172,11 @@ namespace dk
 			command_buffers[i].setScissor(0, 1, &scissor);
 
 			command_buffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_graphics_pipeline());
-			command_buffers[i].draw(3, 1, 0, 0);
+
+			const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
+			vk::DeviceSize offsets[] = { 0 };
+			command_buffers[i].bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
+			command_buffers[i].draw(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0);
 			command_buffers[i].end();
 		}
 

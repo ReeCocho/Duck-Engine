@@ -40,6 +40,7 @@ namespace dk
 
 		/**
 		 * @brief Free memory used by the shader.
+		 * @note Used internally. Do not call.
 		 */
 		void free();
 

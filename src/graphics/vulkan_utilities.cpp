@@ -226,4 +226,15 @@ namespace dk
 
 		return shader_module;
 	}
+
+	uint32_t find_memory_type(const vk::PhysicalDevice& physical_device, uint32_t type_filter, vk::MemoryPropertyFlags properties)
+	{
+		vk::PhysicalDeviceMemoryProperties mem_properties = physical_device.getMemoryProperties();
+
+		for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++)
+			if ((type_filter & (1 << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties) == properties)
+				return i;
+
+		throw std::runtime_error("Vulkan: Failed to find suitable memory type!");
+	}
 }

@@ -10,6 +10,7 @@ set(DUCK_GRAPHICS_HDRS
 	shader.hpp
 	forward_renderer.hpp
 	command_manager.hpp
+	mesh.hpp
 )
 
 # Sources
@@ -24,6 +25,7 @@ set(DUCK_GRAPHICS_SRCS
 	shader.cpp
 	forward_renderer.cpp
 	command_manager.cpp
+	mesh.cpp
 )
 
 # Graphics lib
