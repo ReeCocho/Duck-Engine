@@ -40,6 +40,11 @@ namespace dk
 		void free();
 
 		/**
+		 * @brief Reset the command buffer.
+		 */
+		void reset();
+
+		/**
 		 * @brief Get command buffer.
 		 * @return Command buffer.
 		 */
@@ -136,18 +141,39 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get transfer pool.
+		 * @return Transfer pool.
+		 */
+		vk::CommandPool& get_transfer_pool()
+		{
+			return m_vk_transfer_pool;
+		}
+
+		/**
 		 * @brief Create a command buffer.
 		 * @param Command buffer level.
 		 */
 		VkManagedCommandBuffer allocate_command_buffer(vk::CommandBufferLevel level);
+
+		/**
+		 * @brief Get the logical device.
+		 * @return The logical device.
+		 */
+		const vk::Device& get_logical_device() const
+		{
+			return m_vk_logical_device;
+		}
 
 	private:
 
 		/** Logical device */
 		const vk::Device& m_vk_logical_device;
 
-		/** Command pools. */
+		/** Graphics command pools. */
 		std::vector<vk::CommandPool> m_vk_pools;
+
+		/** Transfer command pool. */
+		vk::CommandPool m_vk_transfer_pool;
 
 		/** Index of the next pool to allocate a command buffer on. */
 		size_t m_next_pool = 0;

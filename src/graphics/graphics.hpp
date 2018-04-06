@@ -135,6 +135,22 @@ namespace dk
 			return h;
 		}
 
+		/**
+		 * @brief Create a Vulkan buffer and memory.
+		 * @param Size of data.
+		 * @param Usage.
+		 * @param Memory properties
+		 */
+		VkMemBuffer create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties);
+
+		/**
+		 * @brief Copy memory contained in one buffer into another.
+		 * @param Source buffer.
+		 * @param Destination buffer.
+		 * @param Size of data.
+		 */
+		void copy_buffer(const vk::Buffer& src, const vk::Buffer& dst, vk::DeviceSize size);
+
 	private:
 
 		/**

@@ -145,4 +145,78 @@ namespace dk
 		// Cleanup window
 		SDL_DestroyWindow(m_window);
 	}
+
+	VkMemBuffer Graphics::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
+	{
+		VkMemBuffer buffer = {};
+		
+		auto qfi = get_device_manager().get_queue_family_indices();
+		std::array<uint32_t, 2> queues = 
+		{ 
+			static_cast<uint32_t>(qfi.graphics_family), 
+			static_cast<uint32_t>(qfi.transfer_family) 
+		};
+
+		// Create buffer
+		vk::BufferCreateInfo buffer_info = {};
+		buffer_info.size = size;
+		buffer_info.usage = usage;
+		buffer_info.sharingMode = vk::SharingMode::eConcurrent;
+		buffer_info.queueFamilyIndexCount = static_cast<uint32_t>(queues.size());
+		buffer_info.pQueueFamilyIndices = queues.data();
+
+		buffer.buffer = get_logical_device().createBuffer(buffer_info);
+		dk_assert(buffer.buffer);
+
+		// Allocate memory
+		vk::MemoryRequirements mem_requirements = get_logical_device().getBufferMemoryRequirements(buffer.buffer);
+
+		vk::MemoryAllocateInfo alloc_info = {};
+		alloc_info.allocationSize = mem_requirements.size;
+		alloc_info.memoryTypeIndex = find_memory_type(get_physical_device(), mem_requirements.memoryTypeBits, properties);
+
+		buffer.memory = get_logical_device().allocateMemory(alloc_info);
+		dk_assert(buffer.memory);
+		
+		// Bind buffer to memory
+		get_logical_device().bindBufferMemory(buffer.buffer, buffer.memory, 0);
+		return buffer;
+	}
+
+	void Graphics::copy_buffer(const vk::Buffer& src, const vk::Buffer& dst, vk::DeviceSize size)
+	{
+		// Create the command buffer used for the transfer
+		vk::CommandBufferAllocateInfo alloc_info = {};
+		alloc_info.commandPool = m_command_manager->get_transfer_pool();
+		alloc_info.level = vk::CommandBufferLevel::ePrimary;
+		alloc_info.commandBufferCount = 1;
+
+		vk::CommandBuffer command_buffer = get_logical_device().allocateCommandBuffers(alloc_info)[0];
+		dk_assert(command_buffer);
+
+		// Begin writing to the command buffer
+		vk::CommandBufferBeginInfo begin_info = {};
+		begin_info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+		command_buffer.begin(begin_info);
+
+		// Copy data
+		vk::BufferCopy copy_region = {};
+		copy_region.size = size;
+		command_buffer.copyBuffer(src, dst, copy_region);
+
+		// End command buffer
+		command_buffer.end();
+
+		// Submit command buffer to transfer queue
+		vk::SubmitInfo submit_info = {};
+		submit_info.commandBufferCount = 1;
+		submit_info.pCommandBuffers = &command_buffer;
+
+		get_device_manager().get_transfer_queue().submit(submit_info, vk::Fence());
+		get_device_manager().get_transfer_queue().waitIdle();
+
+		// Free command buffer
+		get_logical_device().freeCommandBuffers(m_command_manager->get_transfer_pool(), command_buffer);
+	}
 }

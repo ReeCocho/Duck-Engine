@@ -51,7 +51,7 @@ namespace dk
 		 * @param Indices.
 		 * @param Vertices.
 		 */
-		Mesh(Graphics& graphics, const std::vector<unsigned short>& indices, const std::vector<Vertex>& vertices);
+		Mesh(Graphics& graphics, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
 
 		/**
 		 * @brief Destructor.
@@ -74,6 +74,15 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get index memory buffer.
+		 * @return Index memory buffer.
+		 */
+		const VkMemBuffer& get_index_buffer() const
+		{
+			return m_index_buffer;
+		}
+
+		/**
 		 * @brief Get index count.
 		 * @return Index count.
 		 */
@@ -89,6 +98,9 @@ namespace dk
 
 		/** Vertex buffer. */
 		VkMemBuffer m_vertex_buffer;
+
+		/** Index buffer. */
+		VkMemBuffer m_index_buffer;
 
 		/** Number of elements. */
 		size_t m_index_count = 0;

@@ -17,11 +17,15 @@ int main()
 							dk::read_binary_file("shaders/standard.frag.spv"));
 
 		dk::Mesh mesh(graphics,
-		{},
 		{
+			0, 1, 2,
+			2, 3, 0
+		},
+		{
+			{ dk::Vec3(-1, -1,  0),	dk::Vec2(0, 0) },
+			{ dk::Vec3( 1, -1,  0),	dk::Vec2(0, 0) },
 			{ dk::Vec3( 1,  1,  0),	dk::Vec2(0, 0) },
-			{ dk::Vec3(-1,  1,  0),	dk::Vec2(0, 0) },
-			{ dk::Vec3( 0, -1,  0),	dk::Vec2(0, 0) }
+			{ dk::Vec3(-1,  1,  0), dk::Vec2(0, 0) }
 		});
 
 		auto command_buffer = graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
@@ -50,7 +54,6 @@ int main()
 		// Wait for presentation to finish
 		graphics.get_device_manager().get_present_queue().waitIdle();
 
-		command_buffer.free();
 		shader.free();
 		mesh.free();
 	}

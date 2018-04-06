@@ -137,13 +137,20 @@ namespace dk
 			// Get presentation support
 			VkBool32 present_support = physical_device.getSurfaceSupportKHR(i, surface);
 
-			// Find graphics family
-			if (queue_family.queueCount > 0 && queue_family.queueFlags & vk::QueueFlagBits::eGraphics)
-				qfi.graphics_family = i;
+			if (queue_family.queueCount > 0)
+			{
+				// Find graphics family
+				if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics)
+					qfi.graphics_family = i;
 
-			// Find present family
-			if (queue_family.queueCount > 0 && present_support)
-				qfi.present_family = i;
+				// Find transfer family
+				if (!(queue_family.queueFlags & vk::QueueFlagBits::eGraphics) && queue_family.queueFlags & vk::QueueFlagBits::eTransfer)
+					qfi.transfer_family = i;
+
+				// Find present family
+				if (present_support)
+					qfi.present_family = i;
+			}
 
 			if (qfi.is_complete() && qfi.graphics_family != qfi.present_family)
 				break;

@@ -27,6 +27,11 @@ namespace dk
 
 	void VkManagedCommandBuffer::free()
 	{
+		m_command_manager.get_logical_device().freeCommandBuffers(m_command_manager.get_pool(m_thread), m_vk_command_buffer);
+	}
+
+	void VkManagedCommandBuffer::reset()
+	{
 		m_vk_command_buffer.reset(vk::CommandBufferResetFlagBits::eReleaseResources);
 	}
 
@@ -46,6 +51,13 @@ namespace dk
 			pool = m_vk_logical_device.createCommandPool(pool_info);
 			dk_assert(pool);
 		}
+
+		vk::CommandPoolCreateInfo pool_info = {};
+		pool_info.queueFamilyIndex = qfi.transfer_family;
+		pool_info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+
+		m_vk_transfer_pool = m_vk_logical_device.createCommandPool(pool_info);
+		dk_assert(m_vk_transfer_pool);
 	}
 
 	VkCommandManager::~VkCommandManager()
@@ -53,6 +65,8 @@ namespace dk
 		// Destroy pools
 		for (auto& pool : m_vk_pools)
 			m_vk_logical_device.destroyCommandPool(pool);
+
+		m_vk_logical_device.destroyCommandPool(m_vk_transfer_pool);
 	}
 
 	VkManagedCommandBuffer VkCommandManager::allocate_command_buffer(vk::CommandBufferLevel level)

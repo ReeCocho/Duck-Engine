@@ -29,13 +29,15 @@ namespace dk
 
 		int present_family = -1;
 
+		int transfer_family = -1;
+
 		/**
 		 * @brief Check if all queues are avaliable.
 		 * @return IF all queues are avaliable.
 		 */
 		bool is_complete() 
 		{
-			return graphics_family >= 0 && present_family >= 0;
+			return graphics_family >= 0 && present_family >= 0 && transfer_family >= 0;
 		}
 	};
 

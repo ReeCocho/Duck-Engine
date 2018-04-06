@@ -176,7 +176,8 @@ namespace dk
 			const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
 			vk::DeviceSize offsets[] = { 0 };
 			command_buffers[i].bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
-			command_buffers[i].draw(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0);
+			command_buffers[i].bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+			command_buffers[i].drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
 			command_buffers[i].end();
 		}
 

@@ -69,6 +69,15 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get transfer queue.
+		 * @return Transfer queue.
+		 */
+		const vk::Queue& get_transfer_queue() const
+		{
+			return m_vk_transfer_queue;
+		}
+
+		/**
 		 * @brief Get queue family indices.
 		 * @return Queue family indices.
 		 */
@@ -111,5 +120,8 @@ namespace dk
 
 		/** Presentation queue. */
 		vk::Queue m_vk_present_queue = {};
+
+		/** Data transfer queue. */
+		vk::Queue m_vk_transfer_queue = {};
 	};
 }

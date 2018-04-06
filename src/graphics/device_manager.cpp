@@ -22,7 +22,12 @@ namespace dk
 		dk_assert(m_queue_family_indices.is_complete());
 
 		std::vector<vk::DeviceQueueCreateInfo> queue_create_infos = {};
-		std::set<int> unique_queue_families = { m_queue_family_indices.graphics_family, m_queue_family_indices.present_family };
+		std::set<int> unique_queue_families = 
+		{ 
+			m_queue_family_indices.graphics_family, 
+			m_queue_family_indices.present_family, 
+			m_queue_family_indices.transfer_family 
+		};
 
 		float queue_priority = 1.0f;
 		for (int queue_family : unique_queue_families)
@@ -52,6 +57,7 @@ namespace dk
 		// Get queues
 		m_vk_graphics_queue = m_vk_logical_device.getQueue(static_cast<uint32_t>(m_queue_family_indices.graphics_family), 0);
 		m_vk_present_queue = m_vk_logical_device.getQueue(static_cast<uint32_t>(m_queue_family_indices.present_family), 0);
+		m_vk_transfer_queue = m_vk_logical_device.getQueue(static_cast<uint32_t>(m_queue_family_indices.transfer_family), 0);
 	}
 
 	VkDeviceManager::~VkDeviceManager()
