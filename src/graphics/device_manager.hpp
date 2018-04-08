@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file device_manager.hpp
+ * @file get_device_manager().hpp
  * @brief Vulkan device manager.
  * @author Connor J. Bramham (ReeCocho)
  */
@@ -17,6 +17,11 @@ namespace dk
 	class VkDeviceManager
 	{
 	public:
+
+		/**
+		 * @brief Default constructor.
+		 */
+		VkDeviceManager();
 
 		/**
 		 * @brief Constructor.

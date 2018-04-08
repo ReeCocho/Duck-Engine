@@ -10,7 +10,8 @@
 
 namespace dk
 {
-	Graphics::Graphics(size_t thread_count, const std::string& name, int width, int height) : m_name(name)
+	Graphics::Graphics(size_t thread_count, const std::string& name, int width, int height) :
+		m_name(name)
 	{
 		// Bounds checking
 		dk_assert(width > 0);
@@ -113,14 +114,13 @@ namespace dk
 		{
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
-
 		m_device_manager = std::make_unique<VkDeviceManager>(m_vk_instance, m_vk_surface, layers, device_extensions);
 
 		// Create command manager
 		m_command_manager = std::make_unique<VkCommandManager>(get_logical_device(), m_device_manager->get_queue_family_indices(), thread_count);
 	}
 
-	Graphics::~Graphics()
+	void Graphics::shutdown()
 	{
 		// Wait for logical device to finish whatever it was doing
 		m_device_manager->get_logical_deivce().waitIdle();
@@ -150,7 +150,7 @@ namespace dk
 	{
 		VkMemBuffer buffer = {};
 		
-		auto qfi = get_device_manager().get_queue_family_indices();
+		auto qfi = m_device_manager->get_queue_family_indices();
 		std::array<uint32_t, 2> queues = 
 		{ 
 			static_cast<uint32_t>(qfi.graphics_family), 
@@ -213,8 +213,8 @@ namespace dk
 		submit_info.commandBufferCount = 1;
 		submit_info.pCommandBuffers = &command_buffer;
 
-		get_device_manager().get_transfer_queue().submit(submit_info, vk::Fence());
-		get_device_manager().get_transfer_queue().waitIdle();
+		m_device_manager->get_transfer_queue().submit(submit_info, vk::Fence());
+		m_device_manager->get_transfer_queue().waitIdle();
 
 		// Free command buffer
 		get_logical_device().freeCommandBuffers(m_command_manager->get_transfer_pool(), command_buffer);

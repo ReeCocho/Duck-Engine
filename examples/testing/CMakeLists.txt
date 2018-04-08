@@ -11,6 +11,7 @@ target_link_libraries(
 	${VULKAN_LIBRARY}
 	Duck-Utilities
 	Duck-Graphics
+	Duck-Engine
 )
 
 add_custom_command(TARGET Testing POST_BUILD 

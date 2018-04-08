@@ -1,7 +1,7 @@
 #pragma once
 
 /**
- * @file command_manager.hpp
+ * @file get_command_manager().hpp
  * @brief Command buffer and pool manager.
  * @author Connor J. Bramham (ReeCocho)
  */
@@ -106,6 +106,11 @@ namespace dk
 	class VkCommandManager
 	{
 	public:
+
+		/**
+		 * @brief Default constructor.
+		 */
+		VkCommandManager();
 
 		/**
 		 * @brief Constructor.

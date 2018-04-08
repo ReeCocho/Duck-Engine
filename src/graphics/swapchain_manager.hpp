@@ -20,6 +20,11 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		VkSwapchainManager();
+
+		/**
 		 * @brief Constructor.
 		 * @param Physical device.
 		 * @param Logical device.

@@ -19,15 +19,25 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		ForwardRenderer();
+
+		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
 		 */
-		ForwardRenderer(Graphics& graphics);
+		ForwardRenderer(Graphics* graphics);
 
 		/**
 		 * @brief Destructor.
 		 */
-		~ForwardRenderer();
+		~ForwardRenderer() = default;
+
+		/**
+		 * @brief Shutdown the forward renderer.
+		 */
+		void shutdown() override;
 
 		/**
 		 * @brief Render everything to the screen.

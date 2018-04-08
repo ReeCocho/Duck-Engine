@@ -9,7 +9,12 @@
 
 namespace dk
 {
-	ForwardRenderer::ForwardRenderer(Graphics& graphics) : Renderer(graphics)
+	ForwardRenderer::ForwardRenderer() : Renderer()
+	{
+
+	}
+
+	ForwardRenderer::ForwardRenderer(Graphics* graphics) : Renderer(graphics)
 	{
 		vk::AttachmentDescription color_attachment = {};
 		color_attachment.format = get_swapchain_manager().get_image_format();
@@ -57,9 +62,9 @@ namespace dk
 		}
 	}
 
-	ForwardRenderer::~ForwardRenderer()
+	void ForwardRenderer::shutdown()
 	{
-
+		Renderer::shutdown();
 	}
 
 	void ForwardRenderer::render()

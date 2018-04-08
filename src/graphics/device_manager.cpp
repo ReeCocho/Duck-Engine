@@ -1,5 +1,5 @@
 /**
- * @file device_manager.cpp
+ * @file get_device_manager().cpp
  * @brief Vulkan device manager source.
  * @author Connor J. Bramham (ReeCocho)
  */
@@ -11,6 +11,11 @@
 
 namespace dk
 {
+	VkDeviceManager::VkDeviceManager()
+	{
+
+	}
+
 	VkDeviceManager::VkDeviceManager(const vk::Instance& instance, const vk::SurfaceKHR& surface, const std::vector<const char*>& layers, const std::vector<const char*>& extensions) : m_vk_instance(instance)
 	{
 		// Find physical device
@@ -63,6 +68,10 @@ namespace dk
 	VkDeviceManager::~VkDeviceManager()
 	{
 		// Destroy the logical device
-		m_vk_logical_device.destroy();
+		if (m_vk_logical_device)
+		{
+			m_vk_logical_device.destroy();
+			m_vk_logical_device = VkDevice();
+		}
 	}
 }

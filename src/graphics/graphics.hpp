@@ -25,6 +25,11 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		Graphics() = default;
+
+		/**
 		 * @brief Constructor.
 		 * @param Thread count.
 		 * @param Window name.
@@ -36,7 +41,12 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		~Graphics();
+		~Graphics() = default;
+
+		/**
+		 * @brief Shutdown the graphics context.
+		 */
+		void shutdown();
 
 		/**
 		 * @brief Get the SDL window.
@@ -149,12 +159,6 @@ namespace dk
 		void copy_buffer(const vk::Buffer& src, const vk::Buffer& dst, vk::DeviceSize size);
 
 	private:
-
-		/**
-		 * @brief Copy constructor.
-		 * @param Other graphics context.
-		 */
-		Graphics(const Graphics& other) = default;
 
 		/**
 		 * @brief Assignment operator.

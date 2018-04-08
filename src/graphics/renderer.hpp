@@ -42,15 +42,25 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		Renderer();
+
+		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
 		 */
-		Renderer(Graphics& graphics);
+		Renderer(Graphics* graphics);
 
 		/**
 		 * @brief Destructor.
 		 */
-		virtual ~Renderer();
+		virtual ~Renderer() = default;
+
+		/**
+		 * @brief Shutdown the renderer.
+		 */
+		virtual void shutdown();
 
 		/**
 		 * @brief Get graphics context.
@@ -58,7 +68,7 @@ namespace dk
 		 */
 		Graphics& get_graphics() const
 		{
-			return m_graphics;
+			return *m_graphics;
 		}
 
 		/**
@@ -144,7 +154,7 @@ namespace dk
 
 
 		/** Graphics context. */
-		Graphics& m_graphics;
+		Graphics* m_graphics;
 
 		/** Swapchain manager. */
 		VkSwapchainManager m_swapchain_manager;

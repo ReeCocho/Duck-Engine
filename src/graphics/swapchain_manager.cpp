@@ -9,6 +9,12 @@
 
 namespace dk
 {
+	VkSwapchainManager::VkSwapchainManager() :
+		m_vk_logical_device(vk::Device())
+	{
+
+	}
+
 	VkSwapchainManager::VkSwapchainManager
 	(
 		const vk::PhysicalDevice& physical_device, 
@@ -99,8 +105,16 @@ namespace dk
 	{
 		// Cleanup
 		for (auto& image_view : m_vk_image_views)
-			m_vk_logical_device.destroyImageView(image_view);
+			if (image_view)
+			{
+				m_vk_logical_device.destroyImageView(image_view);
+				image_view = vk::ImageView();
+			}
 
-		m_vk_logical_device.destroySwapchainKHR(m_vk_swapchain);
+		if (m_vk_swapchain)
+		{
+			m_vk_logical_device.destroySwapchainKHR(m_vk_swapchain);
+			m_vk_swapchain = vk::SwapchainKHR();
+		}
 	}
 }

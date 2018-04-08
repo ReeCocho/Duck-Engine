@@ -1,8 +1,7 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <utilities\common.hpp>
-#include <graphics\graphics.hpp>
-#include <graphics\forward_renderer.hpp>
+#include <engine.hpp>
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
 #include <graphics\material.hpp>
@@ -21,7 +20,7 @@ class MeshRenderer
 {
 public:
 
-	MeshRenderer(dk::Renderer& renderer, dk::Material& material, dk::Mesh& mesh) :
+	MeshRenderer(dk::engine::RendererType& renderer, dk::Material& material, dk::Mesh& mesh) :
 		m_renderer(renderer),
 		m_material(material),
 		m_mesh(mesh),
@@ -135,7 +134,7 @@ public:
 
 private:
 
-	dk::Renderer& m_renderer;
+	dk::engine::RendererType& m_renderer;
 
 	dk::Material& m_material;
 
@@ -155,18 +154,16 @@ private:
 int main()
 {
 	{
-		dk::Graphics graphics(1, "Test window", 1280, 720);
-		dk::ForwardRenderer renderer(graphics);
-		bool running = true;
+		dk::engine::initialize(1, "Test Window", 1280, 720);
 
-		dk::Shader shader(	graphics, 
-							renderer.get_shader_render_pass(), 
+		dk::Shader shader(	dk::engine::graphics, 
+							dk::engine::renderer.get_shader_render_pass(), 
 							dk::read_binary_file("shaders/standard.vert.spv"),
 							dk::read_binary_file("shaders/standard.frag.spv"));
 		
-		dk::Material material(graphics, shader);
+		dk::Material material(dk::engine::graphics, shader);
 		
-		dk::Mesh mesh(graphics,
+		dk::Mesh mesh(dk::engine::graphics,
 		{
 			0, 1, 2,
 			2, 3, 0
@@ -182,7 +179,7 @@ int main()
 		mvp = glm::perspective
 		(
 			glm::radians(80.0f),
-			static_cast<float>(graphics.get_width()) / static_cast<float>(graphics.get_height()),
+			static_cast<float>(dk::engine::graphics.get_width()) / static_cast<float>(dk::engine::graphics.get_height()),
 			0.01f,
 			100.0f
 		) *
@@ -193,30 +190,17 @@ int main()
 			glm::vec3(0, 1, 0)
 		);
 		
-		MeshRenderer mesh_renderer(renderer, material, mesh);
+		MeshRenderer mesh_renderer(dk::engine::renderer, material, mesh);
 		mesh_renderer.mvp = mvp;
 
-		while (running)
-		{
-			// Loop through events
-			SDL_Event evt;
-			while (SDL_PollEvent(&evt))
-			{
-				if (evt.type == SDL_QUIT)
-					running = false;
-			}
-
-			mesh_renderer.draw();
-			renderer.render();
-		}
-
-		// Wait for presentation to finish
-		graphics.get_device_manager().get_present_queue().waitIdle();
+		dk::engine::simulate();
 
 		mesh.free();
 		material.free();
 		shader.free();
 	}
+
+	dk::engine::shutdown();
 
 	std::cin.get();
 	return 0;

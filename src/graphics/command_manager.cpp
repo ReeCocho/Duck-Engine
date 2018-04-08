@@ -1,5 +1,5 @@
 /**
- * @file command_manager.cpp
+ * @file get_command_manager().cpp
  * @brief Command manager source.
  * @author Connor J. Bramham (ReeCocho)
  */
@@ -37,6 +37,11 @@ namespace dk
 
 
 
+	VkCommandManager::VkCommandManager() : m_vk_logical_device(vk::Device())
+	{
+
+	}
+
 	VkCommandManager::VkCommandManager(const vk::Device& logical_device, QueueFamilyIndices qfi, size_t thread_count) : m_vk_logical_device(logical_device)
 	{
 		m_vk_pools = std::vector<vk::CommandPool>(thread_count);
@@ -64,9 +69,17 @@ namespace dk
 	{
 		// Destroy pools
 		for (auto& pool : m_vk_pools)
-			m_vk_logical_device.destroyCommandPool(pool);
+			if (pool)
+			{
+				m_vk_logical_device.destroyCommandPool(pool);
+				pool = vk::CommandPool();
+			}
 
-		m_vk_logical_device.destroyCommandPool(m_vk_transfer_pool);
+		if (m_vk_transfer_pool)
+		{
+			m_vk_logical_device.destroyCommandPool(m_vk_transfer_pool);
+			m_vk_transfer_pool = vk::CommandPool();
+		}
 	}
 
 	VkManagedCommandBuffer VkCommandManager::allocate_command_buffer(vk::CommandBufferLevel level)
