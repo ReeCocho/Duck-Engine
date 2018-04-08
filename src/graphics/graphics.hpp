@@ -13,10 +13,7 @@
 #include "vulkan_utilities.hpp"
 #include "device_manager.hpp"
 #include "command_manager.hpp"
-
-#if DUCK_DEBUG_VULKAN
 #include "debugging.hpp"
-#endif
 
 namespace dk
 {
@@ -180,17 +177,13 @@ namespace dk
 		/** Vulkan surface to draw on. */
 		vk::SurfaceKHR m_vk_surface;
 
+		/** Debugger */
+		std::unique_ptr<VkDebugger> m_debugger;
+
 		/** Device manager. */
 		std::unique_ptr<VkDeviceManager> m_device_manager;
 
 		/** Command manager. */
 		std::unique_ptr<VkCommandManager> m_command_manager;
-
-		// NOTE: For whatever stupid reason, I have to put the debugger AFTER
-		// everything else otherwise you access an invalid memory location.
-		/** Debugger */
-#if DUCK_DEBUG_VULKAN
-		std::unique_ptr<VkDebugger> m_debugger;
-#endif
 	};
 }

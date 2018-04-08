@@ -3,6 +3,16 @@
 
 layout(location = 0) out vec4 outColor;
 
+layout(set = 0, binding = 2) uniform MaterialData
+{
+	vec3 color;
+};
+
+layout(set = 0, binding = 3) uniform FragmentData
+{
+	int unused;
+};
+
 layout(location = 0) in vec3 o_color;
 
 void main() 

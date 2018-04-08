@@ -1,3 +1,19 @@
+# SPIRV Cross files
+set(SPIRV_CROSS_FILES
+	spirv_cross/GLSL.std.450.h
+	spirv_cross/spirv.hpp
+	spirv_cross/spirv_cfg.hpp
+	spirv_cross/spirv_common.hpp
+	spirv_cross/spirv_cross.hpp
+	spirv_cross/spirv_cross_util.hpp
+	spirv_cross/spirv_glsl.hpp
+	
+	spirv_cross/spirv_cfg.cpp
+	spirv_cross/spirv_cross.cpp
+	spirv_cross/spirv_cross_util.cpp
+	spirv_cross/spirv_glsl.cpp
+)
+
 # Headers
 set(DUCK_GRAPHICS_HDRS
 	graphics.hpp
@@ -11,6 +27,7 @@ set(DUCK_GRAPHICS_HDRS
 	forward_renderer.hpp
 	command_manager.hpp
 	mesh.hpp
+	material.hpp
 )
 
 # Sources
@@ -26,10 +43,13 @@ set(DUCK_GRAPHICS_SRCS
 	forward_renderer.cpp
 	command_manager.cpp
 	mesh.cpp
+	material.cpp
 )
 
 # Graphics lib
 add_library(Duck-Graphics
 	${DUCK_GRAPHICS_HDRS}
 	${DUCK_GRAPHICS_SRCS}
+	${SPIRV_CROSS_FILES}
 )
+source_group("spirv_cross" FILES ${SPIRV_CROSS_FILES})

@@ -5,6 +5,7 @@
  */
 
 /** Includes. */
+#include "spirv_cross\spirv_glsl.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
 
@@ -18,6 +19,87 @@ namespace dk
 		const std::vector<char>& frag_byte_code
 	) : m_graphics(graphics)
 	{
+		{
+			// Analyze vertex shader byte code
+			size_t word_count = vert_byte_code.size() / 4;
+			dk_assert((word_count * 4) == vert_byte_code.size());
+			spirv_cross::CompilerGLSL glsl(reinterpret_cast<const uint32_t*>(vert_byte_code.data()), word_count);
+
+			// Find sizes for uniform buffers
+			spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+			for (const auto& buffer : resources.uniform_buffers)
+			{
+				const spirv_cross::SPIRType& type = glsl.get_type(buffer.base_type_id);
+				size_t size = glsl.get_declared_struct_size(type);
+
+				if (buffer.name == "MaterialData")
+					m_vertex_buffer_size = size;
+				else
+					m_inst_vertex_buffer_size = size;
+			}
+		}
+
+		{
+			// Analyze fragment shader byte code
+			size_t word_count = frag_byte_code.size() / 4;
+			dk_assert((word_count * 4) == frag_byte_code.size());
+			spirv_cross::CompilerGLSL glsl(reinterpret_cast<const uint32_t*>(frag_byte_code.data()), word_count);
+			
+			// Find sizes for uniform buffers
+			spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+			for (const auto& buffer : resources.uniform_buffers)
+			{
+				const spirv_cross::SPIRType& type = glsl.get_type(buffer.base_type_id);
+				size_t size = glsl.get_declared_struct_size(type);
+
+				if (buffer.name == "MaterialData")
+					m_fragment_buffer_size = size;
+				else
+					m_inst_fragment_buffer_size = size;
+			}
+
+			// Get texture count
+			m_texture_count = resources.sampled_images.size();
+		}
+
+		dk_assert
+		(
+			m_fragment_buffer_size > 0 &&
+			m_inst_fragment_buffer_size > 0 &&
+			m_vertex_buffer_size > 0 &&
+			m_inst_vertex_buffer_size > 0
+		);
+
+		// Create descriptor set layout
+		std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {};
+
+		bindings[0].binding = 0;
+		bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+		bindings[0].descriptorCount = 1;
+		bindings[0].stageFlags = vk::ShaderStageFlagBits::eVertex;
+
+		bindings[1].binding = 1;
+		bindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
+		bindings[1].descriptorCount = 1;
+		bindings[1].stageFlags = vk::ShaderStageFlagBits::eVertex;
+
+		bindings[2].binding = 2;
+		bindings[2].descriptorType = vk::DescriptorType::eUniformBuffer;
+		bindings[2].descriptorCount = 1;
+		bindings[2].stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+		bindings[3].binding = 3;
+		bindings[3].descriptorType = vk::DescriptorType::eUniformBuffer;
+		bindings[3].descriptorCount = 1;
+		bindings[3].stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+		vk::DescriptorSetLayoutCreateInfo layout_info = {};
+		layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
+		layout_info.pBindings = bindings.data();
+
+		m_vk_descriptor_set_layout = m_graphics.get_logical_device().createDescriptorSetLayout(layout_info);
+		dk_assert(m_vk_descriptor_set_layout);
+
 		// Create shader modules
 		m_vk_vertex_shader_module = create_shader_module(m_graphics.get_logical_device(), vert_byte_code);
 		m_vk_fragment_shader_module = create_shader_module(m_graphics.get_logical_device(), frag_byte_code);
@@ -120,8 +202,8 @@ namespace dk
 
 		// Create graphics pipeline layout
 		vk::PipelineLayoutCreateInfo pipeline_layout_info = {};
-		pipeline_layout_info.setLayoutCount = 0;
-		pipeline_layout_info.pSetLayouts = nullptr;
+		pipeline_layout_info.setLayoutCount = 1;
+		pipeline_layout_info.pSetLayouts = &m_vk_descriptor_set_layout;
 		pipeline_layout_info.pushConstantRangeCount = 0;
 		pipeline_layout_info.pPushConstantRanges = nullptr;
 
@@ -153,5 +235,6 @@ namespace dk
 		m_graphics.get_logical_device().destroyPipelineLayout(m_vk_pipeline_layout);
 		m_graphics.get_logical_device().destroyShaderModule(m_vk_vertex_shader_module);
 		m_graphics.get_logical_device().destroyShaderModule(m_vk_fragment_shader_module);
+		m_graphics.get_logical_device().destroyDescriptorSetLayout(m_vk_descriptor_set_layout);
 	}
 }

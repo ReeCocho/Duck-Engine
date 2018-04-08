@@ -9,10 +9,20 @@ out gl_PerVertex
     vec4 gl_Position;
 };
 
+layout(set = 0, binding = 0) uniform MaterialData
+{
+	int unused;
+} material_data;
+
+layout(set = 0, binding = 1) uniform VertexData
+{
+	mat4 MVP;
+} inst_data;
+
 layout(location = 0) out vec3 o_color;
 
 void main() 
 {
-    gl_Position = vec4(in_position, 1.0);
+    gl_Position = inst_data.MVP * vec4(in_position, 1.0);
 	o_color = in_position;
 }

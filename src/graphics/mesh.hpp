@@ -7,7 +7,7 @@
  */
 
 /** Includes. */
-#include <math\common.hpp>
+#include <glm\glm.hpp>
 #include "graphics.hpp"
 
 namespace dk
@@ -18,10 +18,10 @@ namespace dk
 	struct Vertex
 	{
 		/** Position. */
-		Vec3 position;
+		glm::vec3 position;
 
 		/** UV coordinate. */
-		Vec2 uv;
+		glm::vec2 uv;
 
 		/**
 		 * @brief Description of vertex bindings used by Vulkan.

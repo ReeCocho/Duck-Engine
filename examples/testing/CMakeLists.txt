@@ -10,7 +10,6 @@ target_link_libraries(
 	${SDL2_LIBRARY} 
 	${VULKAN_LIBRARY}
 	Duck-Utilities
-	Duck-Math
 	Duck-Graphics
 )
 
