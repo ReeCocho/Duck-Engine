@@ -163,6 +163,11 @@ namespace
 
 	/** Rendering thread. */
 	std::unique_ptr<dk::SimulationThread> rendering_thread;
+
+	std::unique_ptr<dk::Mesh> mesh;
+	std::unique_ptr<dk::Shader> shader;
+	std::unique_ptr<dk::Material> material;
+	std::vector<std::unique_ptr<MeshRenderer>> mesh_renderers;
 }
 
 namespace dk
@@ -181,76 +186,90 @@ namespace dk
 			::new(&renderer)(RendererType)(&graphics);
 			input = Input();
 
-			// rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });
+			rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });
 		}
 
 		void simulate()
 		{
-			dk::Shader shader(	dk::engine::graphics, 
+			shader = std::make_unique<dk::Shader>(	
+					dk::engine::graphics,
 					dk::engine::renderer.get_shader_render_pass(), 
 					dk::read_binary_file("shaders/standard.vert.spv"),
 					dk::read_binary_file("shaders/standard.frag.spv"));
 			
-			dk::Material material(dk::engine::graphics, shader);
+			material = std::make_unique<dk::Material>(dk::engine::graphics, *shader.get());
 			
-			dk::Mesh mesh(dk::engine::graphics,
+			mesh = std::make_unique<dk::Mesh>(
+				dk::engine::graphics,
+				std::vector<uint16_t>
+				{
+					0, 1, 2,
+					2, 3, 0
+				},
+				std::vector<Vertex>
+				{
+					{ glm::vec3(-1, -1,  0), glm::vec2(0, 0) },
+					{ glm::vec3( 1, -1,  0), glm::vec2(0, 0) },
+					{ glm::vec3( 1,  1,  0), glm::vec2(0, 0) },
+					{ glm::vec3(-1,  1,  0), glm::vec2(0, 0) }
+				});
+			
+			mesh_renderers.resize(100);
+			for (size_t i = 0; i < mesh_renderers.size(); ++i)
 			{
-				0, 1, 2,
-				2, 3, 0
-			},
-			{
-				{ glm::vec3(-1, -1,  0), glm::vec2(0, 0) },
-				{ glm::vec3( 1, -1,  0), glm::vec2(0, 0) },
-				{ glm::vec3( 1,  1,  0), glm::vec2(0, 0) },
-				{ glm::vec3(-1,  1,  0), glm::vec2(0, 0) }
-			});
-			
-			glm::mat4 mvp = {};
-			mvp = glm::perspective
-			(
-				glm::radians(80.0f),
-				static_cast<float>(dk::engine::graphics.get_width()) / static_cast<float>(dk::engine::graphics.get_height()),
-				0.01f,
-				100.0f
-			) *
-			glm::lookAt
-			(
-				glm::vec3(0, 0, 3),
-				glm::vec3(0, 0, 0), 
-				glm::vec3(0, 1, 0)
-			);
-			
-			MeshRenderer mesh_renderer(dk::engine::renderer, material, mesh);
-			mesh_renderer.mvp = mvp;
+				auto& mesh_renderer = mesh_renderers[i];
+
+				glm::mat4 mvp = {};
+				mvp = glm::perspective
+				(
+					glm::radians(80.0f),
+					static_cast<float>(dk::engine::graphics.get_width()) / static_cast<float>(dk::engine::graphics.get_height()),
+					0.01f,
+					100.0f
+				) *
+				glm::lookAt
+				(
+					glm::vec3(0, 0, 3),
+					glm::vec3(0, 0, 0),
+					glm::vec3(0, 1, 0)
+				);
+
+				mvp = glm::translate(mvp, glm::vec3(static_cast<float>(i * 2) - 10, 0, 0));
+
+				mesh_renderer = std::make_unique<MeshRenderer>(dk::engine::renderer, *material.get(), *mesh.get());
+				mesh_renderer->mvp = mvp;
+			}
 
 			while (!input.is_closing())
 			{
 				// Gather input
 				input.poll_events();
 
-				mesh_renderer.draw();
+				// Wait for threads to finish
+				rendering_thread->wait();
+				
+				for (auto& mesh_renderer : mesh_renderers)
+					mesh_renderer->draw();
 
-				renderer.render();
-
-				// // Wait for threads to finish
-				// rendering_thread->wait();
-				// 
-				// // Start rendering thread
-				// rendering_thread->start();
+				// Start rendering thread
+				rendering_thread->start();
 			}
-
-			mesh.free();
-			material.free();
-			shader.free();
 		}
 
 		void shutdown()
 		{
+			// Stop threads
+			rendering_thread.reset();
+
 			// Wait for presentation to finish
 			graphics.get_device_manager().get_present_queue().waitIdle();
 
-			// Stop threads
-			// rendering_thread.reset();
+			for (auto& mesh_renderer : mesh_renderers)
+				mesh_renderer.reset();
+
+			mesh->free();
+			material->free();
+			shader->free();
 
 			renderer.shutdown();
 			graphics.shutdown();
