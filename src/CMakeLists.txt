@@ -1,5 +1,6 @@
 add_subdirectory(utilities)
 add_subdirectory(graphics)
+add_subdirectory(ecs)
 
 
 # Headers

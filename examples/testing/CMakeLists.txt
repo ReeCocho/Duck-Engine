@@ -11,6 +11,7 @@ target_link_libraries(
 	${VULKAN_LIBRARY}
 	Duck-Utilities
 	Duck-Graphics
+	Duck-ECS
 	Duck-Engine
 )
 
