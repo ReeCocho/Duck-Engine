@@ -129,7 +129,7 @@ namespace dk
 		 * @brief Get pool count.
 		 * @return Pool count.
 		 */
-		size_t pool_count() const
+		size_t get_pool_count() const
 		{
 			return m_vk_pools.size();
 		}

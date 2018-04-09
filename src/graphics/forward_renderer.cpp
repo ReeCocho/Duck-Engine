@@ -60,10 +60,15 @@ namespace dk
 			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
 			dk_assert(m_vk_framebuffers[i]);
 		}
+
+		// Create thread pool
+		m_thread_pool = std::make_unique<ThreadPool>(get_graphics().get_command_manager().get_pool_count());
 	}
 
 	void ForwardRenderer::shutdown()
 	{
+		m_thread_pool->wait();
+		m_thread_pool.reset();
 		Renderer::shutdown();
 	}
 
@@ -151,50 +156,60 @@ namespace dk
 	{
 		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
 
+		// Wait for threads to finish
+		m_thread_pool->wait();
+
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
-			command_buffers[i] = m_renderable_objects[i].command_buffer.get_command_buffer();
+			auto& command_buffer = m_renderable_objects[i].command_buffer.get_command_buffer();
+			command_buffers[i] = command_buffer;
 
-			vk::CommandBufferBeginInfo begin_info = {};
-			begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-			begin_info.pInheritanceInfo = &inheritance_info;
+			m_thread_pool->workers[m_renderable_objects[i].command_buffer.get_thread_index()]->add_job([this, i, command_buffer, inheritance_info]()
+			{
+				vk::CommandBufferBeginInfo begin_info = {};
+				begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+				begin_info.pInheritanceInfo = &inheritance_info;
 
-			// Draw
-			command_buffers[i].begin(begin_info);
+				// Draw
+				command_buffer.begin(begin_info);
 
-			// Set viewport
-			vk::Viewport viewport = {};
-			viewport.setHeight(static_cast<float>(get_graphics().get_height()));
-			viewport.setWidth(static_cast<float>(get_graphics().get_width()));
-			viewport.setMinDepth(0);
-			viewport.setMaxDepth(1);
-			command_buffers[i].setViewport(0, 1, &viewport);
+				// Set viewport
+				vk::Viewport viewport = {};
+				viewport.setHeight(static_cast<float>(get_graphics().get_height()));
+				viewport.setWidth(static_cast<float>(get_graphics().get_width()));
+				viewport.setMinDepth(0);
+				viewport.setMaxDepth(1);
+				command_buffer.setViewport(0, 1, &viewport);
 
-			// Set scissor
-			vk::Rect2D scissor = {};
-			scissor.setExtent(get_swapchain_manager().get_image_extent());
-			scissor.setOffset({ 0, 0 });
-			command_buffers[i].setScissor(0, 1, &scissor);
+				// Set scissor
+				vk::Rect2D scissor = {};
+				scissor.setExtent(get_swapchain_manager().get_image_extent());
+				scissor.setOffset({ 0, 0 });
+				command_buffer.setScissor(0, 1, &scissor);
 
-			command_buffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_graphics_pipeline());
+				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_graphics_pipeline());
 
-			const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
-			vk::DeviceSize offsets[] = { 0 };
+				const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
+				vk::DeviceSize offsets[] = { 0 };
 
-			command_buffers[i].bindDescriptorSets
-			(
-				vk::PipelineBindPoint::eGraphics, 
-				m_renderable_objects[i].shader->get_pipeline_layout(), 
-				0,
-				m_renderable_objects[i].descriptor_sets,
-				{}
-			);
-			
-			command_buffers[i].bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
-			command_buffers[i].bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
-			command_buffers[i].drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
-			command_buffers[i].end();
+				command_buffer.bindDescriptorSets
+				(
+					vk::PipelineBindPoint::eGraphics,
+					m_renderable_objects[i].shader->get_pipeline_layout(),
+					0,
+					m_renderable_objects[i].descriptor_sets,
+					{}
+				);
+
+				command_buffer.bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
+				command_buffer.bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+				command_buffer.drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
+				command_buffer.end();
+			});
 		}
+
+		// Wait for threads to finish
+		m_thread_pool->wait();
 
 		return command_buffers;
 	}

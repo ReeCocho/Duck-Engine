@@ -31,7 +31,7 @@ namespace dk
 		 * @param Resource ID.
 		 * @return If the resource is allocated.
 		 */
-		inline bool is_allocated(ResourceID id) const
+		bool is_allocated(ResourceID id) const
 		{
 			dk_assert(id < m_allocation_table.size());
 			return m_allocation_table[id];
@@ -65,7 +65,7 @@ namespace dk
 		 * @brief Get the max number of resources that can be allocated.
 		 * @return Max number of resources that can be allocated.
 		 */
-		inline size_t max_allocated() const
+		size_t max_allocated() const
 		{
 			return m_allocation_table.size();
 		}
@@ -165,7 +165,7 @@ namespace dk
 		 * @param Handle.
 		 * @return Resource.
 		 */
-		inline T* get_resource_by_handle(ResourceID id)
+		T* get_resource_by_handle(ResourceID id)
 		{
 			dk_assert(id < m_allocation_table.size() && is_allocated(id));
 			return &m_resources.at(id);
@@ -217,8 +217,6 @@ namespace dk
 			dk_assert(allocator);
 			return allocator->get_resource_by_handle(id);
 		}
-
-
 
 		/** Resource ID. */
 		ResourceID id = 0;

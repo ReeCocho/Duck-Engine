@@ -7,6 +7,7 @@
  */
 
 /** Includes. */
+#include <utilities\threading.hpp>
 #include "renderer.hpp"
 
 namespace dk
@@ -58,5 +59,10 @@ namespace dk
 		 * @return Vector of command buffers to submit.
 		 */
 		std::vector<vk::CommandBuffer> generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info);
+
+
+
+		/** Thread pool for rendering. */
+		std::unique_ptr<ThreadPool> m_thread_pool;
 	};
 }

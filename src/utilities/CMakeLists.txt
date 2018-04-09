@@ -5,12 +5,14 @@ set(DUCK_UTILS_HDRS
 	macros.hpp
 	resource_allocator.hpp
 	file_io.hpp
+	threading.hpp
 )
 
 # Sources
 set(DUCK_UTILS_SRCS
 	resource_allocator.cpp
 	file_io.cpp
+	threading.cpp
 )
 
 # Utilities lib
