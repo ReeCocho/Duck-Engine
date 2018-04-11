@@ -11,6 +11,9 @@
 
 namespace dk
 {
+	template<class T>
+	class Component;
+
 	/**
 	 * @class TypeIDGenerator
 	 * @brief A template class with a static member function to get IDs.
@@ -54,8 +57,9 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Scene the component belongs to.
+		 * @param Entity the component belongs to.
 		 */
-		Component(Scene* scene) : m_scene(scene), m_id(TypeID<T>.id())
+		Component(Scene* scene, Entity entity) : m_scene(scene), m_entity(entity), m_id(TypeID<T>.id())
 		{
 
 		}
@@ -72,9 +76,9 @@ namespace dk
 		 * @brief Get the scene the component exists in.
 		 * @return Scene.
 		 */
-		Scene* get_scene()
+		Scene& get_scene()
 		{
-			return m_scene;
+			return *m_scene;
 		}
 
 		/**
@@ -86,10 +90,22 @@ namespace dk
 			return m_id;
 		}
 
+		/**
+		 * @brief Get the entity the component belongs to.
+		 * @return Entity.
+		 */
+		Entity get_entity() const
+		{
+			return m_entity;
+		}
+
 	private:
 
 		/** Scene the component is in. */
 		Scene* m_scene;
+
+		/** Entity the component belongs to. */
+		Entity m_entity;
 
 		/** ID of the component. */
 		size_t m_id = 0;

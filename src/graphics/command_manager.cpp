@@ -10,7 +10,7 @@
 
 namespace dk
 {
-	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager& command_manager, const vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread) :
+	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager& command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread) :
 		m_command_manager(command_manager),
 		m_vk_logical_device(logical_device),
 		m_vk_level(level),
@@ -42,7 +42,7 @@ namespace dk
 
 	}
 
-	VkCommandManager::VkCommandManager(const vk::Device& logical_device, QueueFamilyIndices qfi, size_t thread_count) : m_vk_logical_device(logical_device)
+	VkCommandManager::VkCommandManager(vk::Device& logical_device, QueueFamilyIndices qfi, size_t thread_count) : m_vk_logical_device(logical_device)
 	{
 		m_vk_pools = std::vector<vk::CommandPool>(thread_count);
 

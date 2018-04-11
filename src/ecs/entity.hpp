@@ -7,6 +7,7 @@
  */
 
 /** Includes. */
+#include <utilities\resource_allocator.hpp>
 
 namespace dk
 {
@@ -46,9 +47,9 @@ namespace dk
 		 * @brief Get the scene the entity is in.
 		 * @return Scene.
 		 */
-		Scene* get_scene() const
+		Scene& get_scene() const
 		{
-			return m_scene;
+			return *m_scene;
 		}
 
 		/**
@@ -59,6 +60,34 @@ namespace dk
 		{
 			return m_id;
 		}
+
+		/**
+		 * @brief Add a component.
+		 * @tparam Type of component.
+		 * @param Entity the component will belong to.
+		 * @return Component handle.
+		 * @note Will not create a new component if one already exists for the given entity.
+		 */
+		template<class T>
+		Handle<T> add_component();
+
+		/**
+		 * @brief Get a component from an entity.
+		 * @tparam Type of component.
+		 * @param Entity the component belongs to.
+		 * @return Component handle.
+		 * @note Will return a Handle<T>() if the entity does not contain the component.
+		 */
+		template<class T>
+		Handle<T> get_component();
+
+		/**
+		 * @brief Remove a component from an entity.
+		 * @tparam Type of component.
+		 * @param entity the component belongs to.
+		 */
+		template<class T>
+		void remove_component();
 
 	private:
 

@@ -35,9 +35,9 @@ namespace dk
 		 * @brief Get the scene.
 		 * @return The scene.
 		 */
-		Scene* get_scene() const
+		Scene& get_scene() const
 		{
-			return m_scene;
+			return *m_scene;
 		}
 
 		/**
@@ -50,6 +50,12 @@ namespace dk
 		}
 
 		/**
+		 * @brief Remove a component from a system.
+		 * @param Components entity.
+		 */
+		virtual void remove_component(Entity entity) = 0;
+
+		/**
 		 * @brief Called when a component is added to the system.
 		 */
 		virtual void on_begin();
@@ -58,19 +64,19 @@ namespace dk
 		 * @brief Called once per game tick.
 		 * @param Time in seconds since the last frame.
 		 */
-		virtual void on_tick();
+		virtual void on_tick(float delta_time);
 
 		/**
 		 * @brief Called after on_tick().
 		 * @param Time in seconds since the last frame.
 		 */
-		virtual void on_late_tick();
+		virtual void on_late_tick(float delta_time);
 
 		/**
 		 * @brief Called after on_late_tick() and before rendering.
 		 * @param Time in seconds since the last frame.
 		 */
-		virtual void on_pre_render();
+		virtual void on_pre_render(float delta_time);
 
 		/**
 		 * @brief Called when a component is removed from the system.
@@ -121,9 +127,10 @@ namespace dk
 
 		/**
 		 * @brief Add a component to the system.
+		 * @param Entity the component belongs to.
 		 * @return Components handle.
 		 */
-		Handle<T> add_component()
+		Handle<T> add_component(Entity entity)
 		{
 			// Resize allocator if needed
 			if (m_components.num_allocated() + 1 > m_components.max_allocated())
@@ -132,7 +139,7 @@ namespace dk
 			// Allocate the component and call its constructor
 			ResourceID id = m_components.allocate();
 			T* component = m_components.get_resource_by_handle(id);
-			::new(component)(T)(get_scene());
+			::new(component)(T)(&get_scene(), entity);
 
 			// Call on_begin() on the system
 			m_active_component = id;
@@ -142,19 +149,40 @@ namespace dk
 		}
 
 		/**
+		 * @brief Find a component via it's entity
+		 * @param Entity of the component.
+		 * @return The component.
+		 * @note Will return a Handle<T>() if the component is not found.
+		 */
+		Handle<T> find_component_by_entity(Entity entity)
+		{
+			for(size_t i = 0; i < m_components.max_allocated(); ++i)
+				if (m_components.is_allocated(i))
+				{
+					T* component = m_components.get_resource_by_handle(i);
+					
+					if (component->get_entity() == entity)
+						return Handle<T>(i, &m_components);
+				}
+
+			return Handle<T>(0, nullptr);
+		}
+
+		/**
 		 * @brief Remove a component from a system.
 		 * @param Components ResourceID.
 		 */
-		void remove_component(ResourceID id)
+		void remove_component(Entity entity) override
 		{
-			dk_assert(m_components.is_allocated(id));
+			Handle<T> component = find_component_by_entity(entity);
+			if (!component.allocator) return;
 
 			// Call on_end() on the system
-			m_active_component = id;
+			m_active_component = component.id;
 			on_end();
 
 			// Deallocate the component
-			m_components.deallocate(id);
+			m_components.deallocate(component.id);
 		}
 
 		/**

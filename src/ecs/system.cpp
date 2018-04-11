@@ -24,17 +24,17 @@ namespace dk
 
 	}
 
-	void SystemBase::on_tick()
+	void SystemBase::on_tick(float delta_time)
 	{
 
 	}
 
-	void SystemBase::on_late_tick()
+	void SystemBase::on_late_tick(float delta_time)
 	{
 
 	}
 
-	void SystemBase::on_pre_render()
+	void SystemBase::on_pre_render(float delta_time)
 	{
 
 	}

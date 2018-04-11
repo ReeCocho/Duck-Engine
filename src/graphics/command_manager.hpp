@@ -27,7 +27,7 @@ namespace dk
 		 * @param Command buffer level.
 		 * @param Thread created for.
 		 */
-		VkManagedCommandBuffer(VkCommandManager& command_manager, const vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread);
+		VkManagedCommandBuffer(VkCommandManager& command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread);
 
 		/**
 		 * @brief Destructor.
@@ -86,7 +86,7 @@ namespace dk
 		VkCommandManager& m_command_manager;
 
 		/** Logical device */
-		const vk::Device& m_vk_logical_device;
+		vk::Device& m_vk_logical_device;
 
 		/** Command buffer. */
 		vk::CommandBuffer m_vk_command_buffer;
@@ -118,7 +118,7 @@ namespace dk
 		 * @param Queue family indices.
 		 * @param Number of threads supported.
 		 */
-		VkCommandManager(const vk::Device& logical_device, QueueFamilyIndices qfi, size_t thread_count);
+		VkCommandManager(vk::Device& logical_device, QueueFamilyIndices qfi, size_t thread_count);
 
 		/**
 		 * @brief Destructor.
@@ -172,7 +172,7 @@ namespace dk
 	private:
 
 		/** Logical device */
-		const vk::Device& m_vk_logical_device;
+		vk::Device& m_vk_logical_device;
 
 		/** Graphics command pools. */
 		std::vector<vk::CommandPool> m_vk_pools;

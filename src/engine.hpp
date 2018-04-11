@@ -10,6 +10,7 @@
 #include "graphics\graphics.hpp"
 #include "graphics\forward_renderer.hpp"
 #include "input.hpp"
+#include "ecs\scene.hpp"
 
 namespace dk
 {
@@ -28,6 +29,9 @@ namespace dk
 
 		/** Input manager. */
 		extern Input input;
+
+		/** Active scene. */
+		extern Scene scene;
 
 
 

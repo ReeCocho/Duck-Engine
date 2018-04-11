@@ -7,12 +7,14 @@ add_subdirectory(ecs)
 set(DUCK_ENGINE_HDRS
 	engine.hpp
 	input.hpp
+	components/mesh_renderer.hpp
 )
 
 # Sources
 set(DUCK_ENGINE_SRCS
 	engine.cpp
 	input.cpp
+	components/mesh_renderer.cpp
 )
 
 # Engine lib
