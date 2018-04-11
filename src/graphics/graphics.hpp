@@ -88,7 +88,7 @@ namespace dk
 		 * @brief Get physical device.
 		 * @return Physical device.
 		 */
-		const vk::PhysicalDevice& get_physical_device() const
+		vk::PhysicalDevice& get_physical_device()
 		{
 			return m_device_manager->get_physical_device();
 		}
@@ -97,7 +97,7 @@ namespace dk
 		 * @brief Get logical device.
 		 * @return Logical device.
 		 */
-		const vk::Device& get_logical_device() const
+		vk::Device& get_logical_device()
 		{
 			return m_device_manager->get_logical_deivce();
 		}
@@ -106,7 +106,7 @@ namespace dk
 		 * @brief Get surface.
 		 * @return Surface.
 		 */
-		const vk::SurfaceKHR& get_surface() const
+		vk::SurfaceKHR& get_surface()
 		{
 			return m_vk_surface;
 		}

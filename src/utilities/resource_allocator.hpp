@@ -102,7 +102,7 @@ namespace dk
 	 * @tparam Type of data the resource allocator allocates.
 	 */
 	template<class T>
-	class ResourceAllocator : ResourceAllocatorBase
+	class ResourceAllocator : public ResourceAllocatorBase
 	{
 	public:
 
@@ -207,6 +207,26 @@ namespace dk
 		 * @param Resource allocator
 		 */
 		Handle(ResourceID a_id, ResourceAllocator<T>* a_allocator) : id(a_id), allocator(a_allocator) {}
+
+		/**
+		 * @brief Equivilence operator.
+		 * @param Other handle.
+		 * @return If the two handles are equal.
+		 */
+		bool operator==(const Handle<T>& other) const
+		{
+			return id == other.id && allocator == other.allocator;
+		}
+
+		/**
+		 * @brief Unequivilence operator.
+		 * @param Other handle.
+		 * @return If the two handles are not equal.
+		 */
+		bool operator!=(const Handle<T>& other) const
+		{
+			return id != other.id || allocator != other.allocator;
+		}
 
 		/**
 		 * @brief Access operator.

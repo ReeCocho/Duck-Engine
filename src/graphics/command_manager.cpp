@@ -10,14 +10,23 @@
 
 namespace dk
 {
-	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager& command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread) :
+	VkManagedCommandBuffer::VkManagedCommandBuffer() : 
+		m_command_manager(nullptr),
+		m_vk_logical_device(vk::Device()),
+		m_vk_level(vk::CommandBufferLevel::ePrimary),
+		m_thread(0)
+	{
+
+	}
+
+	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager* command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread) :
 		m_command_manager(command_manager),
 		m_vk_logical_device(logical_device),
 		m_vk_level(level),
 		m_thread(thread)
 	{
 		vk::CommandBufferAllocateInfo alloc_info = {};
-		alloc_info.commandPool = m_command_manager.get_pool(m_thread);
+		alloc_info.commandPool = m_command_manager->get_pool(m_thread);
 		alloc_info.level = level;
 		alloc_info.commandBufferCount = 1;
 
@@ -27,7 +36,7 @@ namespace dk
 
 	void VkManagedCommandBuffer::free()
 	{
-		m_command_manager.get_logical_device().freeCommandBuffers(m_command_manager.get_pool(m_thread), m_vk_command_buffer);
+		m_command_manager->get_logical_device().freeCommandBuffers(m_command_manager->get_pool(m_thread), m_vk_command_buffer);
 	}
 
 	void VkManagedCommandBuffer::reset()
@@ -82,9 +91,19 @@ namespace dk
 		}
 	}
 
+	VkManagedCommandBuffer& VkManagedCommandBuffer::operator=(VkManagedCommandBuffer& other)
+	{
+		m_command_manager = other.m_command_manager;
+		m_thread = other.m_thread;
+		m_vk_command_buffer = other.m_vk_command_buffer;
+		m_vk_level = other.m_vk_level;
+		m_vk_logical_device = other.m_vk_logical_device;
+		return *this;
+	}
+
 	VkManagedCommandBuffer VkCommandManager::allocate_command_buffer(vk::CommandBufferLevel level)
 	{
-		auto cb = VkManagedCommandBuffer(*this, m_vk_logical_device, level, m_next_pool);
+		auto cb = VkManagedCommandBuffer(this, m_vk_logical_device, level, m_next_pool);
 		m_next_pool = (m_next_pool + 1) % m_vk_pools.size();
 		return cb;
 	}

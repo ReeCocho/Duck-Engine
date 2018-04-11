@@ -16,6 +16,9 @@ namespace dk
 
 	void Scene::shutdown()
 	{
+		for (auto& system : m_systems)
+			system->remove_all_components();
+
 		m_systems.clear();
 	}
 

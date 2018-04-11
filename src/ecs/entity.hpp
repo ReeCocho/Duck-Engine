@@ -25,6 +25,11 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		Entity() : m_scene(nullptr), m_id(0) {}
+
+		/**
 		 * @brief Constructor.
 		 * @param Scene.
 		 * @param Entity ID.
@@ -42,6 +47,26 @@ namespace dk
 		 * @brief Destructor.
 		 */
 		~Entity() = default;
+
+		/**
+		 * @brief Equivilence operator.
+		 * @param Other entity.
+		 * @return If the two handles are equal.
+		 */
+		bool operator==(const Entity& other) const
+		{
+			return m_id == other.m_id && m_scene == other.m_scene;
+		}
+
+		/**
+		 * @brief Unequivilence operator.
+		 * @param Other entity.
+		 * @return If the two handles are not equal.
+		 */
+		bool operator!=(const Entity& other) const
+		{
+			return m_id != other.m_id || m_scene != other.m_scene;
+		}
 
 		/**
 		 * @brief Get the scene the entity is in.

@@ -10,6 +10,8 @@
 
 namespace dk
 {
+	MeshRenderer::MeshRenderer() : Component<MeshRenderer>(nullptr, Entity()) {}
+
 	void MeshRenderer::generate_resources()
 	{
 		if (m_material && m_mesh)
@@ -105,45 +107,47 @@ namespace dk
 	void MeshRendererSystem::on_begin()
 	{
 		Handle<MeshRenderer> mesh_renderer = get_component();
-
 		mesh_renderer->m_command_buffer = engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
 	}
 
 	void MeshRendererSystem::on_pre_render(float delta_time)
 	{
-		/*
+		for (Handle<MeshRenderer> mesh_renderer : *this)
 		{
-			VertexShaderData v_data = {};
-			v_data.mvp = mvp;
+			{
+				VertexShaderData v_data = {};
+				v_data.mvp = mesh_renderer->mvp;
 
-			void* data = m_renderer.get_graphics().get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
-			memcpy(data, &v_data, sizeof(VertexShaderData));
-			m_renderer.get_graphics().get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
+				void* data = engine::graphics.get_logical_device().mapMemory(mesh_renderer->m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
+				memcpy(data, &v_data, sizeof(VertexShaderData));
+				engine::graphics.get_logical_device().unmapMemory(mesh_renderer->m_vertex_uniform_buffer.memory);
+			}
+
+			{
+				FragmentShaderData f_data = {};
+
+				void* data = engine::graphics.get_logical_device().mapMemory(mesh_renderer->m_fragment_uniform_buffer.memory, 0, sizeof(FragmentShaderData));
+				memcpy(data, &f_data, sizeof(FragmentShaderData));
+				engine::graphics.get_logical_device().unmapMemory(mesh_renderer->m_fragment_uniform_buffer.memory);
+			}
+
+			dk::RenderableObject renderable =
+			{
+				mesh_renderer->m_command_buffer,
+				&mesh_renderer->m_material->get_shader(),
+				mesh_renderer->m_mesh,
+				{ mesh_renderer->m_vk_descriptor_set }
+			};
+			engine::renderer.draw(renderable);
 		}
-
-		{
-			FragmentShaderData f_data = {};
-
-			void* data = m_renderer.get_graphics().get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(FragmentShaderData));
-			memcpy(data, &f_data, sizeof(FragmentShaderData));
-			m_renderer.get_graphics().get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
-		}
-
-		dk::RenderableObject renderable =
-		{
-			m_command_buffer,
-			&m_material.get_shader(),
-			&m_mesh,
-			{ m_vk_descriptor_set }
-		};
-		m_renderer.draw(renderable);
-		*/
 	}
 
 	void MeshRendererSystem::on_end()
 	{
 		Handle<MeshRenderer> mesh_renderer = get_component();
 		
+		mesh_renderer->m_command_buffer.free();
+
 		if (mesh_renderer->m_vertex_uniform_buffer.buffer)
 			mesh_renderer->m_vertex_uniform_buffer.free(engine::graphics.get_logical_device());
 
@@ -152,7 +156,5 @@ namespace dk
 
 		if (mesh_renderer->m_vk_descriptor_pool)
 			engine::graphics.get_logical_device().destroyDescriptorPool(mesh_renderer->m_vk_descriptor_pool);
-
-		mesh_renderer->m_command_buffer.free();
 	}
 }

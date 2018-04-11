@@ -21,18 +21,30 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		VkManagedCommandBuffer();
+
+		/**
 		 * @brief Constructor.
 		 * @param Command manager.
 		 * @param Logical device.
 		 * @param Command buffer level.
 		 * @param Thread created for.
 		 */
-		VkManagedCommandBuffer(VkCommandManager& command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread);
+		VkManagedCommandBuffer(VkCommandManager* command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread);
 
 		/**
 		 * @brief Destructor.
 		 */
 		~VkManagedCommandBuffer() = default;
+
+		/**
+		 * @brief Assignment operator.
+		 * @param Other command buffer.
+		 * @return This.
+		 */
+		VkManagedCommandBuffer& operator=(VkManagedCommandBuffer& other);
 
 		/**
 		 * @brief Release the command buffer.
@@ -59,7 +71,7 @@ namespace dk
 		 */
 		VkCommandManager& get_command_manager() const
 		{
-			return m_command_manager;
+			return *m_command_manager;
 		}
 
 		/**
@@ -83,7 +95,7 @@ namespace dk
 	private:
 
 		/** Command manager. */
-		VkCommandManager& m_command_manager;
+		VkCommandManager* m_command_manager;
 
 		/** Logical device */
 		vk::Device& m_vk_logical_device;

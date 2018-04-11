@@ -55,6 +55,11 @@ namespace dk
 		 */
 		virtual void remove_component(Entity entity) = 0;
 
+		/** 
+		 * @brief Remove every component from a system.
+		 */
+		virtual void remove_all_components() = 0;
+
 		/**
 		 * @brief Called when a component is added to the system.
 		 */
@@ -102,28 +107,87 @@ namespace dk
 	public:
 
 		/**
+		 * @class Iterator
+		 * @brief Class used to iterate over components in a system.
+		 */
+		class Iterator
+		{
+		public:
+
+			/**
+			 * @brief Default constructor.
+			 */
+			Iterator() = default;
+
+			/**
+			 * @brief Constructor.
+			 * @param System to iterate over.
+			 * @param Starting position for the handle.
+			 */
+			Iterator(System* system, size_t pos) : m_system(system), m_handle(pos) {}
+
+			/**
+			 * @brief Default destructor.
+			 */
+			~Iterator() = default;
+
+			/**
+			 * @brief inequivalence operator.
+			 * @param Left side.
+			 * @param Right side.
+			 * @return If the iterators are equal.
+			 */
+			bool operator!=(const Iterator& other) const
+			{
+				return m_handle != other.m_handle;
+			}
+
+			/**
+			 * @brief Increment operator.
+			 * @return Self.
+			 */
+			Iterator& operator++()
+			{
+				++m_handle;
+
+				while (m_handle != m_system->m_components.max_allocated() && !m_system->m_components.is_allocated(m_handle))
+					++m_handle;
+
+				m_system->m_active_component = m_handle;
+				return *this;
+			}
+
+			/**
+			 * @brief Indirection operator.
+			 * @return Active component.
+			 */
+			Handle<T> operator*()
+			{
+				return Handle<T>(m_handle, &m_system->m_components);
+			}
+
+		private:
+
+			/** System to iterate over. */
+			System* m_system = nullptr;
+
+			/** Handle. */
+			ResourceID m_handle = 0;
+		};
+
+
+
+		/**
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 * @param Number of components preallocated.
 		 */
-		System(Scene* scene, size_t pre_alloc = 32) : SystemBase(scene, TypeID<T>.id()), m_components(pre_alloc)
-		{
-
-		}
+		System(Scene* scene, size_t pre_alloc = 32) : SystemBase(scene, TypeID<T>::id()), m_components(pre_alloc) {}
 
 		/**
 		 * @brief Destructor.
 		 */
-		virtual ~System()
-		{
-			for(size_t i = 0; i < m_components.max_allocated(); ++i)
-				if (m_components.is_allocated(i))
-				{
-					m_active_component = static_cast<ResourceID>(i);
-					on_end();
-					m_components.deallocate(i);
-				}
-		}
+		virtual ~System() {}
 
 		/**
 		 * @brief Add a component to the system.
@@ -156,11 +220,11 @@ namespace dk
 		 */
 		Handle<T> find_component_by_entity(Entity entity)
 		{
-			for(size_t i = 0; i < m_components.max_allocated(); ++i)
+			for (size_t i = 0; i < m_components.max_allocated(); ++i)
 				if (m_components.is_allocated(i))
 				{
 					T* component = m_components.get_resource_by_handle(i);
-					
+
 					if (component->get_entity() == entity)
 						return Handle<T>(i, &m_components);
 				}
@@ -186,11 +250,50 @@ namespace dk
 		}
 
 		/**
+		 * @brief Remove every component from a system.
+		 */
+		void remove_all_components() override
+		{
+			for (size_t i = 0; i < m_components.max_allocated(); ++i)
+				if (m_components.is_allocated(i))
+				{
+					m_active_component = static_cast<ResourceID>(i);
+					on_end();
+					m_components.deallocate(i);
+				}
+		}
+
+		/**
 		 * @brief Get the active component.
 		 */
 		Handle<T> get_component()
 		{
 			return Handle<T>(m_active_component, &m_components);
+		}
+
+		/**
+		 * @brief Get iterator at the beginning of the component list.
+		 * @return Iterator at the beginning of the component list.
+		 */
+		Iterator begin()
+		{
+			ResourceID index = 0;
+			for (index; index <= m_components.max_allocated(); ++index)
+			{
+				if (index == m_components.max_allocated() || m_components.is_allocated(index))
+					break;
+			}
+
+			return Iterator(this, index);
+		}
+
+		/**
+		 * @brief Get iterator at the end of the component list.
+		 * @return Iterator at the end of the component list.
+		 */
+		Iterator end()
+		{
+			return Iterator(this, m_components.max_allocated());
 		}
 
 	private:

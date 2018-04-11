@@ -31,7 +31,19 @@ namespace dk
 		friend class MeshRendererSystem;
 
 	public:
-		
+
+		/**
+		 * @brief Default constructor.
+		 */
+		MeshRenderer();
+
+		/**
+		 * @brief Constructor.
+		 * @param Scene the component belongs to.
+		 * @param Entity the component belongs to.
+		 */
+		MeshRenderer(Scene* scene, Entity entity) : Component<MeshRenderer>(scene, entity) {}
+
 		/**
 		 * @brief Set the material.
 		 * @param New material.
@@ -114,6 +126,17 @@ namespace dk
 	class MeshRendererSystem : public System<MeshRenderer>
 	{
 	public:
+
+		/**
+		 * @brief Constructor.
+		 * @param Scene the system exists in.
+		 */
+		MeshRendererSystem(Scene* scene) : System<MeshRenderer>(scene, 32) {}
+
+		/**
+		 * @brief Destructor.
+		 */
+		~MeshRendererSystem() = default;
 
 		/**
 		 * @brief Called when a component is added to the system.

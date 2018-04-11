@@ -41,7 +41,7 @@ namespace dk
 		 * @brief Get physical device.
 		 * @return Physical device.
 		 */
-		const vk::PhysicalDevice& get_physical_device() const
+		vk::PhysicalDevice& get_physical_device()
 		{
 			return m_vk_physical_device;
 		}
@@ -50,7 +50,7 @@ namespace dk
 		 * @brief Get logical device.
 		 * @return Logical device.
 		 */
-		const vk::Device& get_logical_deivce() const
+		vk::Device& get_logical_deivce()
 		{
 			return m_vk_logical_device;
 		}
@@ -59,7 +59,7 @@ namespace dk
 		 * @brief Get graphics queue.
 		 * @return Graphics queue.
 		 */
-		const vk::Queue& get_graphics_queue() const
+		vk::Queue& get_graphics_queue()
 		{
 			return m_vk_graphics_queue;
 		}
@@ -68,7 +68,7 @@ namespace dk
 		 * @brief Get presentation queue.
 		 * @return Presentation queue.
 		 */
-		const vk::Queue& get_present_queue() const
+		vk::Queue& get_present_queue()
 		{
 			return m_vk_present_queue;
 		}
@@ -77,7 +77,7 @@ namespace dk
 		 * @brief Get transfer queue.
 		 * @return Transfer queue.
 		 */
-		const vk::Queue& get_transfer_queue() const
+		vk::Queue& get_transfer_queue()
 		{
 			return m_vk_transfer_queue;
 		}

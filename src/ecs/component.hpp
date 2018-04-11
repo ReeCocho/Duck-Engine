@@ -59,7 +59,7 @@ namespace dk
 		 * @param Scene the component belongs to.
 		 * @param Entity the component belongs to.
 		 */
-		Component(Scene* scene, Entity entity) : m_scene(scene), m_entity(entity), m_id(TypeID<T>.id())
+		Component(Scene* scene, Entity entity) : m_scene(scene), m_entity(entity), m_id(TypeID<T>::id())
 		{
 
 		}

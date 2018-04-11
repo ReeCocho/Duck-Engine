@@ -52,9 +52,10 @@ namespace dk
 		template<class T>
 		void add_system()
 		{
-			static_assert(std::is_base_of<System<T>, T>::value, "T must derive from System<T>.");
-			if (find_system<T>()) return;
-			m_systems.push_back(std::make_unique<T>(this));
+			auto system = std::make_unique<T>(this);
+
+			if(!find_system(system->get_id()))
+				m_systems.push_back(std::move(system));
 		}
 
 		/**
@@ -69,7 +70,7 @@ namespace dk
 		{
 			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
 
-			System<T>* system = find_system<T>();
+			System<T>* system = static_cast<System<T>*>(find_system(TypeID<T>::id()));
 			dk_assert(system);
 
 			// Make sure the component does not already exist
@@ -77,7 +78,7 @@ namespace dk
 			if (component.allocator != nullptr)
 				return component;
 
-			return system->add_component<T>(entity);
+			return system->add_component(entity);
 		}
 
 		/**
@@ -92,7 +93,7 @@ namespace dk
 		{
 			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
 
-			System<T>* system = find_system<T>();
+			System<T>* system = static_cast<System<T>*>(find_system(TypeID<T>::id()));
 			dk_assert(system);
 
 			return system->find_component_by_entity(entity);
@@ -107,7 +108,7 @@ namespace dk
 		void remove_component(Entity entity)
 		{
 			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
-			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>.id()));
+			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>::id()));
 		}
 
 	private:
@@ -124,17 +125,12 @@ namespace dk
 
 		/**
 		 * @brief Find a system belonging to a specific type.
-		 * @tparam Type of component the system manages.
+		 * @param Type of component the system manages.
 		 * @return Pointer to system.
 		 * @return Will be nullptr if the system doesn't exist.
 		 */
-		template<class T>
-		System<T>* find_system()
+		SystemBase* find_system(size_t id)
 		{
-			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from System<T>.");
-
-			size_t id = TypeID<T>.id();
-
 			for (size_t i = 0; i < m_systems.size(); ++i)
 				if (m_systems[i]->get_id() == id)
 					return m_systems[i].get();
