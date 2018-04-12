@@ -23,6 +23,8 @@ namespace dk
 
 		RendererType renderer = {};
 
+		ResourceManager resource_manager = {};
+
 		Input input;
 
 		Scene scene = {};
@@ -33,6 +35,7 @@ namespace dk
 		{
 			::new(&graphics)(Graphics)(thread_count, name, width, height);
 			::new(&renderer)(RendererType)(&graphics);
+			::new(&resource_manager)(ResourceManager)(static_cast<Renderer*>(&renderer));
 			input = Input();
 			scene = {};
 
@@ -67,6 +70,7 @@ namespace dk
 			rendering_thread.reset();
 
 			scene.shutdown();
+			resource_manager.shutdown();
 			renderer.shutdown();
 			graphics.shutdown();
 		}

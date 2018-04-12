@@ -7,6 +7,7 @@
  */
 
 /** Includes. */
+#include <utilities\resource_allocator.hpp>
 #include "graphics.hpp"
 #include "swapchain_manager.hpp"
 #include "shader.hpp"
@@ -23,10 +24,10 @@ namespace dk
 		VkManagedCommandBuffer command_buffer;
 
 		/** Shader. */
-		Shader* shader;
+		Handle<Shader> shader;
 
 		/** Mesh. */
-		Mesh* mesh;
+		Handle<Mesh> mesh;
 
 		/** Descriptor sets. */
 		std::vector<vk::DescriptorSet> descriptor_sets;

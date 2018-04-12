@@ -202,6 +202,11 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		Handle() : id(0), allocator(nullptr) {}
+
+		/**
 		 * @brief Constructor.
 		 * @param Resource ID.
 		 * @param Resource allocator

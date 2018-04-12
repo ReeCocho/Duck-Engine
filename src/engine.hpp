@@ -11,6 +11,7 @@
 #include "graphics\forward_renderer.hpp"
 #include "input.hpp"
 #include "ecs\scene.hpp"
+#include "resource_manager.hpp"
 
 namespace dk
 {
@@ -26,6 +27,9 @@ namespace dk
 
 		/** Rendering engine. */
 		extern RendererType renderer;
+
+		/** Resource manager. */
+		extern ResourceManager resource_manager;
 
 		/** Input manager. */
 		extern Input input;

@@ -46,12 +46,17 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		Mesh();
+
+		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
 		 * @param Indices.
 		 * @param Vertices.
 		 */
-		Mesh(Graphics& graphics, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
+		Mesh(Graphics* graphics, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
 
 		/**
 		 * @brief Destructor.
@@ -94,7 +99,7 @@ namespace dk
 	private:
 
 		/** Graphics context. */
-		Graphics& m_graphics;
+		Graphics* m_graphics;
 
 		/** Vertex buffer. */
 		VkMemBuffer m_vertex_buffer;

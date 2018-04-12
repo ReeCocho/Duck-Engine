@@ -7,6 +7,7 @@ add_subdirectory(ecs)
 set(DUCK_ENGINE_HDRS
 	engine.hpp
 	input.hpp
+	resource_manager.hpp
 	components/mesh_renderer.hpp
 )
 
@@ -14,6 +15,7 @@ set(DUCK_ENGINE_HDRS
 set(DUCK_ENGINE_SRCS
 	engine.cpp
 	input.cpp
+	resource_manager.cpp
 	components/mesh_renderer.cpp
 )
 

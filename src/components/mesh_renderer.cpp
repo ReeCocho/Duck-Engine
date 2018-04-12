@@ -14,7 +14,7 @@ namespace dk
 
 	void MeshRenderer::generate_resources()
 	{
-		if (m_material && m_mesh)
+		if (m_material.allocator && m_mesh.allocator)
 		{
 			// Free old resources
 			if (m_vertex_uniform_buffer.buffer)
@@ -39,14 +39,14 @@ namespace dk
 			// Create buffers
 			m_vertex_uniform_buffer = engine::graphics.create_buffer
 			(
-				m_material->get_shader().get_inst_vertex_buffer_size(),
+				m_material->get_shader()->get_inst_vertex_buffer_size(),
 				vk::BufferUsageFlagBits::eUniformBuffer,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			);
 
 			m_fragment_uniform_buffer = engine::graphics.create_buffer
 			(
-				m_material->get_shader().get_inst_fragment_buffer_size(),
+				m_material->get_shader()->get_inst_fragment_buffer_size(),
 				vk::BufferUsageFlagBits::eUniformBuffer,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			);
@@ -66,7 +66,7 @@ namespace dk
 			vk::DescriptorSetAllocateInfo alloc_info = {};
 			alloc_info.descriptorPool = m_vk_descriptor_pool;
 			alloc_info.descriptorSetCount = 1;
-			alloc_info.pSetLayouts = &m_material->get_shader().get_descriptor_set_layout();
+			alloc_info.pSetLayouts = &m_material->get_shader()->get_descriptor_set_layout();
 
 			m_vk_descriptor_set = engine::graphics.get_logical_device().allocateDescriptorSets(alloc_info)[0];
 			dk_assert(m_vk_descriptor_set);
@@ -74,19 +74,19 @@ namespace dk
 			std::array<vk::DescriptorBufferInfo, 4> buffer_infos = {};
 			buffer_infos[0].buffer = m_material->get_vertex_uniform_buffer().buffer;
 			buffer_infos[0].offset = 0;
-			buffer_infos[0].range = m_material->get_shader().get_vertex_buffer_size();
+			buffer_infos[0].range = m_material->get_shader()->get_vertex_buffer_size();
 
 			buffer_infos[1].buffer = m_vertex_uniform_buffer.buffer;
 			buffer_infos[1].offset = 0;
-			buffer_infos[1].range = m_material->get_shader().get_inst_vertex_buffer_size();
+			buffer_infos[1].range = m_material->get_shader()->get_inst_vertex_buffer_size();
 
 			buffer_infos[2].buffer = m_material->get_fragment_uniform_buffer().buffer;
 			buffer_infos[2].offset = 0;
-			buffer_infos[2].range = m_material->get_shader().get_fragment_buffer_size();
+			buffer_infos[2].range = m_material->get_shader()->get_fragment_buffer_size();
 
 			buffer_infos[3].buffer = m_fragment_uniform_buffer.buffer;
 			buffer_infos[3].offset = 0;
-			buffer_infos[3].range = m_material->get_shader().get_inst_fragment_buffer_size();
+			buffer_infos[3].range = m_material->get_shader()->get_inst_fragment_buffer_size();
 
 			std::array<vk::WriteDescriptorSet, 4> writes = {};
 
@@ -134,7 +134,7 @@ namespace dk
 			dk::RenderableObject renderable =
 			{
 				mesh_renderer->m_command_buffer,
-				&mesh_renderer->m_material->get_shader(),
+				mesh_renderer->m_material->get_shader(),
 				mesh_renderer->m_mesh,
 				{ mesh_renderer->m_vk_descriptor_set }
 			};

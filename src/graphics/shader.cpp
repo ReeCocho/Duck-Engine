@@ -11,9 +11,11 @@
 
 namespace dk
 {
+	Shader::Shader() {};
+
 	Shader::Shader
 	(
-		Graphics& graphics,
+		Graphics* graphics,
 		const vk::RenderPass& render_pass,
 		const std::vector<char>& vert_byte_code,
 		const std::vector<char>& frag_byte_code
@@ -97,12 +99,12 @@ namespace dk
 		layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
 		layout_info.pBindings = bindings.data();
 
-		m_vk_descriptor_set_layout = m_graphics.get_logical_device().createDescriptorSetLayout(layout_info);
+		m_vk_descriptor_set_layout = m_graphics->get_logical_device().createDescriptorSetLayout(layout_info);
 		dk_assert(m_vk_descriptor_set_layout);
 
 		// Create shader modules
-		m_vk_vertex_shader_module = create_shader_module(m_graphics.get_logical_device(), vert_byte_code);
-		m_vk_fragment_shader_module = create_shader_module(m_graphics.get_logical_device(), frag_byte_code);
+		m_vk_vertex_shader_module = create_shader_module(m_graphics->get_logical_device(), vert_byte_code);
+		m_vk_fragment_shader_module = create_shader_module(m_graphics->get_logical_device(), frag_byte_code);
 
 		vk::PipelineShaderStageCreateInfo vert_shader_stage_info = {};
 		vert_shader_stage_info.stage = vk::ShaderStageFlagBits::eVertex;
@@ -132,14 +134,14 @@ namespace dk
 		vk::Viewport viewport = {};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(graphics.get_width());
-		viewport.height = static_cast<float>(graphics.get_height());
+		viewport.width = static_cast<float>(graphics->get_width());
+		viewport.height = static_cast<float>(graphics->get_height());
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
 		vk::Rect2D scissor = {};
 		scissor.offset = { 0, 0 };
-		scissor.extent = vk::Extent2D(graphics.get_width(), graphics.get_height());
+		scissor.extent = vk::Extent2D(graphics->get_width(), graphics->get_height());
 
 		vk::PipelineViewportStateCreateInfo viewport_state = {};
 		viewport_state.viewportCount = 1;
@@ -207,7 +209,7 @@ namespace dk
 		pipeline_layout_info.pushConstantRangeCount = 0;
 		pipeline_layout_info.pPushConstantRanges = nullptr;
 
-		m_vk_pipeline_layout = m_graphics.get_logical_device().createPipelineLayout(pipeline_layout_info);
+		m_vk_pipeline_layout = m_graphics->get_logical_device().createPipelineLayout(pipeline_layout_info);
 		dk_assert(m_vk_pipeline_layout);
 
 		// Create graphics pipeline
@@ -226,15 +228,15 @@ namespace dk
 		pipeline_info.renderPass = render_pass;
 		pipeline_info.subpass = 0;
 
-		m_vk_graphics_pipeline = m_graphics.get_logical_device().createGraphicsPipeline(vk::PipelineCache(), pipeline_info);
+		m_vk_graphics_pipeline = m_graphics->get_logical_device().createGraphicsPipeline(vk::PipelineCache(), pipeline_info);
 	}
 
 	void Shader::free()
 	{
-		m_graphics.get_logical_device().destroyPipeline(m_vk_graphics_pipeline);
-		m_graphics.get_logical_device().destroyPipelineLayout(m_vk_pipeline_layout);
-		m_graphics.get_logical_device().destroyShaderModule(m_vk_vertex_shader_module);
-		m_graphics.get_logical_device().destroyShaderModule(m_vk_fragment_shader_module);
-		m_graphics.get_logical_device().destroyDescriptorSetLayout(m_vk_descriptor_set_layout);
+		m_graphics->get_logical_device().destroyPipeline(m_vk_graphics_pipeline);
+		m_graphics->get_logical_device().destroyPipelineLayout(m_vk_pipeline_layout);
+		m_graphics->get_logical_device().destroyShaderModule(m_vk_vertex_shader_module);
+		m_graphics->get_logical_device().destroyShaderModule(m_vk_fragment_shader_module);
+		m_graphics->get_logical_device().destroyDescriptorSetLayout(m_vk_descriptor_set_layout);
 	}
 }

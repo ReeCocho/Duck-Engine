@@ -7,6 +7,7 @@
  */
 
 /** Includes. */
+#include <utilities\resource_allocator.hpp>
 #include "shader.hpp"
 
 namespace dk
@@ -17,13 +18,18 @@ namespace dk
 	class Material
 	{
 	public:
-		
+
+		/**
+		 * @brief Default constructor.
+		 */
+		Material();
+
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
 		 * @param Shader.
 		 */
-		Material(Graphics& graphics, Shader& shader);
+		Material(Graphics* graphics, Handle<Shader> shader);
 
 		/**
 		 * @brief Destructor.
@@ -39,7 +45,7 @@ namespace dk
 		 * @brief Get shader.
 		 * @return Shader.
 		 */
-		Shader& get_shader()
+		Handle<Shader> get_shader()
 		{
 			return m_shader;
 		}
@@ -70,9 +76,9 @@ namespace dk
 		template<typename T>
 		void set_vertex_data(const T& vert_data)
 		{
-			void* data = m_graphics.get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(T));
+			void* data = m_graphics->get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(T));
 			memcpy(data, &vert_data, sizeof(T));
-			m_graphics.get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
+			m_graphics->get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
 		}
 
 		/**
@@ -83,18 +89,18 @@ namespace dk
 		template<typename T>
 		void set_fragment_data(const T& frag_data)
 		{
-			void* data = m_graphics.get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(T));
+			void* data = m_graphics->get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(T));
 			memcpy(data, &frag_data, sizeof(T));
-			m_graphics.get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
+			m_graphics->get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
 		}
 
 	private:
 
 		/** Graphics context. */
-		Graphics& m_graphics;
+		Graphics* m_graphics;
 
 		/** Shader. */
-		Shader& m_shader;
+		Handle<Shader> m_shader;
 
 		/** Vertex uniform buffer. */
 		VkMemBuffer m_vertex_uniform_buffer;

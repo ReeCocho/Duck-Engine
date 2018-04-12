@@ -9,21 +9,23 @@
 
 namespace dk
 {
-	Material::Material(Graphics& graphics, Shader& shader) :
+	Material::Material() {}
+
+	Material::Material(Graphics* graphics, Handle<Shader> shader) :
 		m_graphics(graphics),
 		m_shader(shader)
 	{
 		// Create buffers
-		m_vertex_uniform_buffer = m_graphics.create_buffer
+		m_vertex_uniform_buffer = m_graphics->create_buffer
 		(
-			shader.get_vertex_buffer_size(), 
+			shader->get_vertex_buffer_size(), 
 			vk::BufferUsageFlagBits::eUniformBuffer, 
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 		);
 
-		m_fragment_uniform_buffer = m_graphics.create_buffer
+		m_fragment_uniform_buffer = m_graphics->create_buffer
 		(
-			shader.get_fragment_buffer_size(),
+			shader->get_fragment_buffer_size(),
 			vk::BufferUsageFlagBits::eUniformBuffer,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 		);
@@ -31,7 +33,7 @@ namespace dk
 
 	void Material::free()
 	{
-		m_vertex_uniform_buffer.free(m_graphics.get_logical_device());
-		m_fragment_uniform_buffer.free(m_graphics.get_logical_device());
+		m_vertex_uniform_buffer.free(m_graphics->get_logical_device());
+		m_fragment_uniform_buffer.free(m_graphics->get_logical_device());
 	}
 }

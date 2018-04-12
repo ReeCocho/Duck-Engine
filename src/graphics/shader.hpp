@@ -19,6 +19,11 @@ namespace dk
 	public:
 
 		/**
+		 * @brief Default constructor.
+		 */
+		Shader();
+
+		/**
 		 * @brief Constructor.
 		 * @param Graphics context the shader is bound to.
 		 * @param Render pass used by the shader.
@@ -27,7 +32,7 @@ namespace dk
 		 */
 		Shader
 		(
-			Graphics& graphics, 
+			Graphics* graphics, 
 			const vk::RenderPass& render_pass,
 			const std::vector<char>& vert_byte_code, 
 			const std::vector<char>& frag_byte_code
@@ -119,7 +124,7 @@ namespace dk
 	private:
 
 		/** Graphics context. */
-		Graphics& m_graphics;
+		Graphics* m_graphics;
 
 		/** Vertex shader module. */
 		vk::ShaderModule m_vk_vertex_shader_module;
