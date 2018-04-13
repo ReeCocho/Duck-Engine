@@ -14,14 +14,16 @@ int main()
 	// Add systems
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
 
-	auto shader = dk::engine::resource_manager.create_shader(
+	auto shader = dk::engine::resource_manager.create_shader
+	(
 		dk::read_binary_file("shaders/standard.vert.spv"),
 		dk::read_binary_file("shaders/standard.frag.spv")
 	);
 
 	auto material = dk::engine::resource_manager.create_material(shader);
 
-	auto mesh = dk::engine::resource_manager.create_mesh(
+	auto mesh = dk::engine::resource_manager.create_mesh
+	(
 		std::vector<uint16_t>
 		{
 			0, 1, 2,
@@ -33,7 +35,8 @@ int main()
 			{ glm::vec3( 1, -1,  0), glm::vec2(0, 0) },
 			{ glm::vec3( 1,  1,  0), glm::vec2(0, 0) },
 			{ glm::vec3(-1,  1,  0), glm::vec2(0, 0) }
-		});
+		}
+	);
 
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
@@ -41,7 +44,8 @@ int main()
 		mesh_renderer->set_material(material);
 		mesh_renderer->set_mesh(mesh);
 
-		mesh_renderer->mvp = glm::perspective(
+		mesh_renderer->mvp = glm::perspective
+		(
 			glm::radians(80.0f),
 			static_cast<float>(dk::engine::graphics.get_width()) / static_cast<float>(dk::engine::graphics.get_height()),
 			0.01f,

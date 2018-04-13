@@ -96,6 +96,11 @@ namespace dk
 		 */
 		void generate_resources();
 
+		/**
+		 * @brief Free resources.
+		 */
+		void free_resources();
+
 		
 
 		/** Material the mesh renders using. */
