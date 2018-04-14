@@ -32,7 +32,7 @@ namespace dk
 		 * @param Command buffer level.
 		 * @param Thread created for.
 		 */
-		VkManagedCommandBuffer(VkCommandManager* command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread);
+		VkManagedCommandBuffer(VkCommandManager* command_manager, vk::Device logical_device, vk::CommandBufferLevel level, size_t thread);
 
 		/**
 		 * @brief Destructor.
@@ -44,7 +44,7 @@ namespace dk
 		 * @param Other command buffer.
 		 * @return This.
 		 */
-		VkManagedCommandBuffer& operator=(VkManagedCommandBuffer& other);
+		VkManagedCommandBuffer& operator=(const VkManagedCommandBuffer& other);
 
 		/**
 		 * @brief Release the command buffer.
@@ -98,7 +98,7 @@ namespace dk
 		VkCommandManager* m_command_manager;
 
 		/** Logical device */
-		vk::Device& m_vk_logical_device;
+		vk::Device m_vk_logical_device;
 
 		/** Command buffer. */
 		vk::CommandBuffer m_vk_command_buffer;

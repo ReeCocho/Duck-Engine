@@ -19,7 +19,7 @@ namespace dk
 
 	}
 
-	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager* command_manager, vk::Device& logical_device, vk::CommandBufferLevel level, size_t thread) :
+	VkManagedCommandBuffer::VkManagedCommandBuffer(VkCommandManager* command_manager, vk::Device logical_device, vk::CommandBufferLevel level, size_t thread) :
 		m_command_manager(command_manager),
 		m_vk_logical_device(logical_device),
 		m_vk_level(level),
@@ -91,7 +91,7 @@ namespace dk
 		}
 	}
 
-	VkManagedCommandBuffer& VkManagedCommandBuffer::operator=(VkManagedCommandBuffer& other)
+	VkManagedCommandBuffer& VkManagedCommandBuffer::operator=(const VkManagedCommandBuffer& other)
 	{
 		m_command_manager = other.m_command_manager;
 		m_thread = other.m_thread;

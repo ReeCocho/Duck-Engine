@@ -203,7 +203,7 @@ namespace dk
 			// Allocate the component and call its constructor
 			ResourceID id = m_components.allocate();
 			T* component = m_components.get_resource_by_handle(id);
-			::new(component)(T)(&get_scene(), entity);
+			::new(component)(T)(Handle<T>(id, &m_components), entity);
 
 			// Call on_begin() on the system
 			m_active_component = id;

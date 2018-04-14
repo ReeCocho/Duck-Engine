@@ -35,14 +35,14 @@ namespace dk
 		/**
 		 * @brief Default constructor.
 		 */
-		MeshRenderer();
+		MeshRenderer() : Component<MeshRenderer>(Handle<MeshRenderer>(0, nullptr), Entity()) {}
 
 		/**
 		 * @brief Constructor.
-		 * @param Scene the component belongs to.
+		 * @param Components handle.
 		 * @param Entity the component belongs to.
 		 */
-		MeshRenderer(Scene* scene, Entity entity) : Component<MeshRenderer>(scene, entity) {}
+		MeshRenderer(Handle<MeshRenderer> handle, Entity entity) : Component<MeshRenderer>(handle, entity) {}
 
 		/**
 		 * @brief Set the material.
@@ -86,9 +86,6 @@ namespace dk
 			return m_mesh;
 		}
 
-		/** Model matrix. */
-		glm::mat4 mvp;
-
 	private:
 
 		/**
@@ -102,6 +99,9 @@ namespace dk
 		void free_resources();
 
 		
+
+		/** Transform. */
+		Handle<Transform> m_transform = {};
 
 		/** Material the mesh renders using. */
 		Handle<Material> m_material = {};

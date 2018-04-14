@@ -6,12 +6,11 @@
 
 /** Includes. */
 #include <engine.hpp>
+#include <ecs\transform.hpp>
 #include "mesh_renderer.hpp"
 
 namespace dk
 {
-	MeshRenderer::MeshRenderer() : Component<MeshRenderer>(nullptr, Entity()) {}
-
 	void MeshRenderer::generate_resources()
 	{
 		if (m_material.allocator && m_mesh.allocator)
@@ -115,6 +114,7 @@ namespace dk
 	void MeshRendererSystem::on_begin()
 	{
 		Handle<MeshRenderer> mesh_renderer = get_component();
+		mesh_renderer->m_transform = mesh_renderer->get_entity().get_component<Transform>();
 		mesh_renderer->m_command_buffer = engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
 	}
 
@@ -122,10 +122,13 @@ namespace dk
 	{
 		for (Handle<MeshRenderer> mesh_renderer : *this)
 		{
+			if (!mesh_renderer->m_mesh.allocator || !mesh_renderer->m_material.allocator)
+				continue;
+
 			// Upload vertex shader data
 			{
 				VertexShaderData v_data = {};
-				v_data.mvp = mesh_renderer->mvp;
+				v_data.mvp = mesh_renderer->m_transform->get_model_matrix();
 
 				void* data = engine::graphics.get_logical_device().mapMemory(mesh_renderer->m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
 				memcpy(data, &v_data, sizeof(VertexShaderData));

@@ -56,10 +56,12 @@ namespace dk
 
 		/**
 		 * @brief Constructor.
-		 * @param Scene the component belongs to.
+		 * @param Components handle.
 		 * @param Entity the component belongs to.
 		 */
-		Component(Scene* scene, Entity entity) : m_scene(scene), m_entity(entity), m_id(TypeID<T>::id())
+		Component(Handle<T> handle, Entity entity) : 
+			m_handle(handle), 
+			m_entity(entity)
 		{
 
 		}
@@ -78,7 +80,7 @@ namespace dk
 		 */
 		Scene& get_scene()
 		{
-			return *m_scene;
+			return m_entity.get_scene();
 		}
 
 		/**
@@ -87,7 +89,7 @@ namespace dk
 		 */
 		size_t get_id() const
 		{
-			return m_id;
+			return TypeID<T>::id();
 		}
 
 		/**
@@ -99,15 +101,21 @@ namespace dk
 			return m_entity;
 		}
 
-	private:
+		/**
+		 * @brief Get this components handle.
+		 * @return Components handle.
+		 */
+		Handle<T> get_handle() const
+		{
+			return m_handle;
+		}
 
-		/** Scene the component is in. */
-		Scene* m_scene;
+	private:
 
 		/** Entity the component belongs to. */
 		Entity m_entity;
 
-		/** ID of the component. */
-		size_t m_id = 0;
+		/** Components handle */
+		Handle<T> m_handle;
 	};
 }

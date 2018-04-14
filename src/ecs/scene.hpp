@@ -16,6 +16,10 @@
 
 namespace dk
 {
+	class Transform;
+
+
+
 	/**
 	 * @brief ECS scene.
 	 */
@@ -108,6 +112,7 @@ namespace dk
 		void remove_component(Entity entity)
 		{
 			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
+			static_assert(!std::is_same<T, Transform>::value, "T must not be of type dk::Transform");
 			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>::id()));
 		}
 

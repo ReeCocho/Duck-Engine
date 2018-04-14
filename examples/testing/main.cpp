@@ -5,13 +5,15 @@
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
 #include <graphics\material.hpp>
+#include <ecs\transform.hpp>
 #include <components\mesh_renderer.hpp>
 
 int main()
 {
-	dk::engine::initialize(1, "Test Window", 1280, 720);
+	dk::engine::initialize(4, "Test Window", 1280, 720);
 
 	// Add systems
+	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
 
 	auto shader = dk::engine::resource_manager.create_shader
@@ -38,20 +40,12 @@ int main()
 		}
 	);
 
+	for(size_t i = 0; i < 200; ++i)
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 		mesh_renderer->set_material(material);
 		mesh_renderer->set_mesh(mesh);
-
-		mesh_renderer->mvp = glm::perspective
-		(
-			glm::radians(80.0f),
-			static_cast<float>(dk::engine::graphics.get_width()) / static_cast<float>(dk::engine::graphics.get_height()),
-			0.01f,
-			100.0f
-		) *
-		glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	}
 
 	dk::engine::simulate();

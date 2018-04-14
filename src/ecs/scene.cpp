@@ -6,6 +6,7 @@
 
 /** Includes. */
 #include "scene.hpp"
+#include "transform.hpp"
 
 namespace dk
 {
@@ -24,13 +25,18 @@ namespace dk
 
 	size_t Scene::create_entity()
 	{
+		size_t handle = 0;
+
 		if (m_free_ids.size() > 0)
 		{
-			size_t id = m_free_ids[0];
+			handle = m_free_ids[0];
 			m_free_ids.erase(m_free_ids.begin());
-			return id;
 		}
-		return ++m_entity_id_counter;
+		else 
+			handle = ++m_entity_id_counter;
+
+		add_component<Transform>(Entity(this, handle));
+		return handle;
 	}
 
 	void Scene::destroy_entities()

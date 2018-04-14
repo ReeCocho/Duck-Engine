@@ -6,6 +6,7 @@
 
 /** Includes. */
 #include <utilities\threading.hpp>
+#include <utilities\clock.hpp>
 #include <graphics\material.hpp>
 #include "engine.hpp"
 
@@ -13,6 +14,9 @@ namespace
 {
 	/** Rendering thread. */
 	std::unique_ptr<dk::SimulationThread> rendering_thread;
+
+	/** Game time clock. */
+	dk::Clock game_clock;
 }
 
 namespace dk
@@ -44,6 +48,9 @@ namespace dk
 
 		void simulate()
 		{
+			// Reset delta time
+			game_clock.get_delta_time();
+
 			while (!input.is_closing())
 			{
 				// Gather input
@@ -51,9 +58,9 @@ namespace dk
 
 				// Wait for threads to finish
 				rendering_thread->wait();
-				
+
 				// Perform a game tick
-				scene.tick(0);
+				scene.tick(game_clock.get_delta_time());
 
 				// Start rendering thread
 				rendering_thread->start();
