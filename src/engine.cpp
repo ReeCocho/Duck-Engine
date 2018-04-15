@@ -38,8 +38,8 @@ namespace dk
 		void initialize(size_t thread_count, const std::string& name, int width, int height)
 		{
 			::new(&graphics)(Graphics)(thread_count, name, width, height);
-			::new(&renderer)(RendererType)(&graphics);
 			::new(&resource_manager)(ResourceManager)(static_cast<Renderer*>(&renderer));
+			::new(&renderer)(RendererType)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
 			input = Input();
 			scene = {};
 

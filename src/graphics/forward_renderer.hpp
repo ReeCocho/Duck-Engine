@@ -27,8 +27,10 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Texture allocator.
+		 * @param Mesh allocator.
 		 */
-		ForwardRenderer(Graphics* graphics);
+		ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
 
 		/**
 		 * @brief Destructor.
@@ -44,6 +46,12 @@ namespace dk
 		 * @brief Render everything to the screen.
 		 */
 		void render() override;
+
+		/**
+		 * @brief Create a virtual camera
+		 * @return Virtual camera.
+		 */
+		Handle<VirtualCamera> create_camera() override;
 
 	private:
 

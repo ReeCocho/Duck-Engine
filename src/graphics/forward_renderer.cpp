@@ -14,7 +14,8 @@ namespace dk
 
 	}
 
-	ForwardRenderer::ForwardRenderer(Graphics* graphics) : Renderer(graphics)
+	ForwardRenderer::ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) : 
+		Renderer(graphics, texture_allocator, mesh_allocator)
 	{
 		vk::AttachmentDescription color_attachment = {};
 		color_attachment.format = get_swapchain_manager().get_image_format();
@@ -212,5 +213,123 @@ namespace dk
 		m_thread_pool->wait();
 
 		return command_buffers;
+	}
+
+	Handle<VirtualCamera> ForwardRenderer::create_camera()
+	{
+		// Resize the array if necessary
+		if (m_cameras->num_allocated() == m_cameras->max_allocated())
+			m_cameras->resize(m_cameras->max_allocated() + 4);
+
+		// Allocate camera and call constructor
+		auto camera = Handle<VirtualCamera>(m_cameras->allocate(), m_cameras.get());
+		::new(m_cameras->get_resource_by_handle(camera.id))(VirtualCamera)();
+
+		camera->width = get_graphics().get_width();
+		camera->height = get_graphics().get_height();
+
+		camera->command_buffer = get_graphics().get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::ePrimary);
+
+		// (World space) Positions
+		FrameBufferAttachment position = createAttachment
+		(
+			vk::Format::eR16G16B16A16Sfloat,
+			vk::ImageUsageFlagBits::eColorAttachment
+		);
+
+		// (World space) Normals
+		FrameBufferAttachment normals = createAttachment
+		(
+			vk::Format::eR16G16B16A16Sfloat,
+			vk::ImageUsageFlagBits::eColorAttachment
+		);
+
+		// Albedo (color)
+		FrameBufferAttachment color = createAttachment
+		(
+			m_graphics->getSurfaceColorFormat(),
+			vk::ImageUsageFlagBits::eColorAttachment
+		);
+
+		// Misc
+		FrameBufferAttachment misc = createAttachment
+		(
+			vk::Format::eR16G16B16A16Sfloat,
+			vk::ImageUsageFlagBits::eColorAttachment
+		);
+
+		// Depth attachment
+		FrameBufferAttachment depth = createAttachment
+		(
+			m_graphics->getDepthFormat(),
+			vk::ImageUsageFlagBits::eDepthStencilAttachment
+		);
+
+		// Create sampler to sample from the attachments
+		vk::SamplerCreateInfo sampler = {};
+		sampler.setMagFilter(vk::Filter::eNearest);
+		sampler.setMinFilter(vk::Filter::eNearest);
+		sampler.setMipmapMode(vk::SamplerMipmapMode::eLinear);
+		sampler.setAddressModeU(vk::SamplerAddressMode::eClampToEdge);
+		sampler.setAddressModeV(sampler.addressModeU);
+		sampler.setAddressModeW(sampler.addressModeU);
+		sampler.setMipLodBias(0.0f);
+		sampler.setMaxAnisotropy(1.0f);
+		sampler.setMinLod(0.0f);
+		sampler.setMaxLod(1.0f);
+		sampler.setBorderColor(vk::BorderColor::eFloatOpaqueWhite);
+
+		// Create samplers
+		vk::Sampler color_sampler = get_graphics().get_logical_device().createSampler(sampler);
+		vk::Sampler depth_sampler = get_graphics().get_logical_device().createSampler(sampler);
+
+		// Resize allocator if needed
+		if (m_texture_allocator->num_allocated() + 2 > m_texture_allocator->max_allocated())
+			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 2);
+
+		// Create attachments
+		camera->attachments.resize(2);
+		camera->attachments[0] = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator); // Color
+		camera->attachments[1] = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator); // Depth
+
+		::new(m_texture_allocator->get_resource_by_handle(camera->attachments[0].id))(Texture)
+		(
+			*get_graphics(), 
+			color.image, 
+			color.view, 
+			color.sampler, 
+			color.memory, 
+			camera->width,
+			camera->height
+			);
+		
+		::new(m_texture_allocator->get_resource_by_handle(camera->attachments[1].id))(Texture)
+		(
+			*get_graphics(), 
+			depth.image, 
+			depth.view, 
+			depth.sampler, 
+			depth.memory, 
+			camera->width, 
+			camera->height
+			);
+
+		std::array<vk::ImageView, 2> attachments;
+		attachments[0] = camera->attachments[0]->get_image_view();
+		attachments[1] = camera->attachments[1]->get_image_view();
+
+		vk::FramebufferCreateInfo fbuf_create_info = {};
+		fbuf_create_info.setPNext(nullptr);
+		fbuf_create_info.setRenderPass(m_renderPasses.offscreen);
+		fbuf_create_info.setPAttachments(attachments.data());
+		fbuf_create_info.setAttachmentCount(static_cast<uint32_t>(attachments.size()));
+		fbuf_create_info.setWidth(camera->width);
+		fbuf_create_info.setHeight(camera->height);
+		fbuf_create_info.setLayers(1);
+
+		// Create framebuffer
+		camera->frameBuffer = m_graphics->getLogicalDevice().createFramebuffer(fbufCreateInfo);
+
+		return camera;
 	}
 }

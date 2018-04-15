@@ -14,6 +14,7 @@ namespace dk
 		m_mesh_allocator = std::make_unique<ResourceAllocator<Mesh>>(32);
 		m_shader_allocator = std::make_unique<ResourceAllocator<Shader>>(8);
 		m_material_allocator = std::make_unique<ResourceAllocator<Material>>(16);
+		m_texture_allocator = std::make_unique<ResourceAllocator<Texture>>(8);
 	}
 
 	void ResourceManager::shutdown()
@@ -39,9 +40,17 @@ namespace dk
 				m_material_allocator->deallocate(i);
 			}
 
+		for(size_t i = 0; i < m_texture_allocator->max_allocated(); ++i)
+			if (m_texture_allocator->is_allocated(i))
+			{
+				m_texture_allocator->get_resource_by_handle(i)->free();
+				m_texture_allocator->deallocate(i);
+			}
+
 		m_mesh_allocator.reset();
 		m_shader_allocator.reset();
 		m_material_allocator.reset();
+		m_texture_allocator.reset();
 	}
 
 	Handle<Mesh> ResourceManager::create_mesh(const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
@@ -83,6 +92,17 @@ namespace dk
 		return material;
 	}
 
+	Handle<Texture> ResourceManager::create_texture(const std::string& path, vk::Filter filtering)
+	{
+		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
+			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
+
+		auto texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator.get());
+		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)(&m_renderer->get_graphics(), path, filtering);
+
+		return texture;
+	}
+
 	void ResourceManager::destroy(Handle<Mesh> mesh)
 	{
 		dk_assert(m_mesh_allocator->is_allocated(mesh.id));
@@ -102,5 +122,12 @@ namespace dk
 		dk_assert(m_material_allocator->is_allocated(material.id));
 		material->free();
 		m_material_allocator->deallocate(material.id);
+	}
+
+	void ResourceManager::destroy(Handle<Texture> texture)
+	{
+		dk_assert(m_texture_allocator->is_allocated(texture.id));
+		texture->free();
+		m_texture_allocator->deallocate(texture.id);
 	}
 }

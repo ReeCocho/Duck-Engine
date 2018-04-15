@@ -15,8 +15,10 @@ namespace dk
 
 	}
 
-	Renderer::Renderer(Graphics* graphics) :	
+	Renderer::Renderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) :
 		m_graphics(graphics), 
+		m_texture_allocator(texture_allocator),
+		m_mesh_allocator(mesh_allocator),
 		m_swapchain_manager
 		(
 			m_graphics->get_physical_device(), 
@@ -52,6 +54,9 @@ namespace dk
 		m_vk_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
 		dk_assert(m_vk_image_available);
 		dk_assert(m_vk_rendering_finished);
+
+		// Create camera allocator
+		m_cameras = std::make_unique<ResourceAllocator<VirtualCamera>>(1);
 	}
 
 	void Renderer::shutdown()
@@ -60,6 +65,12 @@ namespace dk
 		m_graphics->get_device_manager().get_graphics_queue().waitIdle();
 		m_graphics->get_device_manager().get_present_queue().waitIdle();
 		m_graphics->get_logical_device().waitIdle();
+
+		// Destroy camera allocator
+		for (size_t i = 0; i < m_cameras->max_allocated(); ++i)
+			if (m_cameras->is_allocated(i))
+				destroy_camera(Handle<VirtualCamera>(i, m_cameras.get()));
+		m_cameras.reset();
 
 		// Destroy semaphores
 		m_graphics->get_logical_device().destroySemaphore(m_vk_image_available);
@@ -82,5 +93,11 @@ namespace dk
 	void Renderer::flush_queues()
 	{
 		m_renderable_objects.clear();
+	}
+
+	void Renderer::destroy_camera(Handle<VirtualCamera> camera)
+	{
+		dk_assert(camera.allocator == m_cameras.get() && m_cameras->is_allocated(camera.id));
+		m_cameras->deallocate(camera.id);
 	}
 }

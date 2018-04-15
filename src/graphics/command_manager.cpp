@@ -69,9 +69,13 @@ namespace dk
 		vk::CommandPoolCreateInfo pool_info = {};
 		pool_info.queueFamilyIndex = qfi.transfer_family;
 		pool_info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-
 		m_vk_transfer_pool = m_vk_logical_device.createCommandPool(pool_info);
 		dk_assert(m_vk_transfer_pool);
+
+		pool_info.queueFamilyIndex = qfi.graphics_family;
+		pool_info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+		m_vk_single_use_pool = m_vk_logical_device.createCommandPool(pool_info);
+		dk_assert(m_vk_single_use_pool);
 	}
 
 	VkCommandManager::~VkCommandManager()
@@ -83,6 +87,12 @@ namespace dk
 				m_vk_logical_device.destroyCommandPool(pool);
 				pool = vk::CommandPool();
 			}
+
+		if (m_vk_single_use_pool)
+		{
+			m_vk_logical_device.destroyCommandPool(m_vk_single_use_pool);
+			m_vk_single_use_pool = vk::CommandPool();
+		}
 
 		if (m_vk_transfer_pool)
 		{

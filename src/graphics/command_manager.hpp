@@ -167,6 +167,15 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get single use pool.
+		 * @return Single use pool.
+		 */
+		vk::CommandPool& get_single_use_pool()
+		{
+			return m_vk_single_use_pool;
+		}
+
+		/**
 		 * @brief Create a command buffer.
 		 * @param Command buffer level.
 		 */
@@ -191,6 +200,9 @@ namespace dk
 
 		/** Transfer command pool. */
 		vk::CommandPool m_vk_transfer_pool;
+
+		/** Single use command pool. */
+		vk::CommandPool m_vk_single_use_pool;
 
 		/** Index of the next pool to allocate a command buffer on. */
 		size_t m_next_pool = 0;

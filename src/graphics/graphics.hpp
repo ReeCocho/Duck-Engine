@@ -158,6 +158,99 @@ namespace dk
 		 */
 		void copy_buffer(const vk::Buffer& src, const vk::Buffer& dst, vk::DeviceSize size);
 
+		/**
+		 * @brief Create image.
+		 * @param Image width.
+		 * @param Image height.
+		 * @param Format.
+		 * @param Tiling.
+		 * @param Usage.
+		 * @param Memory property flags.
+		 * @param Image reference.
+		 * @param Image memory reference.
+		 * @param Number of images.
+		 */
+		void create_image
+		(
+			uint32_t width,
+			uint32_t height,
+			vk::Format format,
+			vk::ImageTiling tiling,
+			vk::ImageUsageFlags usage,
+			vk::MemoryPropertyFlags properties,
+			vk::Image& image,
+			vk::DeviceMemory& image_memory,
+			vk::ImageCreateFlags flags = static_cast<vk::ImageCreateFlagBits>(0),
+			uint32_t array_layers = 1
+		);
+
+		/**
+		 * @brief Create transition image layout.
+		 * @param Image to create transition layout for.
+		 * @param Transition format.
+		 * @param Old image layout.
+		 * @param New image layout.
+		 * @param Image count.
+		 */
+		void transition_image_layout
+		(
+			const vk::Image& image, 
+			vk::Format format, 
+			vk::ImageLayout old_layout, 
+			vk::ImageLayout new_layout,
+			uint32_t image_count = 1
+		);
+
+		/**
+		 * @brief Copy a buffer to an image.
+		 * @param Buffer to copy from.
+		 * @param Image to copy to.
+		 * @param Image width.
+		 * @param Image height.
+		 * @param Number of images to copy.
+		 * @param Size of each image.
+		 * @note The image size can be zero if you only have one image to copy.
+		 */
+		void copy_buffer_to_image
+		(
+			const vk::Buffer& buffer, 
+			const vk::Image& image, 
+			uint32_t width, 
+			uint32_t height,
+			uint32_t image_count = 1,
+			uint32_t image_size = 0
+		);
+
+		/**
+		 * @brief Create image view.
+		 * @param Image to create view for.
+		 * @param Image view format.
+		 * @param Image aspect flags.
+		 * @param Image view type.
+		 * @param Number of images.
+		 * @return New image view.
+		 */
+		vk::ImageView create_image_view
+		(
+			const vk::Image& image, 
+			vk::Format format, 
+			vk::ImageAspectFlags aspect_flags,
+			vk::ImageViewType view_type = vk::ImageViewType::e2D,
+			uint32_t image_count = 1
+		);
+
+		/**
+		 * @brief Create a single use command buffer.
+		 * @return Command buffer.
+		 */
+		vk::CommandBuffer begin_single_time_commands();
+
+		/**
+		 * @brief Destroy a single use command buffer.
+		 * @param Command buffer to destroy.
+		 */
+		void end_single_time_commands(vk::CommandBuffer command_buffer);
+
 	private:
 
 		/**

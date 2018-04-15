@@ -12,6 +12,7 @@
 #include <graphics\material.hpp>
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
+#include <graphics\texture.hpp>
 
 namespace dk
 {
@@ -39,6 +40,42 @@ namespace dk
 		void shutdown();
 
 		/**
+		 * @brief Get mesh allocator.
+		 * @return Mesh allocator.
+		 */
+		ResourceAllocator<Mesh>& get_mesh_allocator()
+		{
+			return *m_mesh_allocator.get();
+		}
+
+		/**
+		 * @brief Get shader allocator.
+		 * @return Shader allocator.
+		 */
+		ResourceAllocator<Shader>& get_shader_allocator()
+		{
+			return *m_shader_allocator.get();
+		}
+
+		/**
+		 * @brief Get material allocator.
+		 * @return Material allocator.
+		 */
+		ResourceAllocator<Material>& get_material_allocator()
+		{
+			return *m_material_allocator.get();
+		}
+
+		/**
+		 * @brief Get texture allocator.
+		 * @return Texture allocator.
+		 */
+		ResourceAllocator<Texture>& get_texture_allocator()
+		{
+			return *m_texture_allocator.get();
+		}
+
+		/**
 		 * @brief Create a mesh.
 		 * @param Indices.
 		 * @param Vertices.
@@ -62,6 +99,14 @@ namespace dk
 		Handle<Material> create_material(Handle<Shader> shader);
 
 		/**
+		 * @brief Create a texture.
+		 * @param Path to texture.
+		 * @param Filtering mode.
+		 * @return Texture handle.
+		 */
+		Handle<Texture> create_texture(const std::string& path, vk::Filter filtering);
+
+		/**
 		 * @brief Destroy a mesh.
 		 * @param Mesh handle.
 		 */
@@ -79,6 +124,12 @@ namespace dk
 		 */
 		void destroy(Handle<Material> material);
 
+		/**
+		 * @brief Destroy a texture.
+		 * @param Texture handle.
+		 */
+		void destroy(Handle<Texture> texture);
+
 	private:
 		
 		/** Rendering engine. */
@@ -92,5 +143,8 @@ namespace dk
 
 		/** Material allocator. */
 		std::unique_ptr<ResourceAllocator<Material>> m_material_allocator;
+
+		/** Texture allocator. */
+		std::unique_ptr<ResourceAllocator<Texture>> m_texture_allocator;
 	};
 }

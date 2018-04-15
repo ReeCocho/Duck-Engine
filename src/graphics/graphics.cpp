@@ -219,4 +219,209 @@ namespace dk
 		// Free command buffer
 		get_logical_device().freeCommandBuffers(m_command_manager->get_transfer_pool(), command_buffer);
 	}
+
+	void Graphics::create_image
+	(
+		uint32_t width,
+		uint32_t height,
+		vk::Format format,
+		vk::ImageTiling tiling,
+		vk::ImageUsageFlags usage,
+		vk::MemoryPropertyFlags properties,
+		vk::Image& image,
+		vk::DeviceMemory& image_memory,
+		vk::ImageCreateFlags flags,
+		uint32_t array_layers
+	)
+	{
+		vk::ImageCreateInfo image_info = {};
+		image_info.setImageType(vk::ImageType::e2D);
+		image_info.setExtent({ width, height, 1 });;
+		image_info.setMipLevels(1);
+		image_info.setArrayLayers(array_layers);
+		image_info.setFormat(format);
+		image_info.setTiling(tiling);
+		image_info.setInitialLayout(vk::ImageLayout::eUndefined);
+		image_info.setUsage(usage);
+		image_info.setSamples(vk::SampleCountFlagBits::e1);
+		image_info.setSharingMode(vk::SharingMode::eExclusive);
+		image_info.setFlags(flags);
+
+		// Create image
+		{
+			auto check = get_logical_device().createImage(&image_info, nullptr, &image);
+			dk_assert(check == vk::Result::eSuccess);
+		}
+
+		vk::MemoryRequirements mem_requirements = get_logical_device().getImageMemoryRequirements(image);
+
+		vk::MemoryAllocateInfo alloc_info = {};
+		alloc_info.setAllocationSize(mem_requirements.size);
+		alloc_info.setMemoryTypeIndex(find_memory_type(get_physical_device(), mem_requirements.memoryTypeBits, properties));
+
+		// Allocate memory
+		{
+			auto check = get_logical_device().allocateMemory(&alloc_info, nullptr, &image_memory);
+			dk_assert(check == vk::Result::eSuccess);
+		}
+
+		get_logical_device().bindImageMemory(image, image_memory, 0);
+	}
+
+	void Graphics::transition_image_layout(const vk::Image& image, vk::Format format, vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t image_count)
+	{
+		vk::CommandBuffer command_buffer = begin_single_time_commands();
+
+		vk::ImageMemoryBarrier barrier = {};
+		barrier.setOldLayout(old_layout);
+		barrier.setNewLayout(new_layout);
+		barrier.setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+		barrier.setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
+		barrier.setImage(image);
+
+		// Stage masks
+		vk::PipelineStageFlags dstStageFlags;
+		vk::PipelineStageFlags srcStageFlags;
+
+		if (new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+		{
+			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+
+			if (format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint)
+				barrier.subresourceRange.aspectMask |= vk::ImageAspectFlagBits::eStencil;
+		}
+		else
+			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = image_count;
+
+		if (old_layout == vk::ImageLayout::eUndefined && new_layout == vk::ImageLayout::eTransferDstOptimal)
+		{
+			barrier.srcAccessMask = (vk::AccessFlagBits)0;
+			barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+			srcStageFlags = vk::PipelineStageFlagBits::eTopOfPipe;
+			dstStageFlags = vk::PipelineStageFlagBits::eTransfer;
+		}
+		else if (old_layout == vk::ImageLayout::eTransferDstOptimal && new_layout == vk::ImageLayout::eShaderReadOnlyOptimal)
+		{
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+			srcStageFlags = vk::PipelineStageFlagBits::eTransfer;
+			dstStageFlags = vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexInput;
+		}
+		else if (old_layout == vk::ImageLayout::eUndefined && new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+		{
+			barrier.srcAccessMask = (vk::AccessFlagBits)0;
+			barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+			srcStageFlags = vk::PipelineStageFlagBits::eTopOfPipe;
+			dstStageFlags = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+		}
+		else
+			dk_err("VULKAN: Unsupported layout transition");
+
+		command_buffer.pipelineBarrier
+		(
+			srcStageFlags, dstStageFlags,
+			(vk::DependencyFlagBits)0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+
+		end_single_time_commands(command_buffer);
+	}
+
+	void Graphics::copy_buffer_to_image(const vk::Buffer& buffer, const vk::Image& image, uint32_t width, uint32_t height, uint32_t image_count, uint32_t image_size)
+	{
+		vk::CommandBuffer command_buffer = begin_single_time_commands();
+
+		std::vector<vk::BufferImageCopy> regions(image_count);
+		uint32_t offset = 0;
+
+		for (size_t i = 0; i < regions.size(); ++i)
+		{
+			regions[i].setBufferOffset(offset);
+			regions[i].setBufferRowLength(0);
+			regions[i].setBufferImageHeight(0);
+			regions[i].imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+			regions[i].imageSubresource.mipLevel = 0;
+			regions[i].imageSubresource.baseArrayLayer = static_cast<uint32_t>(i);
+			regions[i].imageSubresource.layerCount = 1;
+			regions[i].setImageOffset({ 0, 0, 0 });
+			regions[i].setImageExtent({ width, height, 1 });
+			offset += image_size;
+		}
+
+		// Copy buffer to image
+		command_buffer.copyBufferToImage
+		(
+			buffer,
+			image,
+			vk::ImageLayout::eTransferDstOptimal,
+			static_cast<uint32_t>(regions.size()),
+			regions.data()
+		);
+
+		end_single_time_commands(command_buffer);
+	}
+
+	vk::ImageView Graphics::create_image_view(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect_flags, vk::ImageViewType view_type, uint32_t image_count)
+	{
+		vk::ImageViewCreateInfo viewInfo = {};
+		viewInfo.setImage(image);
+		viewInfo.setViewType(view_type);
+		viewInfo.setFormat(format);
+		viewInfo.setComponents(vk::ComponentMapping());
+		viewInfo.subresourceRange.aspectMask = aspect_flags;
+		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.baseArrayLayer = 0;
+		viewInfo.subresourceRange.layerCount = image_count;
+
+		vk::ImageView view;
+
+		{
+			auto check = get_logical_device().createImageView(&viewInfo, nullptr, &view);
+			dk_assert(check == vk::Result::eSuccess);
+		}
+
+		return view;
+	}
+
+	vk::CommandBuffer Graphics::begin_single_time_commands()
+	{
+		vk::CommandBufferAllocateInfo alloc_info = {};
+		alloc_info.setLevel(vk::CommandBufferLevel::ePrimary);
+		alloc_info.setCommandPool(m_command_manager->get_single_use_pool());
+		alloc_info.setCommandBufferCount(1);
+
+		auto command_buffer = get_logical_device().allocateCommandBuffers(alloc_info)[0];
+
+		vk::CommandBufferBeginInfo begin_info = {};
+		begin_info.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+
+		command_buffer.begin(begin_info);
+
+		return command_buffer;
+	}
+
+	void Graphics::end_single_time_commands(vk::CommandBuffer command_buffer)
+	{
+		command_buffer.end();
+
+		vk::SubmitInfo submitInfo = {};
+		submitInfo.setCommandBufferCount(1);
+		submitInfo.setPCommandBuffers(&command_buffer);
+
+		m_device_manager->get_graphics_queue().submit(1, &submitInfo, { nullptr });
+		m_device_manager->get_graphics_queue().waitIdle();
+
+		get_logical_device().freeCommandBuffers(m_command_manager->get_single_use_pool(), 1, &command_buffer);
+	}
 }

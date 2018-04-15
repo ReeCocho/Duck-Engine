@@ -12,9 +12,43 @@
 #include "swapchain_manager.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
+#include "texture.hpp"
 
 namespace dk
 {
+	/**
+	 * @brief Camera information used by renderers.
+	 */
+	struct VirtualCamera
+	{
+		/** Framebuffer width. */
+		uint32_t width = 0;
+
+		/** Framebuffer height. */
+		uint32_t height = 0;
+
+		/** Command buffer for drawing to. */
+		VkManagedCommandBuffer command_buffer = {};
+
+		/** Framebuffer. */
+		vk::Framebuffer framebuffer = {};
+
+		/** Attachment. */
+		std::vector<Handle<Texture>> attachments = {};
+
+		/** Projection matrix. */
+		glm::mat4 projection = {};
+
+		/** View matrix. */
+		glm::mat4 view = {};
+
+		/** Camera position. */
+		glm::vec3 view_position = {};
+
+		/** Clear color. */
+		glm::vec3 clear_color = { 0, 0, 0 };
+	};
+
 	/**
 	 * @brief An object that can be rendered onto the screen.
 	 */
@@ -50,8 +84,10 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Texture allocator.
+		 * @param Mesh allocator.
 		 */
-		Renderer(Graphics* graphics);
+		Renderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
 
 		/**
 		 * @brief Destructor.
@@ -105,6 +141,18 @@ namespace dk
 		virtual void render() = 0;
 		
 		/**
+		 * @brief Create a virtual camera
+		 * @return Virtual camera.
+		 */
+		virtual Handle<VirtualCamera> create_camera() = 0;
+
+		/**
+		 * @brief Destroy a virtual camera.
+		 * @param Camera to destroy.
+		 */
+		void destroy_camera(Handle<VirtualCamera> camera);
+
+		/**
 		 * @brief Submit a renderable object.
 		 * @param Renderable object.
 		 */
@@ -136,6 +184,15 @@ namespace dk
 
 		/** List of renderable objects. */
 		std::vector<RenderableObject> m_renderable_objects;
+
+		/** Texture allocator. */
+		ResourceAllocator<Texture>* m_texture_allocator;
+
+		/** Mesh allocator. */
+		ResourceAllocator<Mesh>* m_mesh_allocator;
+
+		/** Virtual camera allocator. */
+		std::unique_ptr<ResourceAllocator<VirtualCamera>> m_cameras;
 
 	private:
 
