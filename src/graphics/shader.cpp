@@ -202,6 +202,17 @@ namespace dk
 		dynamic_state.dynamicStateCount = static_cast<uint32_t>(dynamic_states.size());
 		dynamic_state.pDynamicStates = dynamic_states.data();
 
+		vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
+		depth_stencil.depthTestEnable = VK_TRUE;
+		depth_stencil.depthWriteEnable = VK_TRUE;
+		depth_stencil.depthCompareOp = vk::CompareOp::eLess;
+		depth_stencil.depthBoundsTestEnable = VK_FALSE;
+		depth_stencil.minDepthBounds = 0.0f;
+		depth_stencil.maxDepthBounds = 1.0f;
+		depth_stencil.stencilTestEnable = VK_FALSE;
+		depth_stencil.front = {};
+		depth_stencil.back = {};
+
 		// Create graphics pipeline layout
 		vk::PipelineLayoutCreateInfo pipeline_layout_info = {};
 		pipeline_layout_info.setLayoutCount = 1;
@@ -221,7 +232,7 @@ namespace dk
 		pipeline_info.pViewportState = &viewport_state;
 		pipeline_info.pRasterizationState = &rasterizer;
 		pipeline_info.pMultisampleState = &multisampling;
-		pipeline_info.pDepthStencilState = nullptr;
+		pipeline_info.pDepthStencilState = &depth_stencil;
 		pipeline_info.pColorBlendState = &color_blending;
 		pipeline_info.pDynamicState = &dynamic_state;
 		pipeline_info.layout = m_vk_pipeline_layout;

@@ -21,6 +21,24 @@
 namespace dk
 {
 	/**
+	 * @brief Framebuffer for offscreen rendering.
+	 */
+	struct FrameBufferAttachment 
+	{
+		/** Image. */
+		vk::Image image = {};
+
+		/** Image memory. */
+		vk::DeviceMemory memory = {};
+		
+		/** Image view. */
+		vk::ImageView view = {};
+
+		/** Image format. */
+		vk::Format format;
+	};
+
+	/**
 	 * @brief Vulkan device queue family indices.
 	 */
 	struct QueueFamilyIndices 
@@ -166,4 +184,11 @@ namespace dk
 	 * @param Required properties.
 	 */
 	uint32_t find_memory_type(const vk::PhysicalDevice& physical_device, uint32_t type_filter, vk::MemoryPropertyFlags properties);
+
+	/**
+	 * @brief Find the best depth format.
+	 * @param Physical device.
+	 * @return Best depth format.
+	 */
+	vk::Format find_best_depth_format(const vk::PhysicalDevice& physical_device);
 }

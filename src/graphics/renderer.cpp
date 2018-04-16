@@ -51,9 +51,11 @@ namespace dk
 		// Create semaphores
 		vk::SemaphoreCreateInfo semaphore_info = {};
 		m_vk_image_available = m_graphics->get_logical_device().createSemaphore(semaphore_info);
-		m_vk_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		m_vk_on_screen_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		m_vk_off_screen_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
 		dk_assert(m_vk_image_available);
-		dk_assert(m_vk_rendering_finished);
+		dk_assert(m_vk_on_screen_rendering_finished);
+		dk_assert(m_vk_off_screen_rendering_finished);
 
 		// Create camera allocator
 		m_cameras = std::make_unique<ResourceAllocator<VirtualCamera>>(1);
@@ -74,7 +76,8 @@ namespace dk
 
 		// Destroy semaphores
 		m_graphics->get_logical_device().destroySemaphore(m_vk_image_available);
-		m_graphics->get_logical_device().destroySemaphore(m_vk_rendering_finished);
+		m_graphics->get_logical_device().destroySemaphore(m_vk_on_screen_rendering_finished);
+		m_graphics->get_logical_device().destroySemaphore(m_vk_off_screen_rendering_finished);
 
 		// Destroy command pool
 		m_graphics->get_logical_device().destroyCommandPool(m_vk_command_pool);
@@ -83,8 +86,9 @@ namespace dk
 		for (auto& framebuffer : m_vk_framebuffers)
 			m_graphics->get_logical_device().destroyFramebuffer(framebuffer);
 
-		// Destroy shader render pass
+		// Destroy render passes
 		m_graphics->get_logical_device().destroyRenderPass(m_vk_shader_pass);
+		m_graphics->get_logical_device().destroyRenderPass(m_vk_on_screen_pass);
 
 		// Destroy swapchain
 		m_swapchain_manager.~VkSwapchainManager();
@@ -98,6 +102,16 @@ namespace dk
 	void Renderer::destroy_camera(Handle<VirtualCamera> camera)
 	{
 		dk_assert(camera.allocator == m_cameras.get() && m_cameras->is_allocated(camera.id));
+
+		camera->command_buffer.free();
+		get_graphics().get_logical_device().destroyFramebuffer(camera->framebuffer);
+
+		for (auto& attachment : camera->attachments)
+		{
+			attachment->free();
+			m_texture_allocator->deallocate(attachment.id);
+		}
+
 		m_cameras->deallocate(camera.id);
 	}
 }

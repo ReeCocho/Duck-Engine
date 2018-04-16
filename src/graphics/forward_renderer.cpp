@@ -5,6 +5,7 @@
  */
 
 /** Includes. */
+#include <array>
 #include "forward_renderer.hpp"
 
 namespace dk
@@ -17,33 +18,119 @@ namespace dk
 	ForwardRenderer::ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) : 
 		Renderer(graphics, texture_allocator, mesh_allocator)
 	{
-		vk::AttachmentDescription color_attachment = {};
-		color_attachment.format = get_swapchain_manager().get_image_format();
-		color_attachment.samples = vk::SampleCountFlagBits::e1;
-		color_attachment.loadOp = vk::AttachmentLoadOp::eClear;
-		color_attachment.storeOp = vk::AttachmentStoreOp::eStore;
-		color_attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-		color_attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-		color_attachment.initialLayout = vk::ImageLayout::eUndefined;
-		color_attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		// Create on screen pass
+		{
+			// Describes color attachment usage
+			vk::AttachmentDescription color_attachment = {};
+			color_attachment.format = get_swapchain_manager().get_image_format();
+			color_attachment.samples = vk::SampleCountFlagBits::e1;
+			color_attachment.loadOp = vk::AttachmentLoadOp::eClear;
+			color_attachment.storeOp = vk::AttachmentStoreOp::eStore;
+			color_attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+			color_attachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+			color_attachment.initialLayout = vk::ImageLayout::eUndefined;
+			color_attachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
-		vk::AttachmentReference color_attachment_ref = {};
-		color_attachment_ref.attachment = 0;
-		color_attachment_ref.layout = vk::ImageLayout::eColorAttachmentOptimal;
+			vk::AttachmentReference color_attachment_ref = {};
+			color_attachment_ref.attachment = 0;
+			color_attachment_ref.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
-		vk::SubpassDescription subpass = {};
-		subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &color_attachment_ref;
+			vk::SubpassDescription subpass = {};
+			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &color_attachment_ref;
 
-		// Create render pass
-		vk::RenderPassCreateInfo render_pass_info = {};
-		render_pass_info.attachmentCount = 1;
-		render_pass_info.pAttachments = &color_attachment;
-		render_pass_info.subpassCount = 1;
-		render_pass_info.pSubpasses = &subpass;
+			vk::SubpassDependency dependency = {};
+			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependency.dstSubpass = 0;
+			dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			dependency.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+			dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+			dependency.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
-		m_vk_shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
+			vk::RenderPassCreateInfo render_pass_info = {};
+			render_pass_info.attachmentCount = 1;
+			render_pass_info.pAttachments = &color_attachment;
+			render_pass_info.subpassCount = 1;
+			render_pass_info.pSubpasses = &subpass;
+			render_pass_info.dependencyCount = 1;
+			render_pass_info.pDependencies = &dependency;
+
+			m_vk_on_screen_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
+		}
+
+		// Create shader pass
+		{
+			std::array<vk::AttachmentDescription, 2> attachment_descs = {};
+
+			attachment_descs[0].format = get_swapchain_manager().get_image_format();
+			attachment_descs[0].samples = vk::SampleCountFlagBits::e1;
+			attachment_descs[0].loadOp = vk::AttachmentLoadOp::eClear;
+			attachment_descs[0].storeOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[0].stencilLoadOp = vk::AttachmentLoadOp::eClear;
+			attachment_descs[0].stencilStoreOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[0].initialLayout = vk::ImageLayout::eUndefined;
+			attachment_descs[0].finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+			attachment_descs[1].format = find_best_depth_format(get_graphics().get_physical_device());
+			attachment_descs[1].samples = vk::SampleCountFlagBits::e1;
+			attachment_descs[1].loadOp = vk::AttachmentLoadOp::eClear;
+			attachment_descs[1].storeOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[1].stencilLoadOp = vk::AttachmentLoadOp::eClear;
+			attachment_descs[1].stencilStoreOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[1].initialLayout = vk::ImageLayout::eUndefined;
+			attachment_descs[1].finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+			std::array<vk::AttachmentReference, 2> attachment_refs = {};
+			attachment_refs[0].attachment = 0;
+			attachment_refs[0].layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+			attachment_refs[1].attachment = 1;
+			attachment_refs[1].layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+			vk::SubpassDescription subpass = {};
+			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &attachment_refs[0];
+			subpass.pDepthStencilAttachment = &attachment_refs[1];
+
+			// Use subpass dependencies for attachment layput transitions
+			std::array<vk::SubpassDependency, 2> dependencies =
+			{
+				vk::SubpassDependency
+				(
+					VK_SUBPASS_EXTERNAL,
+					0,
+					vk::PipelineStageFlagBits::eBottomOfPipe,
+					vk::PipelineStageFlagBits::eColorAttachmentOutput,
+					vk::AccessFlagBits::eMemoryRead,
+					vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+					vk::DependencyFlagBits::eByRegion
+				),
+				vk::SubpassDependency
+				(
+					0,
+					VK_SUBPASS_EXTERNAL,
+					vk::PipelineStageFlagBits::eColorAttachmentOutput,
+					vk::PipelineStageFlagBits::eBottomOfPipe,
+					vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+					vk::AccessFlagBits::eMemoryRead,
+					vk::DependencyFlagBits::eByRegion
+				)
+			};
+
+			// Create render pass
+			vk::RenderPassCreateInfo render_pass_info = {};
+			render_pass_info.attachmentCount = static_cast<uint32_t>(attachment_descs.size());
+			render_pass_info.pAttachments = attachment_descs.data();
+			render_pass_info.subpassCount = 1;
+			render_pass_info.pSubpasses = &subpass;
+			render_pass_info.dependencyCount = static_cast<uint32_t>(dependencies.size());
+			render_pass_info.pDependencies = dependencies.data();
+
+			m_vk_shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
+		}
 
 		// Create framebuffers
 		for (size_t i = 0; i < m_vk_framebuffers.size(); i++) 
@@ -51,7 +138,7 @@ namespace dk
 			auto attachment = get_swapchain_manager().get_image_view(i);
 
 			vk::FramebufferCreateInfo framebuffer_info = {};
-			framebuffer_info.renderPass = m_vk_shader_pass;
+			framebuffer_info.renderPass = m_vk_on_screen_pass;
 			framebuffer_info.attachmentCount = 1;
 			framebuffer_info.pAttachments = &attachment;
 			framebuffer_info.width = get_swapchain_manager().get_image_extent().width;
@@ -78,6 +165,19 @@ namespace dk
 		// Wait for present queue to finish if needed
 		get_graphics().get_device_manager().get_present_queue().waitIdle();
 
+		// Draw to every camera
+		bool drew = false;
+
+		for (size_t i = 0; i < m_cameras->max_allocated(); ++i)
+			if (m_cameras->is_allocated(i))
+			{
+				render_to_camera(Handle<VirtualCamera>(i, m_cameras.get()));
+				drew = true;
+			}
+
+		// Stop rendering if there were no cameras drawn too
+		if (!drew) return;
+
 		// Get image index to render too
 		uint32_t image_index = get_graphics().get_logical_device().acquireNextImageKHR
 		(
@@ -92,21 +192,32 @@ namespace dk
 
 		vk::SubmitInfo submit_info = {};
 
-		std::array<vk::PipelineStageFlags, 1> wait_stages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-		submit_info.waitSemaphoreCount = 1;
-		submit_info.pWaitSemaphores = &m_vk_image_available;
+		std::array<vk::Semaphore, 2> wait_semaphores =
+		{
+			m_vk_image_available,
+			m_vk_off_screen_rendering_finished
+		};
+
+		std::array<vk::PipelineStageFlags, 2> wait_stages = 
+		{ 
+			vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::PipelineStageFlagBits::eColorAttachmentOutput
+		};
+
+		submit_info.waitSemaphoreCount = static_cast<uint32_t>(wait_semaphores.size());
+		submit_info.pWaitSemaphores = wait_semaphores.data();
 		submit_info.pWaitDstStageMask = wait_stages.data();
 		submit_info.commandBufferCount = 1;
 		submit_info.pCommandBuffers = &get_primary_command_buffer();
 		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores = &m_vk_rendering_finished;
+		submit_info.pSignalSemaphores = &m_vk_on_screen_rendering_finished;
 
 		// Submit to queue
 		get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
 
 		vk::PresentInfoKHR present_info = {};
 		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = &m_vk_rendering_finished;
+		present_info.pWaitSemaphores = &m_vk_on_screen_rendering_finished;
 		present_info.swapchainCount = 1;
 		present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
 		present_info.pImageIndices = &image_index;
@@ -127,30 +238,78 @@ namespace dk
 		get_primary_command_buffer().begin(begin_info);
 
 		vk::RenderPassBeginInfo render_pass_info = {};
-		render_pass_info.renderPass = m_vk_shader_pass;
+		render_pass_info.renderPass = m_vk_on_screen_pass;
 		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
 		render_pass_info.renderArea.offset = { 0, 0 };
 		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
 
 		vk::ClearValue clear_color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
-		render_pass_info.clearValueCount = 1;
+		render_pass_info.clearValueCount = 2;
 		render_pass_info.pClearValues = &clear_color;
 
 		// Begin render pass
 		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
-		// Draw everything
-		vk::CommandBufferInheritanceInfo inheritance_info = {};
-		inheritance_info.setRenderPass(m_vk_shader_pass);
-		inheritance_info.setFramebuffer(m_vk_framebuffers[image_index]);
-
-		auto command_buffers = generate_renderable_command_buffers(inheritance_info);
-		if(command_buffers.size() > 0) 
-			get_primary_command_buffer().executeCommands(command_buffers);
+		// // Draw everything
+		// vk::CommandBufferInheritanceInfo inheritance_info = {};
+		// inheritance_info.setRenderPass(m_vk_shader_pass);
+		// inheritance_info.setFramebuffer(m_vk_framebuffers[image_index]);
+		// 
+		// auto command_buffers = generate_renderable_command_buffers(inheritance_info);
+		// if(command_buffers.size() > 0) 
+		// 	get_primary_command_buffer().executeCommands(command_buffers);
 
 		// End render pass and command buffer
 		get_primary_command_buffer().endRenderPass();
 		get_primary_command_buffer().end();
+	}
+
+	void ForwardRenderer::render_to_camera(Handle<VirtualCamera> camera)
+	{
+		vk::CommandBufferBeginInfo cmd_buf_info = {};
+		cmd_buf_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+		cmd_buf_info.pInheritanceInfo = nullptr;
+
+		// Begin renderpass
+		camera->command_buffer.get_command_buffer().begin(cmd_buf_info);
+
+		// Clear values for all attachments written in the fragment shader
+		std::array<vk::ClearValue, 2> clear_values;
+		clear_values[0].setColor(std::array<float, 4>{ camera->clear_color.x, camera->clear_color.y, camera->clear_color.z, 0.0f });
+		clear_values[1].setDepthStencil({ 1.0f, 0 });
+
+		vk::RenderPassBeginInfo render_pass_begin_info = {};
+		render_pass_begin_info.renderPass = m_vk_shader_pass;
+		render_pass_begin_info.framebuffer = camera->framebuffer;
+		render_pass_begin_info.renderArea.extent = vk::Extent2D(camera->width, camera->height);
+		render_pass_begin_info.renderArea.offset = vk::Offset2D(0, 0);
+		render_pass_begin_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+		render_pass_begin_info.pClearValues = clear_values.data();
+
+		// Inheritance info for the meshes command buffers
+		vk::CommandBufferInheritanceInfo inheritance_info = {};
+		inheritance_info.renderPass = m_vk_shader_pass;
+		inheritance_info.framebuffer = camera->framebuffer;
+
+		camera->command_buffer.get_command_buffer().beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+
+		auto command_buffers = generate_renderable_command_buffers(inheritance_info);
+
+		// Execute command buffers and perform lighting
+		if (command_buffers.size() > 0)
+			camera->command_buffer.get_command_buffer().executeCommands(command_buffers);
+
+		camera->command_buffer.get_command_buffer().endRenderPass();
+		camera->command_buffer.get_command_buffer().end();
+
+		vk::SubmitInfo submit_info = {};
+		submit_info.commandBufferCount = 1;
+		submit_info.pCommandBuffers = &camera->command_buffer.get_command_buffer();
+		submit_info.signalSemaphoreCount = 1;
+		submit_info.pSignalSemaphores = &m_vk_off_screen_rendering_finished;
+
+		// Submit draw command
+		get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
 	}
 
 	std::vector<vk::CommandBuffer> ForwardRenderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
@@ -230,38 +389,17 @@ namespace dk
 
 		camera->command_buffer = get_graphics().get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::ePrimary);
 
-		// (World space) Positions
-		FrameBufferAttachment position = createAttachment
-		(
-			vk::Format::eR16G16B16A16Sfloat,
-			vk::ImageUsageFlagBits::eColorAttachment
-		);
-
-		// (World space) Normals
-		FrameBufferAttachment normals = createAttachment
-		(
-			vk::Format::eR16G16B16A16Sfloat,
-			vk::ImageUsageFlagBits::eColorAttachment
-		);
-
 		// Albedo (color)
-		FrameBufferAttachment color = createAttachment
+		FrameBufferAttachment color = get_graphics().create_attachment
 		(
-			m_graphics->getSurfaceColorFormat(),
-			vk::ImageUsageFlagBits::eColorAttachment
-		);
-
-		// Misc
-		FrameBufferAttachment misc = createAttachment
-		(
-			vk::Format::eR16G16B16A16Sfloat,
+			get_swapchain_manager().get_image_format(),
 			vk::ImageUsageFlagBits::eColorAttachment
 		);
 
 		// Depth attachment
-		FrameBufferAttachment depth = createAttachment
+		FrameBufferAttachment depth = get_graphics().create_attachment
 		(
-			m_graphics->getDepthFormat(),
+			find_best_depth_format(get_graphics().get_physical_device()),
 			vk::ImageUsageFlagBits::eDepthStencilAttachment
 		);
 
@@ -294,25 +432,27 @@ namespace dk
 
 		::new(m_texture_allocator->get_resource_by_handle(camera->attachments[0].id))(Texture)
 		(
-			*get_graphics(), 
+			&get_graphics(), 
 			color.image, 
 			color.view, 
-			color.sampler, 
+			color_sampler, 
 			color.memory, 
+			vk::Filter::eNearest,
 			camera->width,
 			camera->height
-			);
-		
+		);
+
 		::new(m_texture_allocator->get_resource_by_handle(camera->attachments[1].id))(Texture)
 		(
-			*get_graphics(), 
+			&get_graphics(), 
 			depth.image, 
 			depth.view, 
-			depth.sampler, 
+			depth_sampler, 
 			depth.memory, 
+			vk::Filter::eNearest,
 			camera->width, 
 			camera->height
-			);
+		);
 
 		std::array<vk::ImageView, 2> attachments;
 		attachments[0] = camera->attachments[0]->get_image_view();
@@ -320,7 +460,7 @@ namespace dk
 
 		vk::FramebufferCreateInfo fbuf_create_info = {};
 		fbuf_create_info.setPNext(nullptr);
-		fbuf_create_info.setRenderPass(m_renderPasses.offscreen);
+		fbuf_create_info.setRenderPass(m_vk_shader_pass);
 		fbuf_create_info.setPAttachments(attachments.data());
 		fbuf_create_info.setAttachmentCount(static_cast<uint32_t>(attachments.size()));
 		fbuf_create_info.setWidth(camera->width);
@@ -328,7 +468,7 @@ namespace dk
 		fbuf_create_info.setLayers(1);
 
 		// Create framebuffer
-		camera->frameBuffer = m_graphics->getLogicalDevice().createFramebuffer(fbufCreateInfo);
+		camera->framebuffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
 
 		return camera;
 	}

@@ -251,6 +251,14 @@ namespace dk
 		 */
 		void end_single_time_commands(vk::CommandBuffer command_buffer);
 
+		/**
+		 * @brief Create a framebuffer attachment.
+		 * @param Framebuffer format.
+		 * @param Usage.
+		 * @return Framebuffer attachment.
+		 */
+		FrameBufferAttachment create_attachment(vk::Format format, vk::ImageUsageFlags usage);
+
 	private:
 
 		/**

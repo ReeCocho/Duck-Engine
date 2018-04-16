@@ -62,6 +62,12 @@ namespace dk
 		void generate_primary_command_buffer(uint32_t image_index);
 
 		/**
+		 * @brief Render to camera.
+		 * @param Camera handle.
+		 */
+		void render_to_camera(Handle<VirtualCamera> camera);
+
+		/**
 		 * @brief Generate command buffers for renderable objects.
 		 * @param Inheritence info for the buffers.
 		 * @return Vector of command buffers to submit.

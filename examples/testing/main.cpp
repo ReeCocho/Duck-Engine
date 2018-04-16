@@ -16,6 +16,8 @@ int main()
 	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
 
+	dk::engine::renderer.create_camera();
+
 	auto shader = dk::engine::resource_manager.create_shader
 	(
 		dk::read_binary_file("shaders/standard.vert.spv"),

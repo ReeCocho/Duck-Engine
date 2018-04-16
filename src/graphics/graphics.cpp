@@ -424,4 +424,55 @@ namespace dk
 
 		get_logical_device().freeCommandBuffers(m_command_manager->get_single_use_pool(), 1, &command_buffer);
 	}
+
+	FrameBufferAttachment Graphics::create_attachment(vk::Format format, vk::ImageUsageFlags usage)
+	{
+		FrameBufferAttachment new_attachment = {};
+
+		vk::ImageAspectFlags aspect_mask = (vk::ImageAspectFlagBits)0;
+		vk::ImageLayout image_layout;
+
+		new_attachment.format = format;
+
+		// Get aspect mask and image layout
+		if (usage & vk::ImageUsageFlagBits::eColorAttachment)
+		{
+			aspect_mask = vk::ImageAspectFlagBits::eColor;
+			image_layout = vk::ImageLayout::eColorAttachmentOptimal;
+		}
+		if (usage & vk::ImageUsageFlagBits::eDepthStencilAttachment)
+		{
+			aspect_mask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+			image_layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+		}
+
+		vk::ImageCreateInfo image = {};
+		image.setImageType(vk::ImageType::e2D);
+		image.setFormat(format);
+		image.extent.width = get_width();
+		image.extent.height = get_height();
+		image.extent.depth = 1;
+		image.setMipLevels(1);
+		image.setArrayLayers(1);
+		image.setSamples(vk::SampleCountFlagBits::e1);
+		image.setTiling(vk::ImageTiling::eOptimal);
+		image.setUsage(usage | vk::ImageUsageFlagBits::eSampled);
+
+		// Create image
+		new_attachment.image = get_logical_device().createImage(image);
+
+		vk::MemoryAllocateInfo mem_alloc = {};
+		vk::MemoryRequirements mem_reqs = get_logical_device().getImageMemoryRequirements(new_attachment.image);
+
+		mem_alloc.allocationSize = mem_reqs.size;
+		mem_alloc.memoryTypeIndex = find_memory_type(get_physical_device(), mem_reqs.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+		// Allocate and bind image memory
+		new_attachment.memory = get_logical_device().allocateMemory(mem_alloc);
+		get_logical_device().bindImageMemory(new_attachment.image, new_attachment.memory, 0);
+
+		new_attachment.view = create_image_view(new_attachment.image, format, aspect_mask);
+
+		return new_attachment;
+	}
 }

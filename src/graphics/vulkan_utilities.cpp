@@ -244,4 +244,28 @@ namespace dk
 
 		throw std::runtime_error("Vulkan: Failed to find suitable memory type!");
 	}
+
+	vk::Format find_best_depth_format(const vk::PhysicalDevice& physical_device)
+	{
+		// Find a suitable depth format to use, starting with the best format
+		std::vector<vk::Format> depthFormats =
+		{
+			vk::Format::eD32SfloatS8Uint,
+			vk::Format::eD32Sfloat,
+			vk::Format::eD24UnormS8Uint,
+			vk::Format::eD16UnormS8Uint,
+			vk::Format::eD16Unorm
+		};
+
+		for (const auto format : depthFormats)
+		{
+			const auto depthFormatProperties = physical_device.getFormatProperties(format);
+
+			// Format must support depth stencil attachment for optimal tiling
+			if (depthFormatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment)
+				return format;
+		}
+
+		return vk::Format::eD16Unorm;
+	}
 }

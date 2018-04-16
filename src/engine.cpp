@@ -77,8 +77,8 @@ namespace dk
 			rendering_thread.reset();
 
 			scene.shutdown();
-			resource_manager.shutdown();
 			renderer.shutdown();
+			resource_manager.shutdown();
 			graphics.shutdown();
 		}
 	}

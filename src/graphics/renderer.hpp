@@ -173,11 +173,17 @@ namespace dk
 		/** Render pass used for shaders. */
 		vk::RenderPass m_vk_shader_pass;
 
+		/** Onscreen render pass. */
+		vk::RenderPass m_vk_on_screen_pass;
+
 		/** Framebuffers. */
 		std::vector<vk::Framebuffer> m_vk_framebuffers;
 
-		/** Semaphore to indicate rendering has finished. */
-		vk::Semaphore m_vk_rendering_finished;
+		/** Semaphore to indicate off screen rendering has finished. */
+		vk::Semaphore m_vk_off_screen_rendering_finished;
+
+		/** Semaphore to indicate on screen rendering has finished. */
+		vk::Semaphore m_vk_on_screen_rendering_finished;
 
 		/** Semaphore to indicate an image is available for rendering too. */
 		vk::Semaphore m_vk_image_available;
