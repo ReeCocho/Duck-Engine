@@ -53,6 +53,12 @@ namespace dk
 		 */
 		Handle<VirtualCamera> create_camera() override;
 
+		/**
+		 * @brief Change the main camera.
+		 * @param New main camera.
+		 */
+		void set_main_camera(Handle<VirtualCamera> camera) override;
+
 	private:
 
 		/**
@@ -78,5 +84,34 @@ namespace dk
 
 		/** Thread pool for rendering. */
 		std::unique_ptr<ThreadPool> m_thread_pool;
+
+		/** Screen quad. */
+		Handle<Mesh> m_quad;
+
+		/** Screen shader */
+		struct
+		{
+			/** Vertex shader module. */
+			vk::ShaderModule vk_vertex_shader_module;
+
+			/** Fragment shader module. */
+			vk::ShaderModule vk_fragment_shader_module;
+
+			/** Descriptor set layout. */
+			vk::DescriptorSetLayout vk_descriptor_set_layout;
+
+			/** Descriptor pool. */
+			vk::DescriptorPool vk_descriptor_pool;
+
+			/** Descriptor set. */
+			vk::DescriptorSet vk_descriptor_set;
+
+			/** Graphics pipeline layout */
+			vk::PipelineLayout vk_pipeline_layout;
+
+			/** Graphics pipeline. */
+			vk::Pipeline vk_graphics_pipeline;
+
+		} m_screen_shader;
 	};
 }

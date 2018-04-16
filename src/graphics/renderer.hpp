@@ -36,15 +36,6 @@ namespace dk
 		/** Attachment. */
 		std::vector<Handle<Texture>> attachments = {};
 
-		/** Projection matrix. */
-		glm::mat4 projection = {};
-
-		/** View matrix. */
-		glm::mat4 view = {};
-
-		/** Camera position. */
-		glm::vec3 view_position = {};
-
 		/** Clear color. */
 		glm::vec3 clear_color = { 0, 0, 0 };
 	};
@@ -153,6 +144,12 @@ namespace dk
 		void destroy_camera(Handle<VirtualCamera> camera);
 
 		/**
+		 * @brief Change the main camera.
+		 * @param New main camera.
+		 */
+		virtual void set_main_camera(Handle<VirtualCamera> camera) = 0;
+
+		/**
 		 * @brief Submit a renderable object.
 		 * @param Renderable object.
 		 */
@@ -199,6 +196,9 @@ namespace dk
 
 		/** Virtual camera allocator. */
 		std::unique_ptr<ResourceAllocator<VirtualCamera>> m_cameras;
+
+		/** Handle of main camera. */
+		Handle<VirtualCamera> m_main_camera = Handle<VirtualCamera>(0, nullptr);
 
 	private:
 

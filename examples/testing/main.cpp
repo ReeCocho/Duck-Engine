@@ -6,6 +6,7 @@
 #include <graphics\mesh.hpp>
 #include <graphics\material.hpp>
 #include <ecs\transform.hpp>
+#include <components\camera.hpp>
 #include <components\mesh_renderer.hpp>
 
 int main()
@@ -14,9 +15,8 @@ int main()
 
 	// Add systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
+	dk::engine::scene.add_system<dk::CameraSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
-
-	dk::engine::renderer.create_camera();
 
 	auto shader = dk::engine::resource_manager.create_shader
 	(
@@ -41,6 +41,17 @@ int main()
 			{ glm::vec3(-1,  1,  0), glm::vec2(0, 0) }
 		}
 	);
+
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+
+		dk::Handle<dk::Camera> camera = entity.add_component<dk::Camera>();
+		dk::CameraSystem::set_main_camera(camera);
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(3, 0, 3));
+		transform->set_euler_angles(glm::vec3(0, 225.0f, 0));
+	}
 
 	for(size_t i = 0; i < 200; ++i)
 	{

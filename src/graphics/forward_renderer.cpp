@@ -6,7 +6,17 @@
 
 /** Includes. */
 #include <array>
+#include <utilities\file_io.hpp>
 #include "forward_renderer.hpp"
+
+namespace
+{
+	/** Realative path to forward renderer vertex shader. */
+	const std::string FORWARD_RENDERER_VERTEX_SHADER = "shaders/forward.vert.spv";
+
+	/** Realative path to forward renderer fragment shader. */
+	const std::string FORWARD_RENDERER_FRAGMENT_SHADER = "shaders/forward.frag.spv";
+}
 
 namespace dk
 {
@@ -151,12 +161,214 @@ namespace dk
 
 		// Create thread pool
 		m_thread_pool = std::make_unique<ThreadPool>(get_graphics().get_command_manager().get_pool_count());
+
+		// Create quad
+		m_quad = Handle<Mesh>(m_mesh_allocator->allocate(), m_mesh_allocator);
+
+		::new(m_mesh_allocator->get_resource_by_handle(m_quad.id))(Mesh)
+		(
+			&get_graphics(),
+			std::vector<uint16_t>
+			{
+				0, 1, 2,
+				2, 3, 0
+			},
+			std::vector<dk::Vertex>
+			{
+				{ glm::vec3(-1, -1,  0), glm::vec2(0, 1) },
+				{ glm::vec3( 1, -1,  0), glm::vec2(1, 1) },
+				{ glm::vec3( 1,  1,  0), glm::vec2(1, 0) },
+				{ glm::vec3(-1,  1,  0), glm::vec2(0, 0) }
+			}
+		);
+
+		// Create screen shader
+		{
+			// Create descriptor set layout
+			vk::DescriptorSetLayoutBinding binding = {};
+
+			binding.binding = 0;
+			binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			binding.descriptorCount = 1;
+			binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+			vk::DescriptorSetLayoutCreateInfo layout_info = {};
+			layout_info.bindingCount = 1;
+			layout_info.pBindings = &binding;
+
+			m_screen_shader.vk_descriptor_set_layout = get_graphics().get_logical_device().createDescriptorSetLayout(layout_info);
+			dk_assert(m_screen_shader.vk_descriptor_set_layout);
+
+			// Create shader modules
+			m_screen_shader.vk_vertex_shader_module = create_shader_module(get_graphics().get_logical_device(), read_binary_file(FORWARD_RENDERER_VERTEX_SHADER));
+			m_screen_shader.vk_fragment_shader_module = create_shader_module(get_graphics().get_logical_device(), read_binary_file(FORWARD_RENDERER_FRAGMENT_SHADER));
+
+			vk::PipelineShaderStageCreateInfo vert_shader_stage_info = {};
+			vert_shader_stage_info.stage = vk::ShaderStageFlagBits::eVertex;
+			vert_shader_stage_info.module = m_screen_shader.vk_vertex_shader_module;
+			vert_shader_stage_info.pName = "main";
+
+			vk::PipelineShaderStageCreateInfo frag_shader_stage_info = {};
+			frag_shader_stage_info.stage = vk::ShaderStageFlagBits::eFragment;
+			frag_shader_stage_info.module = m_screen_shader.vk_fragment_shader_module;
+			frag_shader_stage_info.pName = "main";
+
+			std::array<vk::PipelineShaderStageCreateInfo, 2> shader_stages = { vert_shader_stage_info, frag_shader_stage_info };
+
+			auto binding_description = Vertex::get_binding_description();
+			auto attribute_descriptions = Vertex::get_attribute_descriptions();
+
+			vk::PipelineVertexInputStateCreateInfo vertex_input_info = {};
+			vertex_input_info.vertexBindingDescriptionCount = 1;
+			vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+			vertex_input_info.pVertexBindingDescriptions = &binding_description;
+			vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data();
+
+			vk::PipelineInputAssemblyStateCreateInfo input_assembly = {};
+			input_assembly.topology = vk::PrimitiveTopology::eTriangleList;
+			input_assembly.primitiveRestartEnable = VK_FALSE;
+
+			vk::Viewport viewport = {};
+			viewport.x = 0.0f;
+			viewport.y = 0.0f;
+			viewport.width = static_cast<float>(graphics->get_width());
+			viewport.height = static_cast<float>(graphics->get_height());
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+
+			vk::Rect2D scissor = {};
+			scissor.offset = { 0, 0 };
+			scissor.extent = vk::Extent2D(graphics->get_width(), graphics->get_height());
+
+			vk::PipelineViewportStateCreateInfo viewport_state = {};
+			viewport_state.viewportCount = 1;
+			viewport_state.pViewports = &viewport;
+			viewport_state.scissorCount = 1;
+			viewport_state.pScissors = &scissor;
+
+			vk::PipelineRasterizationStateCreateInfo rasterizer = {};
+			rasterizer.depthClampEnable = VK_FALSE;
+			rasterizer.rasterizerDiscardEnable = VK_FALSE;
+			rasterizer.polygonMode = vk::PolygonMode::eFill;
+			rasterizer.lineWidth = 1.0f;
+			rasterizer.cullMode = vk::CullModeFlagBits::eBack;
+			rasterizer.frontFace = vk::FrontFace::eClockwise;
+			rasterizer.depthBiasEnable = VK_FALSE;
+			rasterizer.depthBiasConstantFactor = 0.0f;
+			rasterizer.depthBiasClamp = 0.0f;
+			rasterizer.depthBiasSlopeFactor = 0.0f;
+
+			vk::PipelineMultisampleStateCreateInfo multisampling = {};
+			multisampling.sampleShadingEnable = VK_FALSE;
+			multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+			multisampling.minSampleShading = 1.0f;
+			multisampling.pSampleMask = nullptr;
+			multisampling.alphaToCoverageEnable = VK_FALSE;
+			multisampling.alphaToOneEnable = VK_FALSE;
+
+			vk::PipelineColorBlendAttachmentState color_blend_attachment = {};
+			color_blend_attachment.colorWriteMask = vk::ColorComponentFlagBits::eR |
+				vk::ColorComponentFlagBits::eG |
+				vk::ColorComponentFlagBits::eB |
+				vk::ColorComponentFlagBits::eA;
+			color_blend_attachment.blendEnable = VK_FALSE;
+			color_blend_attachment.srcColorBlendFactor = vk::BlendFactor::eOne;
+			color_blend_attachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+			color_blend_attachment.colorBlendOp = vk::BlendOp::eAdd;
+			color_blend_attachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+			color_blend_attachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+			color_blend_attachment.alphaBlendOp = vk::BlendOp::eAdd;
+
+			vk::PipelineColorBlendStateCreateInfo color_blending = {};
+			color_blending.logicOpEnable = VK_FALSE;
+			color_blending.logicOp = vk::LogicOp::eCopy;
+			color_blending.attachmentCount = 1;
+			color_blending.pAttachments = &color_blend_attachment;
+			color_blending.blendConstants[0] = 0.0f;
+			color_blending.blendConstants[1] = 0.0f;
+			color_blending.blendConstants[2] = 0.0f;
+			color_blending.blendConstants[3] = 0.0f;
+
+			std::array<vk::DynamicState, 2> dynamic_states =
+			{
+				vk::DynamicState::eViewport,
+				vk::DynamicState::eScissor
+			};
+
+			vk::PipelineDynamicStateCreateInfo dynamic_state = {};
+			dynamic_state.dynamicStateCount = static_cast<uint32_t>(dynamic_states.size());
+			dynamic_state.pDynamicStates = dynamic_states.data();
+
+			// Create graphics pipeline layout
+			vk::PipelineLayoutCreateInfo pipeline_layout_info = {};
+			pipeline_layout_info.setLayoutCount = 1;
+			pipeline_layout_info.pSetLayouts = &m_screen_shader.vk_descriptor_set_layout;
+			pipeline_layout_info.pushConstantRangeCount = 0;
+			pipeline_layout_info.pPushConstantRanges = nullptr;
+
+			m_screen_shader.vk_pipeline_layout = get_graphics().get_logical_device().createPipelineLayout(pipeline_layout_info);
+			dk_assert(m_screen_shader.vk_pipeline_layout);
+
+			// Create graphics pipeline
+			vk::GraphicsPipelineCreateInfo pipeline_info = {};
+			pipeline_info.stageCount = static_cast<uint32_t>(shader_stages.size());
+			pipeline_info.pStages = shader_stages.data();
+			pipeline_info.pVertexInputState = &vertex_input_info;
+			pipeline_info.pInputAssemblyState = &input_assembly;
+			pipeline_info.pViewportState = &viewport_state;
+			pipeline_info.pRasterizationState = &rasterizer;
+			pipeline_info.pMultisampleState = &multisampling;
+			pipeline_info.pDepthStencilState = nullptr;
+			pipeline_info.pColorBlendState = &color_blending;
+			pipeline_info.pDynamicState = &dynamic_state;
+			pipeline_info.layout = m_screen_shader.vk_pipeline_layout;
+			pipeline_info.renderPass = m_vk_on_screen_pass;
+			pipeline_info.subpass = 0;
+
+			m_screen_shader.vk_graphics_pipeline = get_graphics().get_logical_device().createGraphicsPipeline(vk::PipelineCache(), pipeline_info);
+
+			vk::DescriptorPoolSize pool_size = {};
+			pool_size.type = vk::DescriptorType::eCombinedImageSampler;
+			pool_size.descriptorCount = 1;
+
+			// Create descriptor pool
+			vk::DescriptorPoolCreateInfo pool_info = {};
+			pool_info.poolSizeCount = 1;
+			pool_info.pPoolSizes = &pool_size;
+			pool_info.maxSets = 1;
+
+			m_screen_shader.vk_descriptor_pool = get_graphics().get_logical_device().createDescriptorPool(pool_info);
+			dk_assert(m_screen_shader.vk_descriptor_pool);
+
+			// Allocate descriptor set
+			vk::DescriptorSetAllocateInfo alloc_info = {};
+			alloc_info.descriptorPool = m_screen_shader.vk_descriptor_pool;
+			alloc_info.descriptorSetCount = 1;
+			alloc_info.pSetLayouts = &m_screen_shader.vk_descriptor_set_layout;
+
+			m_screen_shader.vk_descriptor_set = get_graphics().get_logical_device().allocateDescriptorSets(alloc_info)[0];
+			dk_assert(m_screen_shader.vk_descriptor_set);
+		}
 	}
 
 	void ForwardRenderer::shutdown()
 	{
+		// Destroy thread pool
 		m_thread_pool->wait();
 		m_thread_pool.reset();
+
+		// Destroy quad
+		m_quad->free();
+		m_mesh_allocator->deallocate(m_quad.id);
+
+		// Destroy screen shader
+		get_graphics().get_logical_device().destroyDescriptorPool(m_screen_shader.vk_descriptor_pool);
+		get_graphics().get_logical_device().destroyPipeline(m_screen_shader.vk_graphics_pipeline);
+		get_graphics().get_logical_device().destroyPipelineLayout(m_screen_shader.vk_pipeline_layout);
+		get_graphics().get_logical_device().destroyShaderModule(m_screen_shader.vk_vertex_shader_module);
+		get_graphics().get_logical_device().destroyShaderModule(m_screen_shader.vk_fragment_shader_module);
+		get_graphics().get_logical_device().destroyDescriptorSetLayout(m_screen_shader.vk_descriptor_set_layout);
+
 		Renderer::shutdown();
 	}
 
@@ -165,18 +377,16 @@ namespace dk
 		// Wait for present queue to finish if needed
 		get_graphics().get_device_manager().get_present_queue().waitIdle();
 
-		// Draw to every camera
-		bool drew = false;
+		// Stop rendering if the main camera doesn't exist
+		if (!m_main_camera.allocator)
+		{
+			flush_queues();
+			return;
+		}
 
 		for (size_t i = 0; i < m_cameras->max_allocated(); ++i)
 			if (m_cameras->is_allocated(i))
-			{
 				render_to_camera(Handle<VirtualCamera>(i, m_cameras.get()));
-				drew = true;
-			}
-
-		// Stop rendering if there were no cameras drawn too
-		if (!drew) return;
 
 		// Get image index to render too
 		uint32_t image_index = get_graphics().get_logical_device().acquireNextImageKHR
@@ -248,16 +458,39 @@ namespace dk
 		render_pass_info.pClearValues = &clear_color;
 
 		// Begin render pass
-		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
+		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
 
-		// // Draw everything
-		// vk::CommandBufferInheritanceInfo inheritance_info = {};
-		// inheritance_info.setRenderPass(m_vk_shader_pass);
-		// inheritance_info.setFramebuffer(m_vk_framebuffers[image_index]);
-		// 
-		// auto command_buffers = generate_renderable_command_buffers(inheritance_info);
-		// if(command_buffers.size() > 0) 
-		// 	get_primary_command_buffer().executeCommands(command_buffers);
+		// Set viewport
+		vk::Viewport viewport = {};
+		viewport.setHeight(static_cast<float>(get_graphics().get_height()));
+		viewport.setWidth(static_cast<float>(get_graphics().get_width()));
+		viewport.setMinDepth(0);
+		viewport.setMaxDepth(1);
+		get_primary_command_buffer().setViewport(0, 1, &viewport);
+
+		// Set scissor
+		vk::Rect2D scissor = {};
+		scissor.setExtent(get_swapchain_manager().get_image_extent());
+		scissor.setOffset({ 0, 0 });
+		get_primary_command_buffer().setScissor(0, 1, &scissor);
+
+		get_primary_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_screen_shader.vk_graphics_pipeline);
+
+		const auto& mem_buffer = m_quad->get_vertex_buffer();
+		vk::DeviceSize offsets[] = { 0 };
+
+		get_primary_command_buffer().bindDescriptorSets
+		(
+			vk::PipelineBindPoint::eGraphics,
+			m_screen_shader.vk_pipeline_layout,
+			0,
+			m_screen_shader.vk_descriptor_set,
+			{}
+		);
+
+		get_primary_command_buffer().bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
+		get_primary_command_buffer().bindIndexBuffer(m_quad->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+		get_primary_command_buffer().drawIndexed(static_cast<uint32_t>(m_quad->get_index_count()), 1, 0, 0, 0);
 
 		// End render pass and command buffer
 		get_primary_command_buffer().endRenderPass();
@@ -471,5 +704,29 @@ namespace dk
 		camera->framebuffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
 
 		return camera;
+	}
+
+	void ForwardRenderer::set_main_camera(Handle<VirtualCamera> camera)
+	{
+		m_main_camera = camera;
+
+		if (camera.allocator != nullptr)
+		{
+			// Update descriptor set
+			vk::DescriptorImageInfo image_info = {};
+			image_info.imageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+			image_info.imageView = camera->attachments[0]->get_image_view();
+			image_info.sampler = camera->attachments[0]->get_sampler();
+			
+			vk::WriteDescriptorSet write = {};
+			write.dstSet = m_screen_shader.vk_descriptor_set;
+			write.dstBinding = 0;
+			write.dstArrayElement = 0;
+			write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			write.descriptorCount = 1;
+			write.pImageInfo = &image_info;
+			
+			get_graphics().get_logical_device().updateDescriptorSets(1, &write, 0, nullptr);
+		}
 	}
 }

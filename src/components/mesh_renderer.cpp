@@ -7,6 +7,7 @@
 /** Includes. */
 #include <engine.hpp>
 #include <ecs\transform.hpp>
+#include "camera.hpp"
 #include "mesh_renderer.hpp"
 
 namespace dk
@@ -120,6 +121,9 @@ namespace dk
 
 	void MeshRendererSystem::on_pre_render(float delta_time)
 	{
+		if (!CameraSystem::get_main_camera().allocator)
+			return;
+
 		for (Handle<MeshRenderer> mesh_renderer : *this)
 		{
 			if (!mesh_renderer->m_mesh.allocator || !mesh_renderer->m_material.allocator)
@@ -128,7 +132,7 @@ namespace dk
 			// Upload vertex shader data
 			{
 				VertexShaderData v_data = {};
-				v_data.mvp = mesh_renderer->m_transform->get_model_matrix();
+				v_data.mvp = CameraSystem::get_main_camera()->get_pv_matrix() * mesh_renderer->m_transform->get_model_matrix();
 
 				void* data = engine::graphics.get_logical_device().mapMemory(mesh_renderer->m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
 				memcpy(data, &v_data, sizeof(VertexShaderData));
