@@ -50,6 +50,10 @@ namespace dk
 		{
 			// Reset delta time
 			game_clock.get_delta_time();
+			
+			// FPS timer data
+			uint64_t frames_per_sec = 0;
+			float fps_timer = 0;
 
 			while (!input.is_closing())
 			{
@@ -59,8 +63,21 @@ namespace dk
 				// Wait for threads to finish
 				rendering_thread->wait();
 
+				// Get delta time
+				float dt = game_clock.get_delta_time();
+				fps_timer += dt;
+
+				// Check if we need to print and reset FPS
+				if (fps_timer >= 1.0f)
+				{
+					dk_log("FPS : " << frames_per_sec);
+					fps_timer = 0;
+					frames_per_sec = 0;
+				}
+				++frames_per_sec;
+
 				// Perform a game tick
-				scene.tick(game_clock.get_delta_time());
+				scene.tick(dt);
 
 				// Start rendering thread
 				rendering_thread->start();

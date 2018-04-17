@@ -19,19 +19,20 @@ namespace dk
 		m_graphics(graphics), 
 		m_texture_allocator(texture_allocator),
 		m_mesh_allocator(mesh_allocator),
-		m_swapchain_manager
-		(
-			m_graphics->get_physical_device(), 
-			m_graphics->get_logical_device(), 
-			m_graphics->get_surface(), 
-			m_graphics->get_width(), 
-			m_graphics->get_height()
-		),
 		m_vk_framebuffers({}),
 		m_renderable_objects({})
 	{
+		m_swapchain_manager = std::make_unique<VkSwapchainManager>
+		(
+			m_graphics->get_physical_device(),
+			m_graphics->get_logical_device(),
+			m_graphics->get_surface(),
+			m_graphics->get_width(),
+			m_graphics->get_height()
+		);
+
 		// Resize framebuffers
-		m_vk_framebuffers.resize(m_swapchain_manager.get_image_count());
+		m_vk_framebuffers.resize(m_swapchain_manager->get_image_count());
 
 		// Create command pool
 		vk::CommandPoolCreateInfo pool_info = {};
@@ -91,7 +92,7 @@ namespace dk
 		m_graphics->get_logical_device().destroyRenderPass(m_vk_on_screen_pass);
 
 		// Destroy swapchain
-		m_swapchain_manager.~VkSwapchainManager();
+		m_swapchain_manager.reset();
 	}
 
 	void Renderer::flush_queues()

@@ -105,7 +105,7 @@ namespace dk
 		 */
 		VkSwapchainManager& get_swapchain_manager()
 		{
-			return m_swapchain_manager;
+			return *m_swapchain_manager.get();
 		}
 
 		/**
@@ -221,7 +221,7 @@ namespace dk
 		Graphics* m_graphics;
 
 		/** Swapchain manager. */
-		VkSwapchainManager m_swapchain_manager;
+		std::unique_ptr<VkSwapchainManager> m_swapchain_manager;
 
 		/** Command pool. */
 		vk::CommandPool m_vk_command_pool;

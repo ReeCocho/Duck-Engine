@@ -34,6 +34,10 @@ namespace dk
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			);
 
+			// Map buffers
+			m_vertex_map = engine::graphics.get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
+			m_fragment_map = engine::graphics.get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(FragmentShaderData));
+
 			vk::DescriptorPoolSize pool_size = {};
 			pool_size.type = vk::DescriptorType::eUniformBuffer;
 			pool_size.descriptorCount = 4;
@@ -92,6 +96,18 @@ namespace dk
 
 	void MeshRenderer::free_resources()
 	{
+		if (m_vertex_map)
+		{
+			engine::graphics.get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
+			m_vertex_map = nullptr;
+		}
+
+		if (m_fragment_map)
+		{
+			engine::graphics.get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
+			m_fragment_map = nullptr;
+		}
+
 		if (m_vertex_uniform_buffer.buffer)
 		{
 			m_vertex_uniform_buffer.free(engine::graphics.get_logical_device());
@@ -133,19 +149,14 @@ namespace dk
 			{
 				VertexShaderData v_data = {};
 				v_data.mvp = CameraSystem::get_main_camera()->get_pv_matrix() * mesh_renderer->m_transform->get_model_matrix();
-
-				void* data = engine::graphics.get_logical_device().mapMemory(mesh_renderer->m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
-				memcpy(data, &v_data, sizeof(VertexShaderData));
-				engine::graphics.get_logical_device().unmapMemory(mesh_renderer->m_vertex_uniform_buffer.memory);
+				memcpy(mesh_renderer->m_vertex_map, &v_data, sizeof(VertexShaderData));
+				
 			}
 
 			// Upload fragment shader data
 			{
 				FragmentShaderData f_data = {};
-
-				void* data = engine::graphics.get_logical_device().mapMemory(mesh_renderer->m_fragment_uniform_buffer.memory, 0, sizeof(FragmentShaderData));
-				memcpy(data, &f_data, sizeof(FragmentShaderData));
-				engine::graphics.get_logical_device().unmapMemory(mesh_renderer->m_fragment_uniform_buffer.memory);
+				memcpy(mesh_renderer->m_fragment_map, &f_data, sizeof(FragmentShaderData));
 			}
 
 			// Draw

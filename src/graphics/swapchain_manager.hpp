@@ -49,7 +49,7 @@ namespace dk
 		 * @brief Get swapchain.
 		 * @return Swapchain.
 		 */
-		const vk::SwapchainKHR get_swapchain() const
+		vk::SwapchainKHR& get_swapchain()
 		{
 			return m_vk_swapchain;
 		}

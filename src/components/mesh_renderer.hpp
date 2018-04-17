@@ -110,19 +110,25 @@ namespace dk
 		Handle<Mesh> m_mesh = {};
 
 		/** Command buffer used for rendering. */
-		VkManagedCommandBuffer m_command_buffer;
+		VkManagedCommandBuffer m_command_buffer = {};
 
 		/** Meshes descriptor pool. */
-		vk::DescriptorPool m_vk_descriptor_pool;
+		vk::DescriptorPool m_vk_descriptor_pool = {};
 
 		/** Descriptor set. */
-		vk::DescriptorSet m_vk_descriptor_set;
+		vk::DescriptorSet m_vk_descriptor_set = {};
 
 		/** Per instance vertex uniform buffer. */
-		VkMemBuffer m_vertex_uniform_buffer;
+		VkMemBuffer m_vertex_uniform_buffer = {};
 
 		/** Per instance fragment uniform buffer. */
-		VkMemBuffer m_fragment_uniform_buffer;
+		VkMemBuffer m_fragment_uniform_buffer = {};
+
+		/** Vertex buffer mapping. */
+		void* m_vertex_map = nullptr;
+
+		/** Fragment buffer mapping. */
+		void* m_fragment_map = nullptr;
 	};
 
 	/**
