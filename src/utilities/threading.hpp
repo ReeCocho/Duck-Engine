@@ -88,8 +88,15 @@ namespace dk
 
 		/**
 		 * @brief Add a job to the worker thread.
+		 * @param Job
 		 */
 		void add_job(std::function<void(void)> job);
+
+		/**
+		 * @brief Add a list of jobs.
+		 * @param List of jobs.
+		 */
+		void add_jobs(const std::vector<std::function<void(void)>>& jobs);
 
 		/**
 		 * @brief Wait for the worker to finish working.

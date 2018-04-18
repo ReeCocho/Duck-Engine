@@ -20,3 +20,8 @@ add_custom_command(TARGET Testing POST_BUILD
 	"${PROJECT_BINARY_DIR}/shaders"
     "$<TARGET_FILE_DIR:Testing>/../shaders" 
 )
+
+add_custom_command(TARGET Testing POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${CMAKE_SOURCE_DIR}/examples/testing/textures" "$<TARGET_FILE_DIR:Testing>/../textures"
+)

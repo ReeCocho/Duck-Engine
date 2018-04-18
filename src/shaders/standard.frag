@@ -13,9 +13,11 @@ layout(set = 0, binding = 3) uniform FragmentData
 	int unused;
 };
 
-layout(location = 0) in vec3 o_color;
+layout(location = 0) in vec2 f_uv;
+
+layout(set = 1, binding = 0) uniform sampler2D texture_test;
 
 void main() 
 {
-    outColor = vec4((o_color / 2.0) + 0.5, 1.0);
+    outColor = vec4(texture(texture_test, f_uv).rgb, 1.0);
 }

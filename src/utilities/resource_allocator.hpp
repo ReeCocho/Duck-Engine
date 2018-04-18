@@ -244,9 +244,9 @@ namespace dk
 		}
 
 		/** Resource ID. */
-		ResourceID id = 0;
+		ResourceID id;
 
 		/** Resource allocator. */
-		ResourceAllocator<T>* allocator = nullptr;
+		ResourceAllocator<T>* allocator;
 	};
 }

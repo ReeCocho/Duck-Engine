@@ -19,10 +19,10 @@ layout(set = 0, binding = 1) uniform VertexData
 	mat4 MVP;
 } inst_data;
 
-layout(location = 0) out vec3 o_color;
+layout(location = 0) out vec2 f_uv;
 
 void main() 
 {
     gl_Position = inst_data.MVP * vec4(in_position, 1.0);
-	o_color = in_position;
+	f_uv = in_uv;
 }

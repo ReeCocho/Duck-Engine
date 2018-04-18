@@ -145,12 +145,22 @@ namespace dk
 			if (!mesh_renderer->m_mesh.allocator || !mesh_renderer->m_material.allocator)
 				continue;
 
+			bool textures_unbound = false;
+			for (size_t i = 0; i < mesh_renderer->m_material->get_shader()->get_texture_count(); ++i)
+				if (!mesh_renderer->m_material->get_texture(i).allocator)
+				{
+					textures_unbound = true;
+					break;
+				}
+
+			if (textures_unbound)
+				continue;
+
 			// Upload vertex shader data
 			{
 				VertexShaderData v_data = {};
 				v_data.mvp = CameraSystem::get_main_camera()->get_pv_matrix() * mesh_renderer->m_transform->get_model_matrix();
 				memcpy(mesh_renderer->m_vertex_map, &v_data, sizeof(VertexShaderData));
-				
 			}
 
 			// Upload fragment shader data
@@ -167,6 +177,10 @@ namespace dk
 				mesh_renderer->m_mesh,
 				{ mesh_renderer->m_vk_descriptor_set }
 			};
+
+			if (mesh_renderer->m_material->get_shader()->get_texture_count() > 0)
+				renderable.descriptor_sets.push_back(mesh_renderer->m_material->get_texture_descriptor_set());
+
 			engine::renderer.draw(renderable);
 		}
 	}

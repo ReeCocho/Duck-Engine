@@ -73,34 +73,57 @@ namespace dk
 		);
 
 		// Create descriptor set layout
-		std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {};
+		{
+			std::array<vk::DescriptorSetLayoutBinding, 4> bindings = {};
 
-		bindings[0].binding = 0;
-		bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
-		bindings[0].descriptorCount = 1;
-		bindings[0].stageFlags = vk::ShaderStageFlagBits::eVertex;
+			bindings[0].binding = 0;
+			bindings[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+			bindings[0].descriptorCount = 1;
+			bindings[0].stageFlags = vk::ShaderStageFlagBits::eVertex;
 
-		bindings[1].binding = 1;
-		bindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
-		bindings[1].descriptorCount = 1;
-		bindings[1].stageFlags = vk::ShaderStageFlagBits::eVertex;
+			bindings[1].binding = 1;
+			bindings[1].descriptorType = vk::DescriptorType::eUniformBuffer;
+			bindings[1].descriptorCount = 1;
+			bindings[1].stageFlags = vk::ShaderStageFlagBits::eVertex;
 
-		bindings[2].binding = 2;
-		bindings[2].descriptorType = vk::DescriptorType::eUniformBuffer;
-		bindings[2].descriptorCount = 1;
-		bindings[2].stageFlags = vk::ShaderStageFlagBits::eFragment;
+			bindings[2].binding = 2;
+			bindings[2].descriptorType = vk::DescriptorType::eUniformBuffer;
+			bindings[2].descriptorCount = 1;
+			bindings[2].stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-		bindings[3].binding = 3;
-		bindings[3].descriptorType = vk::DescriptorType::eUniformBuffer;
-		bindings[3].descriptorCount = 1;
-		bindings[3].stageFlags = vk::ShaderStageFlagBits::eFragment;
+			bindings[3].binding = 3;
+			bindings[3].descriptorType = vk::DescriptorType::eUniformBuffer;
+			bindings[3].descriptorCount = 1;
+			bindings[3].stageFlags = vk::ShaderStageFlagBits::eFragment;
 
-		vk::DescriptorSetLayoutCreateInfo layout_info = {};
-		layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
-		layout_info.pBindings = bindings.data();
+			vk::DescriptorSetLayoutCreateInfo layout_info = {};
+			layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
+			layout_info.pBindings = bindings.data();
 
-		m_vk_descriptor_set_layout = m_graphics->get_logical_device().createDescriptorSetLayout(layout_info);
-		dk_assert(m_vk_descriptor_set_layout);
+			m_vk_descriptor_set_layout = m_graphics->get_logical_device().createDescriptorSetLayout(layout_info);
+			dk_assert(m_vk_descriptor_set_layout);
+		}
+
+		// Create texture descriptor set layout
+		if(m_texture_count > 0)
+		{
+			std::vector<vk::DescriptorSetLayoutBinding> bindings(m_texture_count);
+
+			for (size_t i = 0; i < m_texture_count; ++i)
+			{
+				bindings[i].binding = static_cast<uint32_t>(i);
+				bindings[i].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+				bindings[i].descriptorCount = 1;
+				bindings[i].stageFlags = vk::ShaderStageFlagBits::eFragment;
+			}
+
+			vk::DescriptorSetLayoutCreateInfo layout_info = {};
+			layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
+			layout_info.pBindings = bindings.data();
+
+			m_vk_texture_descriptor_set_layout = m_graphics->get_logical_device().createDescriptorSetLayout(layout_info);
+			dk_assert(m_vk_texture_descriptor_set_layout);
+		}
 
 		// Create shader modules
 		m_vk_vertex_shader_module = create_shader_module(m_graphics->get_logical_device(), vert_byte_code);
@@ -213,10 +236,16 @@ namespace dk
 		depth_stencil.front = {};
 		depth_stencil.back = {};
 
+		std::vector<vk::DescriptorSetLayout> descriptor_set_layouts(1 + (m_texture_count > 0 ? 1 : 0));
+		descriptor_set_layouts[0] = m_vk_descriptor_set_layout;
+
+		if (m_texture_count > 0)
+			descriptor_set_layouts[1] = m_vk_texture_descriptor_set_layout;
+
 		// Create graphics pipeline layout
 		vk::PipelineLayoutCreateInfo pipeline_layout_info = {};
-		pipeline_layout_info.setLayoutCount = 1;
-		pipeline_layout_info.pSetLayouts = &m_vk_descriptor_set_layout;
+		pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
+		pipeline_layout_info.pSetLayouts = descriptor_set_layouts.data();
 		pipeline_layout_info.pushConstantRangeCount = 0;
 		pipeline_layout_info.pPushConstantRanges = nullptr;
 
@@ -249,5 +278,6 @@ namespace dk
 		m_graphics->get_logical_device().destroyShaderModule(m_vk_vertex_shader_module);
 		m_graphics->get_logical_device().destroyShaderModule(m_vk_fragment_shader_module);
 		m_graphics->get_logical_device().destroyDescriptorSetLayout(m_vk_descriptor_set_layout);
+		m_graphics->get_logical_device().destroyDescriptorSetLayout(m_vk_texture_descriptor_set_layout);
 	}
 }

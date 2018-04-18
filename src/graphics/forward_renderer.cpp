@@ -552,12 +552,17 @@ namespace dk
 		// Wait for threads to finish
 		m_thread_pool->wait();
 
+		// List of jobs.
+		// First dimension is the queue.
+		// Second dimension is the job list.
+		std::vector<std::vector<std::function<void(void)>>> jobs(get_graphics().get_command_manager().get_pool_count());
+
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
 			auto& command_buffer = m_renderable_objects[i].command_buffer.get_command_buffer();
 			command_buffers[i] = command_buffer;
 
-			m_thread_pool->workers[m_renderable_objects[i].command_buffer.get_thread_index()]->add_job([this, i, command_buffer, inheritance_info]()
+			jobs[m_renderable_objects[i].command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
 			{
 				vk::CommandBufferBeginInfo begin_info = {};
 				begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
@@ -590,16 +595,21 @@ namespace dk
 					vk::PipelineBindPoint::eGraphics,
 					m_renderable_objects[i].shader->get_pipeline_layout(),
 					0,
-					m_renderable_objects[i].descriptor_sets,
-					{}
+					static_cast<uint32_t>(m_renderable_objects[i].descriptor_sets.size()),
+					m_renderable_objects[i].descriptor_sets.data(),
+					0,
+					nullptr
 				);
 
 				command_buffer.bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
 				command_buffer.bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
 				command_buffer.drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
 				command_buffer.end();
-			});
+			}));
 		}
+
+		for (size_t i = 0; i < jobs.size(); ++i)
+			m_thread_pool->workers[i]->add_jobs(jobs[i]);
 
 		// Wait for threads to finish
 		m_thread_pool->wait();

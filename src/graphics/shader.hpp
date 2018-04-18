@@ -121,6 +121,15 @@ namespace dk
 			return m_vk_descriptor_set_layout;
 		}
 
+		/**
+		 * @brief Get texture descriptor set layout.
+		 * @return Texture descriptor set layout.
+		 */
+		vk::DescriptorSetLayout& get_texture_descriptor_set_layout()
+		{
+			return m_vk_texture_descriptor_set_layout;
+		}
+
 	private:
 
 		/** Graphics context. */
@@ -134,6 +143,9 @@ namespace dk
 
 		/** Descriptor set layout. */
 		vk::DescriptorSetLayout m_vk_descriptor_set_layout;
+
+		/** Texture descriptor set layout. */
+		vk::DescriptorSetLayout m_vk_texture_descriptor_set_layout;
 
 		/** Graphics pipeline layout */
 		vk::PipelineLayout m_vk_pipeline_layout;

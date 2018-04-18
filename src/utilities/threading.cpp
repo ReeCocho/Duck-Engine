@@ -98,7 +98,17 @@ namespace dk
 	void WorkerThread::add_job(std::function<void(void)> job)
 	{
 		std::lock_guard<std::mutex> lock(m_jobs_mutex);
-		m_jobs.push(move(job));
+		m_jobs.push(std::move(job));
+		m_condition.notify_one();
+	}
+
+	void WorkerThread::add_jobs(const std::vector<std::function<void(void)>>& jobs)
+	{
+		std::lock_guard<std::mutex> lock(m_jobs_mutex);
+		
+		for(auto& job : jobs)
+			m_jobs.push(std::move(job));
+
 		m_condition.notify_one();
 	}
 

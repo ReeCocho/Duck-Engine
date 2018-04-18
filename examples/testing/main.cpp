@@ -65,7 +65,7 @@ public:
 
 int main()
 {
-	dk::engine::initialize(1, "Test Window", 1280, 720);
+	dk::engine::initialize(2, "Test Window", 1280, 720);
 
 	// Add systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
@@ -79,7 +79,10 @@ int main()
 		dk::read_binary_file("shaders/standard.frag.spv")
 	);
 
+	auto texture = dk::engine::resource_manager.create_texture("textures/CoolCat.JPG", vk::Filter::eLinear);
+
 	auto material = dk::engine::resource_manager.create_material(shader);
+	material->set_texture(0, texture);
 
 	auto mesh = dk::engine::resource_manager.create_mesh
 	(
@@ -90,10 +93,10 @@ int main()
 		},
 		std::vector<dk::Vertex>
 		{
-			{ glm::vec3(-1, -1,  0), glm::vec2(0, 0) },
-			{ glm::vec3( 1, -1,  0), glm::vec2(0, 0) },
+			{ glm::vec3(-1, -1,  0), glm::vec2(1, 1) },
+			{ glm::vec3( 1, -1,  0), glm::vec2(0, 1) },
 			{ glm::vec3( 1,  1,  0), glm::vec2(0, 0) },
-			{ glm::vec3(-1,  1,  0), glm::vec2(0, 0) }
+			{ glm::vec3(-1,  1,  0), glm::vec2(1, 0) }
 		}
 	);
 
@@ -112,7 +115,6 @@ int main()
 	}
 
 	// Test quad
-	for(size_t i = 0; i < 200; ++i)
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
