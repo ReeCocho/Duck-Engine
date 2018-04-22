@@ -1,13 +1,13 @@
 /**
- * @file forward_renderer.cpp
- * @brief Duck forward renderer source.
+ * @file renderer.cpp
+ * @brief Duck renderer base source.
  * @author Connor J. Bramham (ReeCocho)
  */
 
 /** Includes. */
 #include <array>
 #include <utilities\file_io.hpp>
-#include "forward_renderer.hpp"
+#include "renderer.hpp"
 
 namespace
 {
@@ -20,14 +20,57 @@ namespace
 
 namespace dk
 {
-	ForwardRenderer::ForwardRenderer() : Renderer()
+	Renderer::Renderer()
 	{
 
 	}
 
-	ForwardRenderer::ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) : 
-		Renderer(graphics, texture_allocator, mesh_allocator)
+	Renderer::Renderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) :
+		m_graphics(graphics), 
+		m_texture_allocator(texture_allocator),
+		m_mesh_allocator(mesh_allocator),
+		m_vk_framebuffers({}),
+		m_renderable_objects({})
 	{
+		m_swapchain_manager = std::make_unique<VkSwapchainManager>
+		(
+			m_graphics->get_physical_device(),
+			m_graphics->get_logical_device(),
+			m_graphics->get_surface(),
+			m_graphics->get_width(),
+			m_graphics->get_height()
+		);
+
+		// Resize framebuffers
+		m_vk_framebuffers.resize(m_swapchain_manager->get_image_count());
+
+		// Create command pool
+		vk::CommandPoolCreateInfo pool_info = {};
+		pool_info.queueFamilyIndex = m_graphics->get_device_manager().get_queue_family_indices().graphics_family;
+		pool_info.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+		m_vk_command_pool = m_graphics->get_logical_device().createCommandPool(pool_info);
+		dk_assert(m_vk_command_pool);
+
+		// Create command buffer
+		vk::CommandBufferAllocateInfo alloc_info = {};
+		alloc_info.commandPool = m_vk_command_pool;
+		alloc_info.level = vk::CommandBufferLevel::ePrimary;
+		alloc_info.commandBufferCount = 1;
+		m_vk_primary_command_buffer = m_graphics->get_logical_device().allocateCommandBuffers(alloc_info)[0];
+		dk_assert(m_vk_primary_command_buffer);
+
+		// Create semaphores
+		vk::SemaphoreCreateInfo semaphore_info = {};
+		m_vk_image_available = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		m_vk_on_screen_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		m_vk_off_screen_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		dk_assert(m_vk_image_available);
+		dk_assert(m_vk_on_screen_rendering_finished);
+		dk_assert(m_vk_off_screen_rendering_finished);
+
+		// Create camera allocator
+		m_cameras = std::make_unique<ResourceAllocator<VirtualCamera>>(1);
+
 		// Create on screen pass
 		{
 			// Describes color attachment usage
@@ -175,10 +218,10 @@ namespace dk
 			},
 			std::vector<dk::Vertex>
 			{
-				{ glm::vec3(-1, -1,  0), glm::vec2(1, 1) },
-				{ glm::vec3( 1, -1,  0), glm::vec2(0, 1) },
-				{ glm::vec3( 1,  1,  0), glm::vec2(0, 0) },
-				{ glm::vec3(-1,  1,  0), glm::vec2(1, 0) }
+				{ glm::vec3(-1, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0) },
+				{ glm::vec3( 1, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0) },
+				{ glm::vec3( 1,  1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0) },
+				{ glm::vec3(-1,  1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0) }
 			}
 		);
 
@@ -268,9 +311,9 @@ namespace dk
 
 			vk::PipelineColorBlendAttachmentState color_blend_attachment = {};
 			color_blend_attachment.colorWriteMask = vk::ColorComponentFlagBits::eR |
-				vk::ColorComponentFlagBits::eG |
-				vk::ColorComponentFlagBits::eB |
-				vk::ColorComponentFlagBits::eA;
+													vk::ColorComponentFlagBits::eG |
+													vk::ColorComponentFlagBits::eB |
+													vk::ColorComponentFlagBits::eA;
 			color_blend_attachment.blendEnable = VK_FALSE;
 			color_blend_attachment.srcColorBlendFactor = vk::BlendFactor::eOne;
 			color_blend_attachment.dstColorBlendFactor = vk::BlendFactor::eZero;
@@ -351,8 +394,13 @@ namespace dk
 		}
 	}
 
-	void ForwardRenderer::shutdown()
+	void Renderer::shutdown()
 	{
+		// Wait for logical device
+		m_graphics->get_device_manager().get_graphics_queue().waitIdle();
+		m_graphics->get_device_manager().get_present_queue().waitIdle();
+		m_graphics->get_logical_device().waitIdle();
+
 		// Destroy thread pool
 		m_thread_pool->wait();
 		m_thread_pool.reset();
@@ -369,10 +417,54 @@ namespace dk
 		get_graphics().get_logical_device().destroyShaderModule(m_screen_shader.vk_fragment_shader_module);
 		get_graphics().get_logical_device().destroyDescriptorSetLayout(m_screen_shader.vk_descriptor_set_layout);
 
-		Renderer::shutdown();
+		// Destroy camera allocator
+		for (size_t i = 0; i < m_cameras->max_allocated(); ++i)
+			if (m_cameras->is_allocated(i))
+				destroy_camera(Handle<VirtualCamera>(i, m_cameras.get()));
+		m_cameras.reset();
+
+		// Destroy semaphores
+		m_graphics->get_logical_device().destroySemaphore(m_vk_image_available);
+		m_graphics->get_logical_device().destroySemaphore(m_vk_on_screen_rendering_finished);
+		m_graphics->get_logical_device().destroySemaphore(m_vk_off_screen_rendering_finished);
+
+		// Destroy command pool
+		m_graphics->get_logical_device().destroyCommandPool(m_vk_command_pool);
+
+		// Destroy framebuffers
+		for (auto& framebuffer : m_vk_framebuffers)
+			m_graphics->get_logical_device().destroyFramebuffer(framebuffer);
+
+		// Destroy render passes
+		m_graphics->get_logical_device().destroyRenderPass(m_vk_shader_pass);
+		m_graphics->get_logical_device().destroyRenderPass(m_vk_on_screen_pass);
+
+		// Destroy swapchain
+		m_swapchain_manager.reset();
 	}
 
-	void ForwardRenderer::render()
+	void Renderer::flush_queues()
+	{
+		m_renderable_objects.clear();
+	}
+
+	void Renderer::destroy_camera(Handle<VirtualCamera> camera)
+	{
+		dk_assert(camera.allocator == m_cameras.get() && m_cameras->is_allocated(camera.id));
+
+		camera->command_buffer.free();
+		get_graphics().get_logical_device().destroyFramebuffer(camera->framebuffer);
+
+		for (auto& attachment : camera->attachments)
+		{
+			attachment->free();
+			m_texture_allocator->deallocate(attachment.id);
+		}
+
+		m_cameras->deallocate(camera.id);
+	}
+
+	void Renderer::render()
 	{
 		// Wait for present queue to finish if needed
 		get_graphics().get_device_manager().get_present_queue().waitIdle();
@@ -439,7 +531,7 @@ namespace dk
 		flush_queues();
 	}
 
-	void ForwardRenderer::generate_primary_command_buffer(uint32_t image_index)
+	void Renderer::generate_primary_command_buffer(uint32_t image_index)
 	{
 		// Begin recording to primary command buffer
 		vk::CommandBufferBeginInfo begin_info = {};
@@ -497,7 +589,7 @@ namespace dk
 		get_primary_command_buffer().end();
 	}
 
-	void ForwardRenderer::render_to_camera(Handle<VirtualCamera> camera)
+	void Renderer::render_to_camera(Handle<VirtualCamera> camera)
 	{
 		vk::CommandBufferBeginInfo cmd_buf_info = {};
 		cmd_buf_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
@@ -545,7 +637,7 @@ namespace dk
 		get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
 	}
 
-	std::vector<vk::CommandBuffer> ForwardRenderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
+	std::vector<vk::CommandBuffer> Renderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
 	{
 		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
 
@@ -617,7 +709,7 @@ namespace dk
 		return command_buffers;
 	}
 
-	Handle<VirtualCamera> ForwardRenderer::create_camera()
+	Handle<VirtualCamera> Renderer::create_camera()
 	{
 		// Resize the array if necessary
 		if (m_cameras->num_allocated() == m_cameras->max_allocated())
@@ -716,7 +808,7 @@ namespace dk
 		return camera;
 	}
 
-	void ForwardRenderer::set_main_camera(Handle<VirtualCamera> camera)
+	void Renderer::set_main_camera(Handle<VirtualCamera> camera)
 	{
 		m_main_camera = camera;
 
