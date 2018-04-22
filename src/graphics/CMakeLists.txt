@@ -24,7 +24,6 @@ set(DUCK_GRAPHICS_HDRS
 	swapchain_manager.hpp
 	texture.hpp
 	shader.hpp
-	forward_renderer.hpp
 	command_manager.hpp
 	mesh.hpp
 	material.hpp
@@ -40,7 +39,6 @@ set(DUCK_GRAPHICS_SRCS
 	swapchain_manager.cpp
 	texture.cpp
 	shader.cpp
-	forward_renderer.cpp
 	command_manager.cpp
 	mesh.cpp
 	material.cpp

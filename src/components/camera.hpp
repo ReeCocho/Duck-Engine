@@ -40,7 +40,82 @@ namespace dk
 		 */
 		glm::mat4 get_pv_matrix() const
 		{
-			return m_proj_view;
+			return m_projection * m_view;
+		}
+
+		/**
+		 * @brief Check if a point is inside the cameras frustum.
+		 * @param Point.
+		 * @return If the point is inside.
+		 */
+		bool check_inside_frustum(glm::vec3 p);
+
+		/**
+		 * @brief Check if a sphere intersects or is inside the cameras frustum.
+		 * @param Center.
+		 * @param Radius.
+		 * @return If the sphere is inside/intersects.
+		 */
+		bool check_inside_frustum(glm::vec3 c, float r);
+
+		/**
+		 * @brief Get field of view.
+		 * @return Field of view.
+		 */
+		float get_fov() const
+		{
+			return m_field_of_view;
+		}
+
+		/**
+		 * @brief Get near clipping plane.
+		 * @return Near clipping plane.
+		 */
+		float get_near_clipping_plane() const
+		{
+			return m_near_clipping_plane;
+		}
+
+		/**
+		 * @brief Get far clipping plane.
+		 * @return Far clipping plane.
+		 */
+		float get_far_clipping_plane() const
+		{
+			return m_far_clipping_plane;
+		}
+
+		/**
+		 * @brief Set field of view.
+		 * @param New field of view.
+		 * @return New field of view.
+		 */
+		float set_fov(float fov)
+		{
+			m_field_of_view = fov;
+			return m_field_of_view;
+		}
+
+		/**
+		 * @brief Set near clipping plane.
+		 * @param New near clipping plane.
+		 * @return New near clipping plane.
+		 */
+		float set_near_clipping_plane(float ncp)
+		{
+			m_near_clipping_plane = ncp;
+			return m_near_clipping_plane;
+		}
+
+		/**
+		 * @brief Set far clipping plane.
+		 * @param New far clipping plane.
+		 * @return New far clipping plane.
+		 */
+		float set_far_clipping_plane(float fcp)
+		{
+			m_far_clipping_plane = fcp;
+			return m_far_clipping_plane;
 		}
 
 	private:
@@ -51,11 +126,14 @@ namespace dk
 		/** Virtual camera from renderer. */
 		Handle<VirtualCamera> m_virtual_camera = {};
 
-		/** Projection-view matrix. */
-		glm::mat4 m_proj_view = {};
+		/** Projection furstum. */
+		glm::mat4 m_projection = {};
+
+		/** View matrix. */
+		glm::mat4 m_view = {};
 
 		/** Field of view. */
-		float m_field_of_view = 80.0f;
+		float m_field_of_view = 100.0f;
 
 		/** Near clipping plane. */
 		float m_near_clipping_plane = 0.03f;

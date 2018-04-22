@@ -25,7 +25,7 @@ namespace dk
 	{
 		Graphics graphics = {};
 
-		RendererType renderer = {};
+		Renderer renderer = {};
 
 		ResourceManager resource_manager = {};
 
@@ -39,7 +39,7 @@ namespace dk
 		{
 			::new(&graphics)(Graphics)(thread_count, name, width, height);
 			::new(&resource_manager)(ResourceManager)(static_cast<Renderer*>(&renderer));
-			::new(&renderer)(RendererType)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+			::new(&renderer)(Renderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
 			input = Input();
 			scene = {};
 

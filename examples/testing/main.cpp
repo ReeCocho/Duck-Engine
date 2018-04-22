@@ -32,6 +32,7 @@ public:
 	{
 		dk::engine::input.register_axis("Horizontal", { { dk::KeyCode::A, -1.0f }, { dk::KeyCode::D, 1.0f }});
 		dk::engine::input.register_axis("Vertical", { { dk::KeyCode::W, 1.0f },{ dk::KeyCode::S, -1.0f } });
+		dk::engine::input.register_button("MouseLock", dk::KeyCode::M);
 	 }
 
 	~CameraControllerSystem() = default;
@@ -48,6 +49,12 @@ public:
 		float x = dk::engine::input.get_axis("Horizontal");
 		float y = dk::engine::input.get_axis("Vertical");
 
+		if (dk::engine::input.get_button_down("MouseLock"))
+		{
+			m_mouse_lock = !m_mouse_lock;
+			dk::engine::input.set_locked_mouse(m_mouse_lock);
+		}
+
 		for (dk::Handle<CameraController> controller : *this)
 		{
 			auto ea = controller->m_transform->get_euler_angles();
@@ -61,11 +68,15 @@ public:
 			controller->m_transform->mod_position(controller->m_transform->get_right() * x * delta_time);
 		}
 	}
+
+private:
+
+	bool m_mouse_lock = false;
 };
 
 int main()
 {
-	dk::engine::initialize(2, "Test Window", 1280, 720);
+	dk::engine::initialize(4, "Test Window", 1280, 720);
 
 	// Add systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
@@ -75,17 +86,19 @@ int main()
 
 	auto shader = dk::engine::resource_manager.create_shader
 	(
+		"standard",
 		dk::read_binary_file("shaders/standard.vert.spv"),
 		dk::read_binary_file("shaders/standard.frag.spv")
 	);
 
 	auto texture = dk::engine::resource_manager.create_texture("textures/CoolCat.JPG", vk::Filter::eLinear);
 
-	auto material = dk::engine::resource_manager.create_material(shader);
+	auto material = dk::engine::resource_manager.create_material("standard", shader);
 	material->set_texture(0, texture);
 
 	auto mesh = dk::engine::resource_manager.create_mesh
 	(
+		"quad",
 		std::vector<uint16_t>
 		{
 			0, 1, 2,
@@ -93,10 +106,10 @@ int main()
 		},
 		std::vector<dk::Vertex>
 		{
-			{ glm::vec3(-1, -1,  0), glm::vec2(1, 1) },
-			{ glm::vec3( 1, -1,  0), glm::vec2(0, 1) },
-			{ glm::vec3( 1,  1,  0), glm::vec2(0, 0) },
-			{ glm::vec3(-1,  1,  0), glm::vec2(1, 0) }
+			{ glm::vec3(-1, -1,  0), glm::vec2(1, 1), glm::vec3(0, 0, 1) },
+			{ glm::vec3( 1, -1,  0), glm::vec2(0, 1), glm::vec3(0, 0, 1) },
+			{ glm::vec3( 1,  1,  0), glm::vec2(0, 0), glm::vec3(0, 0, 1) },
+			{ glm::vec3(-1,  1,  0), glm::vec2(1, 0), glm::vec3(0, 0, 1) }
 		}
 	);
 

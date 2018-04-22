@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
+#include <utilities\threading.hpp>
 #include "graphics.hpp"
 #include "swapchain_manager.hpp"
 #include "shader.hpp"
@@ -83,12 +84,12 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		virtual ~Renderer() = default;
+		~Renderer() = default;
 
 		/**
 		 * @brief Shutdown the renderer.
 		 */
-		virtual void shutdown();
+		void shutdown();
 
 		/**
 		 * @brief Get graphics context.
@@ -129,13 +130,13 @@ namespace dk
 		/**
 		 * @brief Render everything to the screen.
 		 */
-		virtual void render() = 0;
+		void render();
 		
 		/**
 		 * @brief Create a virtual camera
 		 * @return Virtual camera.
 		 */
-		virtual Handle<VirtualCamera> create_camera() = 0;
+		Handle<VirtualCamera> create_camera();
 
 		/**
 		 * @brief Destroy a virtual camera.
@@ -147,7 +148,7 @@ namespace dk
 		 * @brief Change the main camera.
 		 * @param New main camera.
 		 */
-		virtual void set_main_camera(Handle<VirtualCamera> camera) = 0;
+		void set_main_camera(Handle<VirtualCamera> camera);
 
 		/**
 		 * @brief Submit a renderable object.
@@ -158,7 +159,39 @@ namespace dk
 			m_renderable_objects.push_back(ro);
 		}
 
-	protected:
+	private:
+
+		/**
+		 * @brief Copy constructor.
+		 * @param Other rendering engine.
+		 */
+		Renderer(const Renderer& other) = default;
+
+		/**
+		 * @brief Assignment operator.
+		 * @param Other rendering engine.
+		 * @return This.
+		 */
+		Renderer& operator=(const Renderer& other) { return *this; };
+
+		/**
+		 * @brief Generate the primary command buffer for rendering.
+		 * @param Image index.
+		 */
+		void generate_primary_command_buffer(uint32_t image_index);
+
+		/**
+		 * @brief Render to camera.
+		 * @param Camera handle.
+		 */
+		void render_to_camera(Handle<VirtualCamera> camera);
+
+		/**
+		 * @brief Generate command buffers for renderable objects.
+		 * @param Inheritence info for the buffers.
+		 * @return Vector of command buffers to submit.
+		 */
+		std::vector<vk::CommandBuffer> generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info);
 
 		/**
 		 * @brief Clear the rendering queues.
@@ -200,23 +233,6 @@ namespace dk
 		/** Handle of main camera. */
 		Handle<VirtualCamera> m_main_camera = Handle<VirtualCamera>(0, nullptr);
 
-	private:
-
-		/**
-		 * @brief Copy constructor.
-		 * @param Other rendering engine.
-		 */
-		Renderer(const Renderer& other) = default;
-
-		/**
-		 * @brief Assignment operator.
-		 * @param Other rendering engine.
-		 * @return This.
-		 */
-		Renderer& operator=(const Renderer& other) { return *this; };
-
-
-
 		/** Graphics context. */
 		Graphics* m_graphics;
 
@@ -228,5 +244,37 @@ namespace dk
 
 		/** Primary graphics command buffer. */
 		vk::CommandBuffer m_vk_primary_command_buffer;
+
+		/** Thread pool for rendering. */
+		std::unique_ptr<ThreadPool> m_thread_pool;
+
+		/** Screen quad. */
+		Handle<Mesh> m_quad;
+
+		/** Screen shader */
+		struct
+		{
+			/** Vertex shader module. */
+			vk::ShaderModule vk_vertex_shader_module;
+
+			/** Fragment shader module. */
+			vk::ShaderModule vk_fragment_shader_module;
+
+			/** Descriptor set layout. */
+			vk::DescriptorSetLayout vk_descriptor_set_layout;
+
+			/** Descriptor pool. */
+			vk::DescriptorPool vk_descriptor_pool;
+
+			/** Descriptor set. */
+			vk::DescriptorSet vk_descriptor_set;
+
+			/** Graphics pipeline layout */
+			vk::PipelineLayout vk_pipeline_layout;
+
+			/** Graphics pipeline. */
+			vk::Pipeline vk_graphics_pipeline;
+
+		} m_screen_shader;
 	};
 }

@@ -8,7 +8,7 @@
 
 /** Includes. */
 #include "graphics\graphics.hpp"
-#include "graphics\forward_renderer.hpp"
+#include "graphics\renderer.hpp"
 #include "input.hpp"
 #include "ecs\scene.hpp"
 #include "resource_manager.hpp"
@@ -17,16 +17,11 @@ namespace dk
 {
 	namespace engine
 	{
-		/** Renderer type. */
-		using RendererType = ForwardRenderer;
-
-
-
 		/** Graphics context. */
 		extern Graphics graphics;
 
 		/** Rendering engine. */
-		extern RendererType renderer;
+		extern Renderer renderer;
 
 		/** Resource manager. */
 		extern ResourceManager resource_manager;

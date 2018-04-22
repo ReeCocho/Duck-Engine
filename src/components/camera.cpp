@@ -13,6 +13,22 @@ namespace dk
 {
 	Handle<Camera> CameraSystem::main_camera = Handle<Camera>(0, nullptr);
 
+	bool Camera::check_inside_frustum(glm::vec3 p)
+	{
+		// Point in clip space
+		glm::vec4 p_clip = m_projection * m_view * glm::vec4(p, 1.0f);
+		return	glm::abs(p_clip.x) < p_clip.w &&
+				glm::abs(p_clip.y) < p_clip.w &&
+				0.0f < p_clip.z &&
+				p_clip.z < p_clip.w;
+	}
+
+	// TODO: Implementation
+	bool Camera::check_inside_frustum(glm::vec3 c, float r)
+	{
+		return false;
+	}
+
 
 
 	void CameraSystem::on_begin()
@@ -26,14 +42,19 @@ namespace dk
 	{
 		for (Handle<Camera> camera : *this)
 		{
-			camera->m_proj_view = glm::perspective
+			float aspect_ratio = static_cast<float>(engine::graphics.get_width()) / static_cast<float>(engine::graphics.get_height());
+
+			// Create projection frustum
+			camera->m_projection = glm::perspective
 			(
 				glm::radians(camera->m_field_of_view),
-				static_cast<float>(engine::graphics.get_width())/static_cast<float>(engine::graphics.get_height()),
+				aspect_ratio,
 				camera->m_near_clipping_plane,
 				camera->m_far_clipping_plane
-			) * 
-			glm::lookAt
+			);
+
+			// Create view matrix
+			camera->m_view = glm::lookAt
 			(
 				camera->m_transform->get_position(), 
 				camera->m_transform->get_position() + camera->m_transform->get_forward(), 

@@ -8,7 +8,7 @@
 
 /** Includes. */
 #include <SDL.h>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <tuple>
@@ -441,16 +441,16 @@ namespace dk
 		std::tuple<bool, bool> m_middle_mouse_button = {};
 
 		/** Current key states. */
-		std::map<KeyCode, bool> m_current_keys = {};
+		std::unordered_map<KeyCode, bool> m_current_keys = {};
 
 		/** Last key states. */
-		std::map<KeyCode, bool> m_last_keys = {};
+		std::unordered_map<KeyCode, bool> m_last_keys = {};
 
 		/** Buttons. */
-		std::map<std::string, KeyCode> m_buttons = {};
+		std::unordered_map<std::string, KeyCode> m_buttons = {};
 
 		/** Axis'. */
-		std::map<std::string, KeyAxis> m_axis = {};
+		std::unordered_map<std::string, KeyAxis> m_axis = {};
 
 		/** Have we gathered the mouse delta since the last poll_events() call? */
 		bool m_found_mouse_delta = false;

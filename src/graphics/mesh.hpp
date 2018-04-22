@@ -18,10 +18,16 @@ namespace dk
 	struct Vertex
 	{
 		/** Position. */
-		glm::vec3 position;
+		glm::vec3 position = {};
 
 		/** UV coordinate. */
-		glm::vec2 uv;
+		glm::vec2 uv = {};
+
+		/** Normal. */
+		glm::vec3 normal = {};
+
+		/** Tangent. */
+		glm::vec3 tangent = {};
 
 		/**
 		 * @brief Description of vertex bindings used by Vulkan.
@@ -33,7 +39,27 @@ namespace dk
 		 * @brief Array of descriptions for each vertex input.
 		 * @note Vertex input descriptions.
 		 */
-		static std::array<vk::VertexInputAttributeDescription, 2> get_attribute_descriptions();
+		static std::array<vk::VertexInputAttributeDescription, 4> get_attribute_descriptions();
+
+		/**
+		 * @brief Equivilence operator.
+		 * @param Other vertex.
+		 * @return If the vertices are equal.
+		 */
+		bool operator==(const Vertex& other) const
+		{
+			return position == other.position && uv == other.uv && normal == other.normal && tangent == other.tangent;
+		}
+
+		/**
+		 * @brief Unequivilence operator.
+		 * @param Other vertex.
+		 * @return If the vertices are not equal.
+		 */
+		bool operator!=(const Vertex& other) const
+		{
+			return position != other.position || uv != other.uv || normal != other.normal || tangent != other.tangent;
+		}
 	};
 
 
@@ -55,6 +81,7 @@ namespace dk
 		 * @param Graphics context.
 		 * @param Indices.
 		 * @param Vertices.
+		 * @note Tangents will be calculated, so don't worry about doing that yourself.
 		 */
 		Mesh(Graphics* graphics, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
 
@@ -93,10 +120,27 @@ namespace dk
 		 */
 		size_t get_index_count() const
 		{
-			return m_index_count;
+			return m_indices.size();
 		}
 
 	private:
+
+		/**
+		 * @brief Initialize the index buffer.
+		 */
+		void init_index_buffer();
+
+		/**
+		 * @brief Initialize the vertex buffer.
+		 */
+		void init_vertex_buffer();
+
+		/**
+		 * @brief Calculate tangents and reinitialize buffers.
+		 */
+		void calculate_tangents();
+
+
 
 		/** Graphics context. */
 		Graphics* m_graphics;
@@ -107,7 +151,10 @@ namespace dk
 		/** Index buffer. */
 		VkMemBuffer m_index_buffer;
 
-		/** Number of elements. */
-		size_t m_index_count = 0;
+		/** Indices. */
+		std::vector<uint16_t> m_indices = {};
+
+		/** Vertices. */
+		std::vector<Vertex> m_vertices = {};
 	};
 }
