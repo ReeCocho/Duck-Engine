@@ -7,8 +7,6 @@ endif()
 set(GLSL_SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/shaders/standard.frag
     ${CMAKE_SOURCE_DIR}/src/shaders/standard.vert
-	${CMAKE_SOURCE_DIR}/src/shaders/forward.frag
-    ${CMAKE_SOURCE_DIR}/src/shaders/forward.vert
 )
 
 foreach(GLSL ${GLSL_SOURCE_FILES})

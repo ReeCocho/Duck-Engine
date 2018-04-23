@@ -69,7 +69,7 @@ namespace dk
 			attachment.storeOp = vk::AttachmentStoreOp::eStore;
 			attachment.stencilLoadOp = vk::AttachmentLoadOp::eClear;
 			attachment.stencilStoreOp = vk::AttachmentStoreOp::eStore;
-			attachment.initialLayout = vk::ImageLayout::eUndefined;
+			attachment.initialLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 			attachment.finalLayout = vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal;
 
 			vk::AttachmentReference attachment_ref = {};
@@ -85,10 +85,10 @@ namespace dk
 			vk::SubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
-			dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			dependency.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
 			dependency.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
 			dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-			dependency.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+			dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 			dependency.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
 			vk::RenderPassCreateInfo render_pass_info = {};
@@ -121,8 +121,8 @@ namespace dk
 			attachment_descs[1].storeOp = vk::AttachmentStoreOp::eStore;
 			attachment_descs[1].stencilLoadOp = vk::AttachmentLoadOp::eLoad;
 			attachment_descs[1].stencilStoreOp = vk::AttachmentStoreOp::eStore;
-			attachment_descs[1].initialLayout = vk::ImageLayout::eUndefined;
-			attachment_descs[1].finalLayout = vk::ImageLayout::ePresentSrcKHR;
+			attachment_descs[1].initialLayout = vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal;
+			attachment_descs[1].finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
 			std::array<vk::AttachmentReference, 2> attachment_refs = {};
 			attachment_refs[0].attachment = 0;
@@ -174,30 +174,15 @@ namespace dk
 			m_vk_shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
 		}
 
-		// Create framebuffers
-		for (size_t i = 0; i < m_vk_framebuffers.size(); i++) 
-		{
-			auto attachment = get_swapchain_manager().get_image_view(i);
-
-			vk::FramebufferCreateInfo framebuffer_info = {};
-			framebuffer_info.renderPass = m_vk_shader_pass;
-			framebuffer_info.attachmentCount = 1;
-			framebuffer_info.pAttachments = &attachment;
-			framebuffer_info.width = get_swapchain_manager().get_image_extent().width;
-			framebuffer_info.height = get_swapchain_manager().get_image_extent().height;
-			framebuffer_info.layers = 1;
-
-			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
-			dk_assert(m_vk_framebuffers[i]);
-		}
-
 		// Create depth image
 		{
+			auto depth_format = find_best_depth_format(get_graphics().get_physical_device());
+
 			// Depth attachment
 			FrameBufferAttachment depth = get_graphics().create_attachment
 			(
-				find_best_depth_format(get_graphics().get_physical_device()),
-				vk::ImageUsageFlagBits::eDepthStencilAttachment
+				depth_format,
+				vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
 			);
 
 			// Create sampler to sample from the attachments
@@ -247,6 +232,35 @@ namespace dk
 
 			// Create framebuffer
 			m_depth_prepass_image.framebuffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
+
+			m_graphics->transition_image_layout
+			(
+				m_depth_prepass_image.depth_texture->get_image(), 
+				depth_format, 
+				vk::ImageLayout::eUndefined, 
+				vk::ImageLayout::eDepthStencilAttachmentOptimal
+			);
+		}
+
+		// Create framebuffers
+		for (size_t i = 0; i < m_vk_framebuffers.size(); i++)
+		{
+			std::array<vk::ImageView, 2> attachments =
+			{
+				get_swapchain_manager().get_image_view(i),
+				m_depth_prepass_image.depth_texture->get_image_view()
+			};
+
+			vk::FramebufferCreateInfo framebuffer_info = {};
+			framebuffer_info.renderPass = m_vk_shader_pass;
+			framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+			framebuffer_info.pAttachments = attachments.data();
+			framebuffer_info.width = get_swapchain_manager().get_image_extent().width;
+			framebuffer_info.height = get_swapchain_manager().get_image_extent().height;
+			framebuffer_info.layers = 1;
+
+			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
+			dk_assert(m_vk_framebuffers[i]);
 		}
 
 		// Create thread pool
@@ -299,9 +313,6 @@ namespace dk
 		// Wait for present queue to finish if needed
 		get_graphics().get_device_manager().get_present_queue().waitIdle();
 
-		// Clear rendering queues
-		flush_queues();
-
 		// Get image index to render too
 		uint32_t image_index = get_graphics().get_logical_device().acquireNextImageKHR
 		(
@@ -310,6 +321,9 @@ namespace dk
 			m_vk_image_available,
 			vk::Fence()
 		).value;
+
+		// Perform depth prepass
+		do_depth_prepass();
 
 		// Prepare primary command buffer
 		generate_primary_command_buffer(image_index);
@@ -332,7 +346,7 @@ namespace dk
 		submit_info.pWaitSemaphores = wait_semaphores.data();
 		submit_info.pWaitDstStageMask = wait_stages.data();
 		submit_info.commandBufferCount = 1;
-		submit_info.pCommandBuffers = &get_primary_command_buffer();
+		submit_info.pCommandBuffers = &m_vk_primary_command_buffer;
 		submit_info.signalSemaphoreCount = 1;
 		submit_info.pSignalSemaphores = &m_vk_on_screen_rendering_finished;
 
@@ -353,110 +367,155 @@ namespace dk
 		flush_queues();
 	}
 
-	void Renderer::generate_primary_command_buffer(uint32_t image_index)
-	{
-		// Begin recording to primary command buffer
-		vk::CommandBufferBeginInfo begin_info = {};
-		begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
-
-		get_primary_command_buffer().begin(begin_info);
-
-		vk::RenderPassBeginInfo render_pass_info = {};
-		render_pass_info.renderPass = m_vk_on_screen_pass;
-		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
-		render_pass_info.renderArea.offset = { 0, 0 };
-		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
-
-		vk::ClearValue clear_color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
-		render_pass_info.clearValueCount = 2;
-		render_pass_info.pClearValues = &clear_color;
-
-		// Begin render pass
-		get_primary_command_buffer().beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
-
-		// Set viewport
-		vk::Viewport viewport = {};
-		viewport.setHeight(static_cast<float>(get_graphics().get_height()));
-		viewport.setWidth(static_cast<float>(get_graphics().get_width()));
-		viewport.setMinDepth(0);
-		viewport.setMaxDepth(1);
-		get_primary_command_buffer().setViewport(0, 1, &viewport);
-
-		// Set scissor
-		vk::Rect2D scissor = {};
-		scissor.setExtent(get_swapchain_manager().get_image_extent());
-		scissor.setOffset({ 0, 0 });
-		get_primary_command_buffer().setScissor(0, 1, &scissor);
-
-		get_primary_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_screen_shader.vk_graphics_pipeline);
-
-		const auto& mem_buffer = m_quad->get_vertex_buffer();
-		vk::DeviceSize offsets[] = { 0 };
-
-		get_primary_command_buffer().bindDescriptorSets
-		(
-			vk::PipelineBindPoint::eGraphics,
-			m_screen_shader.vk_pipeline_layout,
-			0,
-			m_screen_shader.vk_descriptor_set,
-			{}
-		);
-
-		get_primary_command_buffer().bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
-		get_primary_command_buffer().bindIndexBuffer(m_quad->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
-		get_primary_command_buffer().drawIndexed(static_cast<uint32_t>(m_quad->get_index_count()), 1, 0, 0, 0);
-
-		// End render pass and command buffer
-		get_primary_command_buffer().endRenderPass();
-		get_primary_command_buffer().end();
-	}
-
-	void Renderer::render_to_camera(Handle<VirtualCamera> camera)
+	void Renderer::do_depth_prepass()
 	{
 		vk::CommandBufferBeginInfo cmd_buf_info = {};
 		cmd_buf_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 		cmd_buf_info.pInheritanceInfo = nullptr;
 
 		// Begin renderpass
-		camera->command_buffer.get_command_buffer().begin(cmd_buf_info);
+		m_vk_primary_command_buffer.begin(cmd_buf_info);
 
 		// Clear values for all attachments written in the fragment shader
-		std::array<vk::ClearValue, 2> clear_values;
-		clear_values[0].setColor(std::array<float, 4>{ camera->clear_color.x, camera->clear_color.y, camera->clear_color.z, 0.0f });
-		clear_values[1].setDepthStencil({ 1.0f, 0 });
+		vk::ClearValue clear_value = {};
+		clear_value.setDepthStencil({ 1.0f, 0 });
 
 		vk::RenderPassBeginInfo render_pass_begin_info = {};
-		render_pass_begin_info.renderPass = m_vk_shader_pass;
-		render_pass_begin_info.framebuffer = camera->framebuffer;
-		render_pass_begin_info.renderArea.extent = vk::Extent2D(camera->width, camera->height);
+		render_pass_begin_info.renderPass = m_vk_depth_prepass;
+		render_pass_begin_info.framebuffer = m_depth_prepass_image.framebuffer;
+		render_pass_begin_info.renderArea.extent = vk::Extent2D(m_graphics->get_width(), m_graphics->get_height());
 		render_pass_begin_info.renderArea.offset = vk::Offset2D(0, 0);
-		render_pass_begin_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-		render_pass_begin_info.pClearValues = clear_values.data();
+		render_pass_begin_info.clearValueCount = 1;
+		render_pass_begin_info.pClearValues = &clear_value;
+
+		// Inheritance info for the meshes command buffers
+		vk::CommandBufferInheritanceInfo inheritance_info = {};
+		inheritance_info.renderPass = m_vk_depth_prepass;
+		inheritance_info.framebuffer = m_depth_prepass_image.framebuffer;
+
+		m_vk_primary_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+
+		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
+
+		// Wait for threads to finish
+		m_thread_pool->wait();
+
+		// List of jobs.
+		// First dimension is the queue.
+		// Second dimension is the job list.
+		std::vector<std::vector<std::function<void(void)>>> jobs(get_graphics().get_command_manager().get_pool_count());
+
+		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
+		{
+			auto& command_buffer = m_renderable_objects[i].command_buffer.get_command_buffer();
+			command_buffers[i] = command_buffer;
+
+			jobs[m_renderable_objects[i].command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
+			{
+				vk::CommandBufferBeginInfo begin_info = {};
+				begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+				begin_info.pInheritanceInfo = &inheritance_info;
+
+				// Draw
+				command_buffer.begin(begin_info);
+
+				// Set viewport
+				vk::Viewport viewport = {};
+				viewport.setHeight(static_cast<float>(get_graphics().get_height()));
+				viewport.setWidth(static_cast<float>(get_graphics().get_width()));
+				viewport.setMinDepth(0);
+				viewport.setMaxDepth(1);
+				command_buffer.setViewport(0, 1, &viewport);
+
+				// Set scissor
+				vk::Rect2D scissor = {};
+				scissor.setExtent(get_swapchain_manager().get_image_extent());
+				scissor.setOffset({ 0, 0 });
+				command_buffer.setScissor(0, 1, &scissor);
+
+				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_depth_pipeline());
+
+				const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
+				vk::DeviceSize offsets[] = { 0 };
+
+				command_buffer.bindDescriptorSets
+				(
+					vk::PipelineBindPoint::eGraphics,
+					m_renderable_objects[i].shader->get_depth_pipeline_layout(),
+					0,
+					static_cast<uint32_t>(m_renderable_objects[i].descriptor_sets.size()),
+					m_renderable_objects[i].descriptor_sets.data(),
+					0,
+					nullptr
+				);
+
+				command_buffer.bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
+				command_buffer.bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+				command_buffer.drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
+				command_buffer.end();
+			}));
+		}
+
+		for (size_t i = 0; i < jobs.size(); ++i)
+			m_thread_pool->workers[i]->add_jobs(jobs[i]);
+
+		// Wait for threads to finish
+		m_thread_pool->wait();
+
+		// Execute command buffers and perform lighting
+		if (command_buffers.size() > 0)
+			m_vk_primary_command_buffer.executeCommands(command_buffers);
+
+		m_vk_primary_command_buffer.endRenderPass();
+		m_vk_primary_command_buffer.end();
+
+		vk::SubmitInfo submit_info = {};
+		submit_info.commandBufferCount = 1;
+		submit_info.pCommandBuffers = &m_vk_primary_command_buffer;
+		submit_info.signalSemaphoreCount = 1;
+		submit_info.pSignalSemaphores = &m_vk_depth_prepass_finished;
+
+		// Submit draw command
+		get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
+		get_graphics().get_device_manager().get_graphics_queue().waitIdle();
+	}
+
+	void Renderer::generate_primary_command_buffer(uint32_t image_index)
+	{
+		// Begin recording to primary command buffer
+		vk::CommandBufferBeginInfo begin_info = {};
+		begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+
+		m_vk_primary_command_buffer.begin(begin_info);
+
+		vk::RenderPassBeginInfo render_pass_info = {};
+		render_pass_info.renderPass = m_vk_shader_pass;
+		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
+		render_pass_info.renderArea.offset = { 0, 0 };
+		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
 
 		// Inheritance info for the meshes command buffers
 		vk::CommandBufferInheritanceInfo inheritance_info = {};
 		inheritance_info.renderPass = m_vk_shader_pass;
-		inheritance_info.framebuffer = camera->framebuffer;
+		inheritance_info.framebuffer = m_vk_framebuffers[image_index];
 
-		camera->command_buffer.get_command_buffer().beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+		vk::ClearValue clear_color = {};  
+		clear_color.color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		render_pass_info.clearValueCount = 1;
+		render_pass_info.pClearValues = &clear_color;
+
+		// Begin render pass
+		m_vk_primary_command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
 		auto command_buffers = generate_renderable_command_buffers(inheritance_info);
 
-		// Execute command buffers and perform lighting
 		if (command_buffers.size() > 0)
-			camera->command_buffer.get_command_buffer().executeCommands(command_buffers);
+			m_vk_primary_command_buffer.executeCommands(command_buffers);
 
-		camera->command_buffer.get_command_buffer().endRenderPass();
-		camera->command_buffer.get_command_buffer().end();
-
-		vk::SubmitInfo submit_info = {};
-		submit_info.commandBufferCount = 1;
-		submit_info.pCommandBuffers = &camera->command_buffer.get_command_buffer();
-		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores = &m_vk_off_screen_rendering_finished;
-
-		// Submit draw command
-		get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
+		// End render pass and command buffer
+		m_vk_primary_command_buffer.endRenderPass();
+		m_vk_primary_command_buffer.end();
 	}
 
 	std::vector<vk::CommandBuffer> Renderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
@@ -507,7 +566,7 @@ namespace dk
 				command_buffer.bindDescriptorSets
 				(
 					vk::PipelineBindPoint::eGraphics,
-					m_renderable_objects[i].shader->get_pipeline_layout(),
+					m_renderable_objects[i].shader->get_graphics_pipeline_layout(),
 					0,
 					static_cast<uint32_t>(m_renderable_objects[i].descriptor_sets.size()),
 					m_renderable_objects[i].descriptor_sets.data(),

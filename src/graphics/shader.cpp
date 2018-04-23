@@ -209,10 +209,16 @@ namespace dk
 			depth_stencil.front = {};
 			depth_stencil.back = {};
 
-			// Create graphics pipeline layout
+			std::vector<vk::DescriptorSetLayout> descriptor_set_layouts(1 + (m_texture_count > 0 ? 1 : 0));
+			descriptor_set_layouts[0] = m_vk_descriptor_set_layout;
+
+			if (m_texture_count > 0)
+				descriptor_set_layouts[1] = m_vk_texture_descriptor_set_layout;
+
+			// Create depth pipeline layout
 			vk::PipelineLayoutCreateInfo pipeline_layout_info = {};
-			pipeline_layout_info.setLayoutCount = 1;
-			pipeline_layout_info.pSetLayouts = &m_vk_descriptor_set_layout;
+			pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
+			pipeline_layout_info.pSetLayouts = descriptor_set_layouts.data();
 			pipeline_layout_info.pushConstantRangeCount = 0;
 			pipeline_layout_info.pPushConstantRanges = nullptr;
 
@@ -339,7 +345,7 @@ namespace dk
 
 			vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
 			depth_stencil.depthTestEnable = VK_TRUE;
-			depth_stencil.depthWriteEnable = VK_TRUE;
+			depth_stencil.depthWriteEnable = VK_FALSE;
 			depth_stencil.depthCompareOp = vk::CompareOp::eEqual;
 			depth_stencil.depthBoundsTestEnable = VK_FALSE;
 			depth_stencil.minDepthBounds = 0.0f;

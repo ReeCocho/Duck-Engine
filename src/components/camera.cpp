@@ -35,7 +35,6 @@ namespace dk
 	{
 		Handle<Camera> camera = get_component();
 		camera->m_transform = camera->get_entity().get_component<Transform>();
-		camera->m_virtual_camera = dk::engine::renderer.create_camera();
 	}
 
 	void CameraSystem::on_pre_render(float delta_time)
@@ -58,24 +57,21 @@ namespace dk
 			(
 				camera->m_transform->get_position(), 
 				camera->m_transform->get_position() + camera->m_transform->get_forward(), 
-				camera->m_transform->get_up()
+				-camera->m_transform->get_up()
 			);
+
+			if (camera == CameraSystem::main_camera)
+				engine::renderer.set_main_camera_matrix(camera->m_projection * camera->m_view);
 		}
 	}
 
 	void CameraSystem::on_end()
 	{
 		Handle<Camera> camera = get_component();
-		dk::engine::renderer.destroy_camera(camera->m_virtual_camera);
 	}
 
 	void CameraSystem::set_main_camera(Handle<Camera> camera)
 	{
-		if (camera.allocator)
-			dk::engine::renderer.set_main_camera(camera->m_virtual_camera);
-		else
-			dk::engine::renderer.set_main_camera(Handle<VirtualCamera>(0, nullptr));
-
 		main_camera = camera;
 	}
 

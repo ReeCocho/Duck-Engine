@@ -126,6 +126,26 @@ namespace dk
 			m_renderable_objects.push_back(ro);
 		}
 
+		/**
+		 * @brief Set main camera matrix.
+		 * @param Camera matrix.
+		 * @return Camera matrix.
+		 */
+		glm::mat4 set_main_camera_matrix(glm::mat4 mat)
+		{
+			m_camera_matrix = mat;
+			return m_camera_matrix;
+		}
+
+		/**
+		 * @brief Get main camera matrix.
+		 * @return Main camera matrix.
+		 */
+		glm::mat4 get_main_camera_matrix() const
+		{
+			return m_camera_matrix;
+		}
+
 	private:
 
 		/**
@@ -207,6 +227,9 @@ namespace dk
 
 		/** Semaphore to indicate an image is available for rendering too. */
 		vk::Semaphore m_vk_image_available;
+
+		/** Main camera matrix. */
+		glm::mat4 m_camera_matrix = {};
 
 		/**
 		 * @brief Depth prepass image.

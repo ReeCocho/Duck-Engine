@@ -91,7 +91,7 @@ int main()
 		dk::read_binary_file("shaders/standard.frag.spv")
 	);
 
-	auto texture = dk::engine::resource_manager.create_texture("textures/CoolCat.JPG", vk::Filter::eLinear);
+	auto texture = dk::engine::resource_manager.create_texture("textures/CutePom.png", vk::Filter::eLinear);
 
 	auto material = dk::engine::resource_manager.create_material("standard", shader);
 	material->set_texture(0, texture);
@@ -127,12 +127,18 @@ int main()
 		transform->set_euler_angles(glm::vec3(0, 225.0f, 0));
 	}
 
-	// Test quad
+	// Test quad 1
+	// for(float i = 0.0f; i < 50.0f; i += 1.0f)
+	// 	for(float j = 0.0f; j < 50.0f; j += 1.0f)
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 		mesh_renderer->set_material(material);
 		mesh_renderer->set_mesh(mesh);
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_local_scale(glm::vec3(0.5f, 0.5f, 1.0f));
+		// transform->set_position(glm::vec3(i, j, 0));
 	}
 
 	dk::engine::simulate();

@@ -123,9 +123,6 @@ namespace dk
 		/** Transform. */
 		Handle<Transform> m_transform = {};
 
-		/** Virtual camera from renderer. */
-		Handle<VirtualCamera> m_virtual_camera = {};
-
 		/** Projection furstum. */
 		glm::mat4 m_projection = {};
 
