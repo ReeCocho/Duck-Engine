@@ -18,6 +18,7 @@ namespace dk
 		Graphics* graphics,
 		const vk::RenderPass& render_pass,
 		const vk::RenderPass& depth_pass,
+		const std::vector<vk::DescriptorSetLayout>& dsl,
 		const std::vector<char>& vert_byte_code,
 		const std::vector<char>& frag_byte_code
 	) : m_graphics(graphics)
@@ -113,9 +114,9 @@ namespace dk
 			for (size_t i = 0; i < m_texture_count; ++i)
 			{
 				bindings[i].binding = static_cast<uint32_t>(i);
-				bindings[i].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-				bindings[i].descriptorCount = 1;
-				bindings[i].stageFlags = vk::ShaderStageFlagBits::eFragment;
+bindings[i].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+bindings[i].descriptorCount = 1;
+bindings[i].stageFlags = vk::ShaderStageFlagBits::eFragment;
 			}
 
 			vk::DescriptorSetLayoutCreateInfo layout_info = {};
@@ -209,11 +210,14 @@ namespace dk
 			depth_stencil.front = {};
 			depth_stencil.back = {};
 
-			std::vector<vk::DescriptorSetLayout> descriptor_set_layouts(1 + (m_texture_count > 0 ? 1 : 0));
+			std::vector<vk::DescriptorSetLayout> descriptor_set_layouts(1 + dsl.size() + (m_texture_count > 0 ? 1 : 0));
 			descriptor_set_layouts[0] = m_vk_descriptor_set_layout;
 
+			for (size_t i = 1; i < 1 + dsl.size(); ++i)
+				descriptor_set_layouts[i] = dsl[i - 1];
+
 			if (m_texture_count > 0)
-				descriptor_set_layouts[1] = m_vk_texture_descriptor_set_layout;
+				descriptor_set_layouts[descriptor_set_layouts.size() - 1] = m_vk_texture_descriptor_set_layout;
 
 			// Create depth pipeline layout
 			vk::PipelineLayoutCreateInfo pipeline_layout_info = {};
@@ -354,11 +358,14 @@ namespace dk
 			depth_stencil.front = {};
 			depth_stencil.back = {};
 
-			std::vector<vk::DescriptorSetLayout> descriptor_set_layouts(1 + (m_texture_count > 0 ? 1 : 0));
+			std::vector<vk::DescriptorSetLayout> descriptor_set_layouts(1 + dsl.size() + (m_texture_count > 0 ? 1 : 0));
 			descriptor_set_layouts[0] = m_vk_descriptor_set_layout;
 
+			for (size_t i = 1; i < 1 + dsl.size(); ++i)
+				descriptor_set_layouts[i] = dsl[i - 1];
+
 			if (m_texture_count > 0)
-				descriptor_set_layouts[1] = m_vk_texture_descriptor_set_layout;
+				descriptor_set_layouts[descriptor_set_layouts.size() - 1] = m_vk_texture_descriptor_set_layout;
 
 			// Create graphics pipeline layout
 			vk::PipelineLayoutCreateInfo pipeline_layout_info = {};

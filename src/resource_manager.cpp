@@ -176,6 +176,7 @@ namespace dk
 			&m_renderer->get_graphics(),
 			m_renderer->get_shader_render_pass(),
 			m_renderer->get_depth_prepass(),
+			{ m_renderer->get_descriptor_set_layout() },
 			vert_byte_code,
 			frag_byte_code
 		);

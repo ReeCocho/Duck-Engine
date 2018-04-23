@@ -46,18 +46,25 @@ namespace dk
 		vk::CommandBufferAllocateInfo alloc_info = {};
 		alloc_info.commandPool = m_vk_command_pool;
 		alloc_info.level = vk::CommandBufferLevel::ePrimary;
-		alloc_info.commandBufferCount = 1;
-		m_vk_primary_command_buffer = m_graphics->get_logical_device().allocateCommandBuffers(alloc_info)[0];
+		alloc_info.commandBufferCount = 3;
+		auto command_buffers = m_graphics->get_logical_device().allocateCommandBuffers(alloc_info);
+
+		m_vk_primary_command_buffer = command_buffers[0];
+		m_vk_depth_prepass_command_buffer = command_buffers[1];
+		m_vk_rendering_command_buffer = command_buffers[2];
+
 		dk_assert(m_vk_primary_command_buffer);
+		dk_assert(m_vk_depth_prepass_command_buffer);
+		dk_assert(m_vk_rendering_command_buffer);
 
 		// Create semaphores
 		vk::SemaphoreCreateInfo semaphore_info = {};
-		m_vk_image_available = m_graphics->get_logical_device().createSemaphore(semaphore_info);
-		m_vk_on_screen_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
-		m_vk_depth_prepass_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
-		dk_assert(m_vk_image_available);
-		dk_assert(m_vk_on_screen_rendering_finished);
-		dk_assert(m_vk_depth_prepass_finished);
+		m_semaphores.image_available = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		m_semaphores.on_screen_rendering_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		m_semaphores.depth_prepass_finished = m_graphics->get_logical_device().createSemaphore(semaphore_info);
+		dk_assert(m_semaphores.image_available);
+		dk_assert(m_semaphores.on_screen_rendering_finished);
+		dk_assert(m_semaphores.depth_prepass_finished);
 
 		// Create depth prepass
 		{
@@ -99,7 +106,7 @@ namespace dk
 			render_pass_info.dependencyCount = 1;
 			render_pass_info.pDependencies = &dependency;
 
-			m_vk_depth_prepass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
+			m_render_passes.depth_prepass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
 		}
 
 		// Create shader pass
@@ -171,7 +178,7 @@ namespace dk
 			render_pass_info.dependencyCount = static_cast<uint32_t>(dependencies.size());
 			render_pass_info.pDependencies = dependencies.data();
 
-			m_vk_shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
+			m_render_passes.shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
 		}
 
 		// Create depth image
@@ -223,7 +230,7 @@ namespace dk
 
 			vk::FramebufferCreateInfo fbuf_create_info = {};
 			fbuf_create_info.pNext = nullptr;
-			fbuf_create_info.renderPass = m_vk_depth_prepass;
+			fbuf_create_info.renderPass = m_render_passes.depth_prepass;
 			fbuf_create_info.pAttachments = &m_depth_prepass_image.depth_texture->get_image_view();
 			fbuf_create_info.attachmentCount = 1;
 			fbuf_create_info.width = m_graphics->get_width();
@@ -252,7 +259,7 @@ namespace dk
 			};
 
 			vk::FramebufferCreateInfo framebuffer_info = {};
-			framebuffer_info.renderPass = m_vk_shader_pass;
+			framebuffer_info.renderPass = m_render_passes.shader_pass;
 			framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
 			framebuffer_info.pAttachments = attachments.data();
 			framebuffer_info.width = get_swapchain_manager().get_image_extent().width;
@@ -261,6 +268,69 @@ namespace dk
 
 			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
 			dk_assert(m_vk_framebuffers[i]);
+		}
+
+		// Create lighting UBO
+		m_lighting_ubo = m_graphics->create_buffer
+		(
+			sizeof(m_lighting_data), 
+			vk::BufferUsageFlagBits::eUniformBuffer, 
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+		);
+		m_lighting_map = m_graphics->get_logical_device().mapMemory(m_lighting_ubo.memory, 0, sizeof(m_lighting_data));
+
+		// Create descriptor set
+		{
+			vk::DescriptorSetLayoutBinding binding = {};
+			binding.binding = 0;
+			binding.descriptorType = vk::DescriptorType::eUniformBuffer;
+			binding.descriptorCount = 1;
+			binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+			vk::DescriptorSetLayoutCreateInfo layout_info = {};
+			layout_info.bindingCount = 1;
+			layout_info.pBindings = &binding;
+
+			m_descriptor.layout = m_graphics->get_logical_device().createDescriptorSetLayout(layout_info);
+			dk_assert(m_descriptor.layout);
+
+			vk::DescriptorPoolSize pool_size = {};
+			pool_size.type = vk::DescriptorType::eUniformBuffer;
+			pool_size.descriptorCount = 1;
+
+			// Create descriptor pool
+			vk::DescriptorPoolCreateInfo pool_info = {};
+			pool_info.poolSizeCount = 1;
+			pool_info.pPoolSizes = &pool_size;
+			pool_info.maxSets = 1;
+
+			m_descriptor.pool = m_graphics->get_logical_device().createDescriptorPool(pool_info);
+			dk_assert(m_descriptor.pool);
+
+			// Allocate descriptor set
+			vk::DescriptorSetAllocateInfo alloc_info = {};
+			alloc_info.descriptorPool = m_descriptor.pool;
+			alloc_info.descriptorSetCount = 1;
+			alloc_info.pSetLayouts = &m_descriptor.layout;
+
+			m_descriptor.set = m_graphics->get_logical_device().allocateDescriptorSets(alloc_info)[0];
+			dk_assert(m_descriptor.set);
+
+			// Update descriptor set
+			vk::DescriptorBufferInfo buffer_info = {};
+			buffer_info.buffer = m_lighting_ubo.buffer;
+			buffer_info.offset = 0;
+			buffer_info.range = static_cast<uint32_t>(sizeof(m_lighting_data));
+
+			vk::WriteDescriptorSet write = {};
+			write.dstSet = m_descriptor.set;
+			write.dstBinding = static_cast<uint32_t>(0);
+			write.dstArrayElement = 0;
+			write.descriptorType = vk::DescriptorType::eUniformBuffer;
+			write.descriptorCount = 1;
+			write.pBufferInfo = &buffer_info;
+
+			m_graphics->get_logical_device().updateDescriptorSets(1, &write, 0, nullptr);
 		}
 
 		// Create thread pool
@@ -277,11 +347,19 @@ namespace dk
 		// Destroy thread pool
 		m_thread_pool->wait();
 		m_thread_pool.reset();
+	
+		// Destroy descriptor set and pool
+		m_graphics->get_logical_device().destroyDescriptorPool(m_descriptor.pool);
+		m_graphics->get_logical_device().destroyDescriptorSetLayout(m_descriptor.layout);
+
+		// Destroy lighting UBO
+		m_graphics->get_logical_device().unmapMemory(m_lighting_ubo.memory);
+		m_lighting_ubo.free(m_graphics->get_logical_device());
 
 		// Destroy semaphores
-		m_graphics->get_logical_device().destroySemaphore(m_vk_image_available);
-		m_graphics->get_logical_device().destroySemaphore(m_vk_on_screen_rendering_finished);
-		m_graphics->get_logical_device().destroySemaphore(m_vk_depth_prepass_finished);
+		m_graphics->get_logical_device().destroySemaphore(m_semaphores.image_available);
+		m_graphics->get_logical_device().destroySemaphore(m_semaphores.on_screen_rendering_finished);
+		m_graphics->get_logical_device().destroySemaphore(m_semaphores.depth_prepass_finished);
 
 		// Depth depth image
 		get_graphics().get_logical_device().destroyFramebuffer(m_depth_prepass_image.framebuffer);
@@ -296,8 +374,8 @@ namespace dk
 			m_graphics->get_logical_device().destroyFramebuffer(framebuffer);
 
 		// Destroy render passes
-		m_graphics->get_logical_device().destroyRenderPass(m_vk_shader_pass);
-		m_graphics->get_logical_device().destroyRenderPass(m_vk_depth_prepass);
+		m_graphics->get_logical_device().destroyRenderPass(m_render_passes.shader_pass);
+		m_graphics->get_logical_device().destroyRenderPass(m_render_passes.depth_prepass);
 
 		// Destroy swapchain
 		m_swapchain_manager.reset();
@@ -305,6 +383,8 @@ namespace dk
 
 	void Renderer::flush_queues()
 	{
+		m_lighting_data.point_light_count = 0;
+		m_lighting_data.directional_light_count = 0;
 		m_renderable_objects.clear();
 	}
 
@@ -318,49 +398,63 @@ namespace dk
 		(
 			get_swapchain_manager().get_swapchain(),
 			std::numeric_limits<uint64_t>::max(),
-			m_vk_image_available,
+			m_semaphores.image_available,
 			vk::Fence()
 		).value;
 
+		// Submit lighting data
+		memcpy(m_lighting_map, &m_lighting_data, sizeof(m_lighting_data));
+
 		// Perform depth prepass
 		do_depth_prepass();
-
-		// Prepare primary command buffer
-		generate_primary_command_buffer(image_index);
-
-		vk::SubmitInfo submit_info = {};
-
-		std::array<vk::Semaphore, 2> wait_semaphores =
 		{
-			m_vk_image_available,
-			m_vk_depth_prepass_finished
-		};
+			vk::SubmitInfo submit_info = {};
+			submit_info.commandBufferCount = 1;
+			submit_info.pCommandBuffers = &m_vk_depth_prepass_command_buffer;
+			submit_info.signalSemaphoreCount = 1;
+			submit_info.pSignalSemaphores = &m_semaphores.depth_prepass_finished;
 
-		std::array<vk::PipelineStageFlags, 2> wait_stages = 
-		{ 
-			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::PipelineStageFlagBits::eColorAttachmentOutput
-		};
+			// Submit draw command
+			get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
+			get_graphics().get_device_manager().get_graphics_queue().waitIdle();
+		}
 
-		submit_info.waitSemaphoreCount = static_cast<uint32_t>(wait_semaphores.size());
-		submit_info.pWaitSemaphores = wait_semaphores.data();
-		submit_info.pWaitDstStageMask = wait_stages.data();
-		submit_info.commandBufferCount = 1;
-		submit_info.pCommandBuffers = &m_vk_primary_command_buffer;
-		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores = &m_vk_on_screen_rendering_finished;
+		// Prepare rendering command buffer
+		generate_rendering_command_buffer(image_index);
+		{
+			std::array<vk::Semaphore, 2> wait_semaphores =
+			{
+				m_semaphores.image_available,
+				m_semaphores.depth_prepass_finished
+			};
 
-		// Submit to queue
-		get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
+			std::array<vk::PipelineStageFlags, 2> wait_stages =
+			{
+				vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				vk::PipelineStageFlagBits::eColorAttachmentOutput
+			};
 
+			vk::SubmitInfo submit_info = {};
+			submit_info.waitSemaphoreCount = static_cast<uint32_t>(wait_semaphores.size());
+			submit_info.pWaitSemaphores = wait_semaphores.data();
+			submit_info.pWaitDstStageMask = wait_stages.data();
+			submit_info.commandBufferCount = 1;
+			submit_info.pCommandBuffers = &m_vk_rendering_command_buffer;
+			submit_info.signalSemaphoreCount = 1;
+			submit_info.pSignalSemaphores = &m_semaphores.on_screen_rendering_finished;
+
+			// Submit to queue
+			get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
+		}
+
+		// Present to screen
 		vk::PresentInfoKHR present_info = {};
 		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = &m_vk_on_screen_rendering_finished;
+		present_info.pWaitSemaphores = &m_semaphores.on_screen_rendering_finished;
 		present_info.swapchainCount = 1;
 		present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
 		present_info.pImageIndices = &image_index;
 
-		// Present to screen
 		get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
 
 		// Clear rendering queues
@@ -374,14 +468,14 @@ namespace dk
 		cmd_buf_info.pInheritanceInfo = nullptr;
 
 		// Begin renderpass
-		m_vk_primary_command_buffer.begin(cmd_buf_info);
+		m_vk_depth_prepass_command_buffer.begin(cmd_buf_info);
 
 		// Clear values for all attachments written in the fragment shader
 		vk::ClearValue clear_value = {};
 		clear_value.setDepthStencil({ 1.0f, 0 });
 
 		vk::RenderPassBeginInfo render_pass_begin_info = {};
-		render_pass_begin_info.renderPass = m_vk_depth_prepass;
+		render_pass_begin_info.renderPass = m_render_passes.depth_prepass;
 		render_pass_begin_info.framebuffer = m_depth_prepass_image.framebuffer;
 		render_pass_begin_info.renderArea.extent = vk::Extent2D(m_graphics->get_width(), m_graphics->get_height());
 		render_pass_begin_info.renderArea.offset = vk::Offset2D(0, 0);
@@ -390,10 +484,10 @@ namespace dk
 
 		// Inheritance info for the meshes command buffers
 		vk::CommandBufferInheritanceInfo inheritance_info = {};
-		inheritance_info.renderPass = m_vk_depth_prepass;
+		inheritance_info.renderPass = m_render_passes.depth_prepass;
 		inheritance_info.framebuffer = m_depth_prepass_image.framebuffer;
 
-		m_vk_primary_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+		m_vk_depth_prepass_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
 		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
 
@@ -464,39 +558,29 @@ namespace dk
 
 		// Execute command buffers and perform lighting
 		if (command_buffers.size() > 0)
-			m_vk_primary_command_buffer.executeCommands(command_buffers);
+			m_vk_depth_prepass_command_buffer.executeCommands(command_buffers);
 
-		m_vk_primary_command_buffer.endRenderPass();
-		m_vk_primary_command_buffer.end();
-
-		vk::SubmitInfo submit_info = {};
-		submit_info.commandBufferCount = 1;
-		submit_info.pCommandBuffers = &m_vk_primary_command_buffer;
-		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores = &m_vk_depth_prepass_finished;
-
-		// Submit draw command
-		get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
-		get_graphics().get_device_manager().get_graphics_queue().waitIdle();
+		m_vk_depth_prepass_command_buffer.endRenderPass();
+		m_vk_depth_prepass_command_buffer.end();
 	}
 
-	void Renderer::generate_primary_command_buffer(uint32_t image_index)
+	void Renderer::generate_rendering_command_buffer(uint32_t image_index)
 	{
 		// Begin recording to primary command buffer
 		vk::CommandBufferBeginInfo begin_info = {};
 		begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 
-		m_vk_primary_command_buffer.begin(begin_info);
+		m_vk_rendering_command_buffer.begin(begin_info);
 
 		vk::RenderPassBeginInfo render_pass_info = {};
-		render_pass_info.renderPass = m_vk_shader_pass;
+		render_pass_info.renderPass = m_render_passes.shader_pass;
 		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
 		render_pass_info.renderArea.offset = { 0, 0 };
 		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
 
 		// Inheritance info for the meshes command buffers
 		vk::CommandBufferInheritanceInfo inheritance_info = {};
-		inheritance_info.renderPass = m_vk_shader_pass;
+		inheritance_info.renderPass = m_render_passes.shader_pass;
 		inheritance_info.framebuffer = m_vk_framebuffers[image_index];
 
 		vk::ClearValue clear_color = {};  
@@ -506,16 +590,16 @@ namespace dk
 		render_pass_info.pClearValues = &clear_color;
 
 		// Begin render pass
-		m_vk_primary_command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
+		m_vk_rendering_command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
 		auto command_buffers = generate_renderable_command_buffers(inheritance_info);
 
 		if (command_buffers.size() > 0)
-			m_vk_primary_command_buffer.executeCommands(command_buffers);
+			m_vk_rendering_command_buffer.executeCommands(command_buffers);
 
 		// End render pass and command buffer
-		m_vk_primary_command_buffer.endRenderPass();
-		m_vk_primary_command_buffer.end();
+		m_vk_rendering_command_buffer.endRenderPass();
+		m_vk_rendering_command_buffer.end();
 	}
 
 	std::vector<vk::CommandBuffer> Renderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)

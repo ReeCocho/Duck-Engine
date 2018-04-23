@@ -175,7 +175,7 @@ namespace dk
 				mesh_renderer->m_command_buffer,
 				mesh_renderer->m_material->get_shader(),
 				mesh_renderer->m_mesh,
-				{ mesh_renderer->m_vk_descriptor_set }
+				{ mesh_renderer->m_vk_descriptor_set, dk::engine::renderer.get_descriptor_set() }
 			};
 
 			if (mesh_renderer->m_material->get_shader()->get_texture_count() > 0)

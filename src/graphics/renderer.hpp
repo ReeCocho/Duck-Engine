@@ -15,6 +15,12 @@
 #include "mesh.hpp"
 #include "texture.hpp"
 
+/** Max number of point lights. */
+#define DK_MAX_POINT_LIGHTS 64
+
+/** Max number of directional lights. */
+#define DK_MAX_DIRECTIONAL_LIGHTS 16
+
 namespace dk
 {
 	/**
@@ -33,6 +39,39 @@ namespace dk
 
 		/** Descriptor sets. */
 		std::vector<vk::DescriptorSet> descriptor_sets;
+	};
+
+	/**
+	 * @brief Directional light data.
+	 */
+	struct alignas(16) DirectionalLightData
+	{
+		/** Direction. */
+		glm::vec4 direction = {};
+
+		/** Color. */
+		glm::vec4 color = {};
+
+		/** Intensity. */
+		float intensity = 0.0f;
+	};
+
+	/**
+	 * @brief Point light data.
+	 */
+	struct alignas(16) PointLightData
+	{
+		/** Position. */
+		glm::vec4 position = {};
+
+		/** Color. */
+		glm::vec4 color = {};
+
+		/** Range. */
+		float range = 0.0f;
+
+		/** Intensity. */
+		float intensity = 0.0f;
 	};
 
 
@@ -91,7 +130,7 @@ namespace dk
 		 */
 		const vk::RenderPass& get_shader_render_pass() const
 		{
-			return m_vk_shader_pass;
+			return m_render_passes.shader_pass;
 		}
 
 		/**
@@ -100,7 +139,7 @@ namespace dk
 		 */
 		const vk::RenderPass& get_depth_prepass() const
 		{
-			return m_vk_depth_prepass;
+			return m_render_passes.depth_prepass;
 		}
 
 		/**
@@ -110,6 +149,24 @@ namespace dk
 		vk::CommandBuffer& get_primary_command_buffer()
 		{
 			return m_vk_primary_command_buffer;
+		}
+
+		/**
+		 * @brief Get descriptor set used by the renderer.
+		 * @return Descriptor set.
+		 */
+		vk::DescriptorSet& get_descriptor_set()
+		{
+			return m_descriptor.set;
+		}
+
+		/**
+		 * @brief Get descriptor set layout used by the renderer.
+		 * @return Descriptor set layout.
+		 */
+		vk::DescriptorSetLayout& get_descriptor_set_layout()
+		{
+			return m_descriptor.layout;
 		}
 
 		/**
@@ -124,6 +181,28 @@ namespace dk
 		void draw(const RenderableObject& ro)
 		{
 			m_renderable_objects.push_back(ro);
+		}
+
+		/**
+		 * @brief Draw a point light.
+		 * @param Point light.
+		 */
+		void draw(const PointLightData& point_light)
+		{
+			dk_assert(m_lighting_data.point_light_count + 1 < DK_MAX_POINT_LIGHTS);
+			m_lighting_data.point_lights[m_lighting_data.point_light_count] = point_light;
+			++m_lighting_data.point_light_count;
+		}
+
+		/**
+		 * @brief Draw a directional light.
+		 * @param Directional light.
+		 */
+		void draw(const DirectionalLightData& dir_light)
+		{
+			dk_assert(m_lighting_data.directional_light_count + 1 < DK_MAX_DIRECTIONAL_LIGHTS);
+			m_lighting_data.directional_lights[m_lighting_data.directional_light_count] = dir_light;
+			++m_lighting_data.directional_light_count;
 		}
 
 		/**
@@ -167,10 +246,10 @@ namespace dk
 		void do_depth_prepass();
 
 		/**
-		 * @brief Generate the primary command buffer for rendering.
+		 * @brief Generate the rendering command buffer.
 		 * @param Image index.
 		 */
-		void generate_primary_command_buffer(uint32_t image_index);
+		void generate_rendering_command_buffer(uint32_t image_index);
 
 		/**
 		 * @brief Generate command buffers for renderable objects.
@@ -207,26 +286,17 @@ namespace dk
 		/** Primary graphics command buffer. */
 		vk::CommandBuffer m_vk_primary_command_buffer;
 
+		/** Depth prepass command buffer. */
+		vk::CommandBuffer m_vk_depth_prepass_command_buffer;
+
+		/** Rendering command buffer. */
+		vk::CommandBuffer m_vk_rendering_command_buffer;
+
 		/** List of renderable objects. */
 		std::vector<RenderableObject> m_renderable_objects;
 
-		/** Render pass used for shaders. */
-		vk::RenderPass m_vk_shader_pass;
-
-		/** Depth prepass used for shaders. */
-		vk::RenderPass m_vk_depth_prepass;
-
 		/** Framebuffers. */
 		std::vector<vk::Framebuffer> m_vk_framebuffers;
-
-		/** Semaphore to indicate depth prepass has finished. */
-		vk::Semaphore m_vk_depth_prepass_finished;
-
-		/** Semaphore to indicate on screen rendering has finished. */
-		vk::Semaphore m_vk_on_screen_rendering_finished;
-
-		/** Semaphore to indicate an image is available for rendering too. */
-		vk::Semaphore m_vk_image_available;
 
 		/** Main camera matrix. */
 		glm::mat4 m_camera_matrix = {};
@@ -243,5 +313,73 @@ namespace dk
 			Handle<Texture> depth_texture = {};
 
 		} m_depth_prepass_image;
+
+		/**
+		 * @brief Render passes.
+		 */
+		struct
+		{
+			/** Render pass used for shaders. */
+			vk::RenderPass shader_pass;
+
+			/** Depth prepass used for shaders. */
+			vk::RenderPass depth_prepass;
+		} m_render_passes;
+
+		/**
+		 * @brief Semaphores.
+		 */
+		struct
+		{
+			/** Semaphore to indicate depth prepass has finished. */
+			vk::Semaphore depth_prepass_finished;
+
+			/** Semaphore to indicate on screen rendering has finished. */
+			vk::Semaphore on_screen_rendering_finished;
+
+			/** Semaphore to indicate an image is available for rendering too. */
+			vk::Semaphore image_available;
+		} m_semaphores;
+
+		/**
+		 * @brief Lighting data
+		 */
+		alignas(16) struct
+		{
+			/** Point light data. */
+			PointLightData point_lights[DK_MAX_POINT_LIGHTS] = {};
+
+			/** Number of point lights used. */
+			uint32_t point_light_count = 0;
+
+			/** Directional light data. */
+			DirectionalLightData directional_lights[DK_MAX_DIRECTIONAL_LIGHTS] = {};
+
+			/** Number of directional lights used. */
+			uint32_t directional_light_count = 0;
+
+		} m_lighting_data;
+
+		/** Lighting uniform buffer. */
+		VkMemBuffer m_lighting_ubo = {};
+
+		/** Lighting UBO mapping pointer. */
+		void* m_lighting_map = nullptr;
+
+		/**
+		 * @brief Renderer descriptor.
+		 */
+		struct
+		{
+			/** Descriptor set layout. */
+			vk::DescriptorSetLayout layout = {};
+
+			/** Descriptor pool. */
+			vk::DescriptorPool pool = {};
+
+			/** Descriptor set. */
+			vk::DescriptorSet set = {};
+
+		} m_descriptor;
 	};
 }

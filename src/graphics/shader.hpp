@@ -28,6 +28,7 @@ namespace dk
 		 * @param Graphics context the shader is bound to.
 		 * @param Render pass used by the shader.
 		 * @param Render pass for depth only rendering.
+		 * @param Custom descriptor set layouts.
 		 * @param Vertex shader byte code.
 		 * @param Fragment shader byte code.
 		 */
@@ -36,6 +37,7 @@ namespace dk
 			Graphics* graphics, 
 			const vk::RenderPass& render_pass,
 			const vk::RenderPass& depth_pass,
+			const std::vector<vk::DescriptorSetLayout>& dsl,
 			const std::vector<char>& vert_byte_code, 
 			const std::vector<char>& frag_byte_code
 		);
