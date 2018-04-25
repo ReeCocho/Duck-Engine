@@ -44,7 +44,7 @@ namespace dk
 	/**
 	 * @brief Directional light data.
 	 */
-	struct alignas(16) DirectionalLightData
+	struct DirectionalLightData
 	{
 		/** Direction. */
 		glm::vec4 direction = {};
@@ -59,7 +59,7 @@ namespace dk
 	/**
 	 * @brief Point light data.
 	 */
-	struct alignas(16) PointLightData
+	struct PointLightData
 	{
 		/** Position. */
 		glm::vec4 position = {};
@@ -206,14 +206,14 @@ namespace dk
 		}
 
 		/**
-		 * @brief Set main camera matrix.
+		 * @brief Set main camera.
 		 * @param Camera matrix.
-		 * @return Camera matrix.
+		 * @param Camera position.
 		 */
-		glm::mat4 set_main_camera_matrix(glm::mat4 mat)
+		void set_main_camera(glm::mat4 mat, glm::vec3 position)
 		{
 			m_camera_matrix = mat;
-			return m_camera_matrix;
+			m_lighting_data.camera_position = glm::vec4(position, 1.0f);
 		}
 
 		/**
@@ -344,7 +344,7 @@ namespace dk
 		/**
 		 * @brief Lighting data
 		 */
-		alignas(16) struct
+		struct
 		{
 			/** Point light data. */
 			PointLightData point_lights[DK_MAX_POINT_LIGHTS] = {};
@@ -352,11 +352,23 @@ namespace dk
 			/** Number of point lights used. */
 			uint32_t point_light_count = 0;
 
+			/** Padding */
+			char padding1[12];
+
 			/** Directional light data. */
 			DirectionalLightData directional_lights[DK_MAX_DIRECTIONAL_LIGHTS] = {};
 
 			/** Number of directional lights used. */
 			uint32_t directional_light_count = 0;
+
+			/** Padding */
+			char padding2[12];
+
+			/** Ambient color (W value is intensity.) */
+			glm::vec4 ambient = { 1.0f, 1.0f, 1.0f, 0.5f };
+
+			/** Camera position. */
+			glm::vec4 camera_position = {};
 
 		} m_lighting_data;
 

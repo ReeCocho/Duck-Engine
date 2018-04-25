@@ -159,6 +159,7 @@ namespace dk
 			// Upload vertex shader data
 			{
 				VertexShaderData v_data = {};
+				v_data.model = mesh_renderer->m_transform->get_model_matrix();
 				v_data.mvp = CameraSystem::get_main_camera()->get_pv_matrix() * mesh_renderer->m_transform->get_model_matrix();
 				memcpy(mesh_renderer->m_vertex_map, &v_data, sizeof(VertexShaderData));
 			}

@@ -45,6 +45,13 @@ public:
 
 	void on_late_tick(float delta_time) override
 	{
+		dk::DirectionalLightData data = {};
+		data.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		data.direction = { 1.0f, -1.0f, 1.0f, 1.0f };
+		data.intensity = 4.0f;
+
+		dk::engine::renderer.draw(data);
+
 		glm::vec2 m_vel = dk::engine::input.get_mouse_delta();
 		float x = dk::engine::input.get_axis("Horizontal");
 		float y = dk::engine::input.get_axis("Vertical");
@@ -96,22 +103,7 @@ int main()
 	auto material = dk::engine::resource_manager.create_material("standard", shader);
 	material->set_texture(0, texture);
 
-	auto mesh = dk::engine::resource_manager.create_mesh
-	(
-		"quad",
-		std::vector<uint16_t>
-		{
-			0, 1, 2,
-			2, 3, 0
-		},
-		std::vector<dk::Vertex>
-		{
-			{ glm::vec3(-1, -1,  0), glm::vec2(1, 1), glm::vec3(0, 0, 1) },
-			{ glm::vec3( 1, -1,  0), glm::vec2(0, 1), glm::vec3(0, 0, 1) },
-			{ glm::vec3( 1,  1,  0), glm::vec2(0, 0), glm::vec3(0, 0, 1) },
-			{ glm::vec3(-1,  1,  0), glm::vec2(1, 0), glm::vec3(0, 0, 1) }
-		}
-	);
+	auto mesh = dk::engine::resource_manager.create_mesh("./meshes/sphere.obj");
 
 	// Camera
 	{
@@ -137,7 +129,6 @@ int main()
 		mesh_renderer->set_mesh(mesh);
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-		transform->set_local_scale(glm::vec3(0.5f, 0.5f, 1.0f));
 		// transform->set_position(glm::vec3(i, j, 0));
 	}
 

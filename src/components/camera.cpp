@@ -61,7 +61,7 @@ namespace dk
 			);
 
 			if (camera == CameraSystem::main_camera)
-				engine::renderer.set_main_camera_matrix(camera->m_projection * camera->m_view);
+				engine::renderer.set_main_camera(camera->m_projection * camera->m_view, camera->m_transform->get_position());
 		}
 	}
 

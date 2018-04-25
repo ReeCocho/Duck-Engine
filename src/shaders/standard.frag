@@ -1,65 +1,17 @@
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
+#include "Duck-Standard.frag"
 
-#define DK_MAX_POINT_LIGHTS 64
-#define DK_MAX_DIRECTIONAL_LIGHTS 16
+FRAGMENT_IN(0) vec2 F_UV;
+FRAGMENT_IN(1) vec3 F_NORMAL;
+FRAGMENT_IN(2) vec3 F_FRAG_POS;
 
-struct PointLighData
-{
-	/** Position. */
-	vec4 position;
-	
-	/** Color. */
-	vec4 color;
-	
-	/** Range. */
-	float range;
-	
-	/** Intensity. */
-	float intensity;
-};
+MATERIAL_DATA { int unused_val; };
 
-struct DirectionalLightData
-{
-	/** Direction. */
-	vec4 direction;
-	
-	/** Color. */
-	vec4 color;
-	
-	/** Intensity */
-	float intensity;
-};
-
-// Ins
-layout(location = 0) in vec2 f_uv;
-
-// Outs
-layout(location = 0) out vec4 outColor;
-
-// Descriptor sets
-layout(set = 0, binding = 2) uniform MaterialData
-{
-	vec3 color;
-};
-
-layout(set = 0, binding = 3) uniform FragmentData
-{
-	int unused;
-};
-
-layout(set = 1, binding = 0) uniform LightingData
-{
-	PointLighData point_lights[DK_MAX_POINT_LIGHTS];
-	uint point_light_count;
-	
-	DirectionalLightData directional_lights[DK_MAX_DIRECTIONAL_LIGHTS];
-	uint directional_light_count;
-};
-
-layout(set = 2, binding = 0) uniform sampler2D texture_test;
+TEXTURE_IN(0) texture_test;
 
 void main() 
 {
-    outColor = vec4(texture(texture_test, f_uv).rgb, 1.0);
+	vec3 albedo = texture(texture_test, F_UV).rgb;
+	vec3 li = total_lighting(F_FRAG_POS, normalize(F_NORMAL), 0.0, 0.0, albedo, 1.0);
+    OUT_COLOR = vec4(li, 1.0);
 }
