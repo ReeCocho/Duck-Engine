@@ -113,6 +113,9 @@ namespace dk
 		/** Command buffer used for rendering. */
 		VkManagedCommandBuffer m_command_buffer = {};
 
+		/** Depth prepass command buffer. */
+		VkManagedCommandBuffer m_depth_prepass_command_buffer = {};
+
 		/** Meshes descriptor pool. */
 		vk::DescriptorPool m_vk_descriptor_pool = {};
 

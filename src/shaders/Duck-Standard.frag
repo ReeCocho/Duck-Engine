@@ -67,19 +67,19 @@ layout(set = 1, binding = 0) uniform LightingData
 	layout(offset = 0) 
 	PointLighData point_lights[DK_MAX_POINT_LIGHTS];
 	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 40)) 
+	layout(offset = (DK_MAX_POINT_LIGHTS * 32)) 
 	uint point_light_count;
 	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 40) + 16) 
+	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + 16) 
 	DirectionalLightData directional_lights[DK_MAX_DIRECTIONAL_LIGHTS];
 	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 40) + (DK_MAX_DIRECTIONAL_LIGHTS * 36) + 16)
+	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + (DK_MAX_DIRECTIONAL_LIGHTS * 32) + 16)
 	uint directional_light_count;
 	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 40) + (DK_MAX_DIRECTIONAL_LIGHTS * 36) + 32)
+	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + (DK_MAX_DIRECTIONAL_LIGHTS * 32) + 32)
 	vec4 ambient;
 	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 40) + (DK_MAX_DIRECTIONAL_LIGHTS * 36) + 48)
+	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + (DK_MAX_DIRECTIONAL_LIGHTS * 32) + 48)
 	vec4 camera_position;
 	
 } lighting_data;
@@ -92,7 +92,7 @@ layout(set = 1, binding = 0) uniform LightingData
 
 const float PI = 3.14159265359;
 
-float DistributionGGX(vec3 N, vec3 H, float roughness)
+float distribution_GGX(vec3 N, vec3 H, float roughness)
 {
 	float a = roughness*roughness;
     float a2 = a*a;
@@ -106,7 +106,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     return nom / max(denom, 0.001);
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
+float geometry_schlick_GGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
@@ -117,17 +117,17 @@ float GeometrySchlickGGX(float NdotV, float roughness)
     return nom / denom;
 }
 
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+    float ggx2 = geometry_schlick_GGX(NdotV, roughness);
+    float ggx1 = geometry_schlick_GGX(NdotL, roughness);
 
     return ggx1 * ggx2;
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
+vec3 fresnel_schlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
@@ -140,20 +140,19 @@ vec3 lighting(CalculationData data)
 	vec3 radiance = data.light_color * data.attenuation;
 	
 	// Cook-Torrance BRDF
-	float NDF = DistributionGGX(data.normal, H, data.roughness);
-	float G = GeometrySmith(data.normal, data.view_direction, L, data.roughness);
-	vec3 F = fresnelSchlick(clamp(dot(H, data.view_direction), 0.0, 1.0), data.reflectance);
-	
-	vec3 nominator = NDF * G * F;
-	float denominator = 4.0 * max(dot(data.normal, data.view_direction), 0.0) * max(dot(data.normal, L), 0.0);
-	vec3 specular = nominator / max(denominator, 0.001);
+	float NDF = distribution_GGX(data.normal, H, data.roughness);
+	float G = geometry_smith(data.normal, data.view_direction, L, data.roughness);
+	vec3 F = fresnel_schlick(max(dot(H, data.view_direction), 0.0), data.reflectance);
 	
 	vec3 kS = F;
 	vec3 kD = vec3(1.0) - kS;
 	kD *= 1.0 - data.metallic;
 	
-	float NdotL = max(dot(data.normal, L), 0.0);
+	vec3 numerator = NDF * G * F;
+	float denominator = 4.0 * max(dot(data.normal, data.view_direction), 0.0) * max(dot(data.normal, L), 0.0);
+	vec3 specular = numerator / max(denominator, 0.001);
 	
+	float NdotL = max(dot(data.normal, L), 0.0);
 	return (kD * data.albedo / PI + specular) * radiance * NdotL;
 }
 
@@ -174,7 +173,7 @@ vec3 total_lighting(vec3 position, vec3 normal, float metallic, float roughness,
 	{
 		CalculationData data;
 		data.direction = -normalize(lighting_data.directional_lights[i].direction.xyz);
-		data.light_color = lighting_data.directional_lights[i].color.rgb * lighting_data.directional_lights[i].intensity;
+		data.light_color = lighting_data.directional_lights[i].color.rgb * lighting_data.directional_lights[i].color.a;
 		data.attenuation = 1.0;
 		data.metallic = metallic;
 		data.roughness = roughness;
@@ -186,14 +185,41 @@ vec3 total_lighting(vec3 position, vec3 normal, float metallic, float roughness,
 		total += lighting(data);
 	}
 	
+	// Point lights
+	for(uint i = 0; i < lighting_data.point_light_count; ++i)
+	{
+		vec3 pos_diff = lighting_data.point_lights[i].position.xyz - position;
+		float dist = length(pos_diff);
+		
+		if(dist < lighting_data.point_lights[i].position.w)
+		{	
+			vec3 direction = normalize(pos_diff);
+			float atten = clamp(1.0 - (dist/lighting_data.point_lights[i].position.w), 0.0, 1.0);
+			atten *= atten;
+		
+			CalculationData data;
+			data.direction = direction;
+			data.light_color = lighting_data.point_lights[i].color.rgb * lighting_data.point_lights[i].color.a;
+			data.attenuation = atten;
+			data.metallic = metallic;
+			data.roughness = roughness;
+			data.albedo = albedo;
+			data.reflectance = F0;
+			data.normal = normal;
+			data.view_direction = view_dir;
+		
+			total += lighting(data);
+		}
+	}
+	
 	// // Ambient and AO
 	total += albedo * lighting_data.ambient.rgb * lighting_data.ambient.w * ao;
 	 
 	// HDR tonemapping
-	// total = total / (total + vec3(1.0));
+	total = total / (total + vec3(1.0));
 	
 	// Gama correct
-	// total = pow(total, vec3(1.0/2.2));
+	total = pow(total, vec3(1.0/2.2));
 	
 	return total;
 }

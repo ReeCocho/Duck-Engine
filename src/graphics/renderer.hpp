@@ -31,6 +31,9 @@ namespace dk
 		/** Command buffer to record to. */
 		VkManagedCommandBuffer command_buffer;
 
+		/** Depth prepass command buffer. */
+		VkManagedCommandBuffer depth_prepass_command_buffer;
+
 		/** Shader. */
 		Handle<Shader> shader;
 
@@ -49,11 +52,8 @@ namespace dk
 		/** Direction. */
 		glm::vec4 direction = {};
 
-		/** Color. */
+		/** Color. (W is intensity) */
 		glm::vec4 color = {};
-
-		/** Intensity. */
-		float intensity = 0.0f;
 	};
 
 	/**
@@ -61,17 +61,11 @@ namespace dk
 	 */
 	struct PointLightData
 	{
-		/** Position. */
+		/** Position. (W is range) */
 		glm::vec4 position = {};
 
-		/** Color. */
+		/** Color. (W is intensity) */
 		glm::vec4 color = {};
-
-		/** Range. */
-		float range = 0.0f;
-
-		/** Intensity. */
-		float intensity = 0.0f;
 	};
 
 
@@ -365,7 +359,7 @@ namespace dk
 			char padding2[12];
 
 			/** Ambient color (W value is intensity.) */
-			glm::vec4 ambient = { 1.0f, 1.0f, 1.0f, 0.5f };
+			glm::vec4 ambient = { 1.0f, 1.0f, 1.0f, 0.2f };
 
 			/** Camera position. */
 			glm::vec4 camera_position = {};

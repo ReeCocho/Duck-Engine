@@ -10,6 +10,7 @@ set(DUCK_ENGINE_HDRS
 	resource_manager.hpp
 	components/mesh_renderer.hpp
 	components/camera.hpp
+	components/lights.hpp
 )
 
 # Sources
@@ -19,6 +20,7 @@ set(DUCK_ENGINE_SRCS
 	resource_manager.cpp
 	components/mesh_renderer.cpp
 	components/camera.cpp
+	components/lights.cpp
 )
 
 # Engine lib

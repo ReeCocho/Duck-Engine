@@ -408,36 +408,30 @@ namespace dk
 		// Perform depth prepass
 		do_depth_prepass();
 		{
+			vk::PipelineStageFlags wait_stage = vk::PipelineStageFlagBits::eAllGraphics;
+
 			vk::SubmitInfo submit_info = {};
 			submit_info.commandBufferCount = 1;
 			submit_info.pCommandBuffers = &m_vk_depth_prepass_command_buffer;
 			submit_info.signalSemaphoreCount = 1;
 			submit_info.pSignalSemaphores = &m_semaphores.depth_prepass_finished;
+			submit_info.pWaitDstStageMask = &wait_stage;
+			submit_info.pWaitSemaphores = &m_semaphores.image_available;
+			submit_info.waitSemaphoreCount = 1;
 
 			// Submit draw command
 			get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
-			get_graphics().get_device_manager().get_graphics_queue().waitIdle();
 		}
 
 		// Prepare rendering command buffer
 		generate_rendering_command_buffer(image_index);
 		{
-			std::array<vk::Semaphore, 2> wait_semaphores =
-			{
-				m_semaphores.image_available,
-				m_semaphores.depth_prepass_finished
-			};
-
-			std::array<vk::PipelineStageFlags, 2> wait_stages =
-			{
-				vk::PipelineStageFlagBits::eColorAttachmentOutput,
-				vk::PipelineStageFlagBits::eColorAttachmentOutput
-			};
+			vk::PipelineStageFlags wait_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
 			vk::SubmitInfo submit_info = {};
-			submit_info.waitSemaphoreCount = static_cast<uint32_t>(wait_semaphores.size());
-			submit_info.pWaitSemaphores = wait_semaphores.data();
-			submit_info.pWaitDstStageMask = wait_stages.data();
+			submit_info.waitSemaphoreCount = 1;
+			submit_info.pWaitSemaphores = &m_semaphores.depth_prepass_finished;
+			submit_info.pWaitDstStageMask = &wait_stage;
 			submit_info.commandBufferCount = 1;
 			submit_info.pCommandBuffers = &m_vk_rendering_command_buffer;
 			submit_info.signalSemaphoreCount = 1;
@@ -447,15 +441,20 @@ namespace dk
 			get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
 		}
 
-		// Present to screen
-		vk::PresentInfoKHR present_info = {};
-		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = &m_semaphores.on_screen_rendering_finished;
-		present_info.swapchainCount = 1;
-		present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
-		present_info.pImageIndices = &image_index;
+		// Wait for graphics queue to finish rendering
+		get_graphics().get_device_manager().get_graphics_queue().waitIdle();
 
-		get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
+		// Present to screen
+		{
+			vk::PresentInfoKHR present_info = {};
+			present_info.waitSemaphoreCount = 1;
+			present_info.pWaitSemaphores = &m_semaphores.on_screen_rendering_finished;
+			present_info.swapchainCount = 1;
+			present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
+			present_info.pImageIndices = &image_index;
+
+			get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
+		}
 
 		// Clear rendering queues
 		flush_queues();
@@ -501,10 +500,10 @@ namespace dk
 
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
-			auto& command_buffer = m_renderable_objects[i].command_buffer.get_command_buffer();
+			auto& command_buffer = m_renderable_objects[i].depth_prepass_command_buffer.get_command_buffer();
 			command_buffers[i] = command_buffer;
 
-			jobs[m_renderable_objects[i].command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
+			jobs[m_renderable_objects[i].depth_prepass_command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
 			{
 				vk::CommandBufferBeginInfo begin_info = {};
 				begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
@@ -572,20 +571,19 @@ namespace dk
 
 		m_vk_rendering_command_buffer.begin(begin_info);
 
-		vk::RenderPassBeginInfo render_pass_info = {};
-		render_pass_info.renderPass = m_render_passes.shader_pass;
-		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
-		render_pass_info.renderArea.offset = { 0, 0 };
-		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
-
 		// Inheritance info for the meshes command buffers
 		vk::CommandBufferInheritanceInfo inheritance_info = {};
 		inheritance_info.renderPass = m_render_passes.shader_pass;
 		inheritance_info.framebuffer = m_vk_framebuffers[image_index];
 
-		vk::ClearValue clear_color = {};  
+		vk::ClearValue clear_color = {};
 		clear_color.color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
 
+		vk::RenderPassBeginInfo render_pass_info = {};
+		render_pass_info.renderPass = m_render_passes.shader_pass;
+		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
+		render_pass_info.renderArea.offset = { 0, 0 };
+		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
 		render_pass_info.clearValueCount = 1;
 		render_pass_info.pClearValues = &clear_color;
 
