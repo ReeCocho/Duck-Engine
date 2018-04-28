@@ -13,20 +13,32 @@ namespace dk
 {
 	Handle<Camera> CameraSystem::main_camera = Handle<Camera>(0, nullptr);
 
-	bool Camera::check_inside_frustum(glm::vec3 p)
+	void Camera::calculate_vp_matrices()
 	{
-		// Point in clip space
-		glm::vec4 p_clip = m_projection * m_view * glm::vec4(p, 1.0f);
-		return	glm::abs(p_clip.x) < p_clip.w &&
-				glm::abs(p_clip.y) < p_clip.w &&
-				0.0f < p_clip.z &&
-				p_clip.z < p_clip.w;
+		float aspect_ratio = static_cast<float>(engine::graphics.get_width()) / static_cast<float>(engine::graphics.get_height());
+
+		// Create projection frustum
+		m_projection = glm::perspective
+		(
+			glm::radians(m_field_of_view),
+			aspect_ratio,
+			m_near_clipping_plane,
+			m_far_clipping_plane
+		);
+
+		// Create view matrix
+		m_view = glm::lookAt
+		(
+			m_transform->get_position(),
+			m_transform->get_position() + m_transform->get_forward(),
+			-m_transform->get_up()
+		);
 	}
 
-	// TODO: Implementation
-	bool Camera::check_inside_frustum(glm::vec3 c, float r)
+	void Camera::calculate_frustum()
 	{
-		return false;
+		// Perspective-view
+		m_view_frustum = Frustum(m_projection * m_view);
 	}
 
 
@@ -41,27 +53,18 @@ namespace dk
 	{
 		for (Handle<Camera> camera : *this)
 		{
-			float aspect_ratio = static_cast<float>(engine::graphics.get_width()) / static_cast<float>(engine::graphics.get_height());
-
-			// Create projection frustum
-			camera->m_projection = glm::perspective
-			(
-				glm::radians(camera->m_field_of_view),
-				aspect_ratio,
-				camera->m_near_clipping_plane,
-				camera->m_far_clipping_plane
-			);
-
-			// Create view matrix
-			camera->m_view = glm::lookAt
-			(
-				camera->m_transform->get_position(), 
-				camera->m_transform->get_position() + camera->m_transform->get_forward(), 
-				-camera->m_transform->get_up()
-			);
+			camera->calculate_vp_matrices();
+			camera->calculate_frustum();
 
 			if (camera == CameraSystem::main_camera)
-				engine::renderer.set_main_camera(camera->m_projection * camera->m_view, camera->m_transform->get_position());
+			{
+				CameraData data = {};
+				data.frustum = camera->m_view_frustum;
+				data.position = camera->m_transform->get_position();
+				data.vp_mat = camera->m_projection * camera->m_view;
+
+				engine::renderer.set_main_camera(data);
+			}
 		}
 	}
 

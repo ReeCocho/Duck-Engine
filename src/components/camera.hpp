@@ -44,21 +44,6 @@ namespace dk
 		}
 
 		/**
-		 * @brief Check if a point is inside the cameras frustum.
-		 * @param Point.
-		 * @return If the point is inside.
-		 */
-		bool check_inside_frustum(glm::vec3 p);
-
-		/**
-		 * @brief Check if a sphere intersects or is inside the cameras frustum.
-		 * @param Center.
-		 * @param Radius.
-		 * @return If the sphere is inside/intersects.
-		 */
-		bool check_inside_frustum(glm::vec3 c, float r);
-
-		/**
 		 * @brief Get field of view.
 		 * @return Field of view.
 		 */
@@ -86,6 +71,15 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get view frustum.
+		 * @return View frustum.
+		 */
+		Frustum get_view_frustum() const
+		{
+			return m_view_frustum;
+		}
+
+		/**
 		 * @brief Set field of view.
 		 * @param New field of view.
 		 * @return New field of view.
@@ -93,6 +87,8 @@ namespace dk
 		float set_fov(float fov)
 		{
 			m_field_of_view = fov;
+			calculate_vp_matrices();
+			calculate_frustum();
 			return m_field_of_view;
 		}
 
@@ -104,6 +100,8 @@ namespace dk
 		float set_near_clipping_plane(float ncp)
 		{
 			m_near_clipping_plane = ncp;
+			calculate_vp_matrices();
+			calculate_frustum();
 			return m_near_clipping_plane;
 		}
 
@@ -115,10 +113,24 @@ namespace dk
 		float set_far_clipping_plane(float fcp)
 		{
 			m_far_clipping_plane = fcp;
+			calculate_vp_matrices();
+			calculate_frustum();
 			return m_far_clipping_plane;
 		}
 
 	private:
+
+		/**
+		 * @brief Calculate the view and perspective matrices.
+		 */
+		void calculate_vp_matrices();
+
+		/**
+		 * @brief Calculate the view frustum planes.
+		 */
+		void calculate_frustum();
+
+
 
 		/** Transform. */
 		Handle<Transform> m_transform = {};
@@ -128,6 +140,9 @@ namespace dk
 
 		/** View matrix. */
 		glm::mat4 m_view = {};
+
+		/** View frustum. */
+		Frustum m_view_frustum = {};
 
 		/** Field of view. */
 		float m_field_of_view = 100.0f;

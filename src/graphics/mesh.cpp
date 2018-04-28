@@ -53,6 +53,7 @@ namespace dk
 		m_indices(indices),
 		m_vertices(vertices)
 	{
+		calculate_aabb();
 		calculate_tangents();
 	}
 
@@ -167,5 +168,27 @@ namespace dk
 
 		init_vertex_buffer();
 		init_index_buffer();
+	}
+
+	void Mesh::calculate_aabb()
+	{
+		// Reset bounding box
+		glm::vec3 min = {}, max = {};
+
+		// Loop over every vertex finding the min and max values.
+		for (auto& vertex : m_vertices)
+		{
+			if (vertex.position.x < min.x) min.x = vertex.position.x;
+			if (vertex.position.x > max.x) max.x = vertex.position.x;
+								    	   
+			if (vertex.position.y < min.y) min.y = vertex.position.y;
+			if (vertex.position.y > max.y) max.y = vertex.position.y;
+								    	   
+			if (vertex.position.z < min.z) min.z = vertex.position.z;
+			if (vertex.position.z > max.z) max.z = vertex.position.z;
+		}
+
+		m_aabb.center = (min + max) / 2.0f;
+		m_aabb.extent = (max - min) / 2.0f;
 	}
 }

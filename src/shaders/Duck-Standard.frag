@@ -1,7 +1,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 // Light macros
-#define DK_MAX_POINT_LIGHTS 64
+#define DK_MAX_POINT_LIGHTS 128
 #define DK_MAX_DIRECTIONAL_LIGHTS 16
 
 struct PointLighData
@@ -11,12 +11,6 @@ struct PointLighData
 	
 	/** Color. */
 	vec4 color;
-	
-	/** Range. */
-	float range;
-	
-	/** Intensity. */
-	float intensity;
 };
 
 struct DirectionalLightData
@@ -26,9 +20,6 @@ struct DirectionalLightData
 	
 	/** Color. */
 	vec4 color;
-	
-	/** Intensity */
-	float intensity;
 };
 
 struct CalculationData

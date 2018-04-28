@@ -488,7 +488,7 @@ namespace dk
 
 		m_vk_depth_prepass_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
-		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
+		std::vector<vk::CommandBuffer> command_buffers = {};
 
 		// Wait for threads to finish
 		m_thread_pool->wait();
@@ -500,8 +500,21 @@ namespace dk
 
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
+			glm::vec3 scale = 
+			{
+				glm::length(glm::vec3(m_renderable_objects[i].model[0][0], m_renderable_objects[i].model[1][0], m_renderable_objects[i].model[2][0])),
+				glm::length(glm::vec3(m_renderable_objects[i].model[0][1], m_renderable_objects[i].model[1][1], m_renderable_objects[i].model[2][1])),
+				glm::length(glm::vec3(m_renderable_objects[i].model[0][2], m_renderable_objects[i].model[1][2], m_renderable_objects[i].model[2][2]))
+			};
+
+			AABB new_aabb = m_renderable_objects[i].mesh->get_aabb();
+			new_aabb.center = glm::vec3(m_renderable_objects[i].model * glm::vec4(new_aabb.center, 1.0f));
+			new_aabb.extent *= scale;
+
+			if (!m_camera_data.frustum.check_inside(new_aabb)) continue;
+
 			auto& command_buffer = m_renderable_objects[i].depth_prepass_command_buffer.get_command_buffer();
-			command_buffers[i] = command_buffer;
+			command_buffers.push_back(command_buffer);
 
 			jobs[m_renderable_objects[i].depth_prepass_command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
 			{
@@ -602,10 +615,7 @@ namespace dk
 
 	std::vector<vk::CommandBuffer> Renderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
 	{
-		std::vector<vk::CommandBuffer> command_buffers(m_renderable_objects.size());
-
-		// Wait for threads to finish
-		m_thread_pool->wait();
+		std::vector<vk::CommandBuffer> command_buffers = {};
 
 		// List of jobs.
 		// First dimension is the queue.
@@ -614,8 +624,21 @@ namespace dk
 
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
+			glm::vec3 scale =
+			{
+				glm::length(glm::vec3(m_renderable_objects[i].model[0][0], m_renderable_objects[i].model[1][0], m_renderable_objects[i].model[2][0])),
+				glm::length(glm::vec3(m_renderable_objects[i].model[0][1], m_renderable_objects[i].model[1][1], m_renderable_objects[i].model[2][1])),
+				glm::length(glm::vec3(m_renderable_objects[i].model[0][2], m_renderable_objects[i].model[1][2], m_renderable_objects[i].model[2][2]))
+			};
+
+			AABB new_aabb = m_renderable_objects[i].mesh->get_aabb();
+			new_aabb.center = glm::vec3(m_renderable_objects[i].model * glm::vec4(new_aabb.center, 1.0f));
+			new_aabb.extent *= scale;
+
+			if (!m_camera_data.frustum.check_inside(new_aabb)) continue;
+
 			auto& command_buffer = m_renderable_objects[i].command_buffer.get_command_buffer();
-			command_buffers[i] = command_buffer;
+			command_buffers.push_back(command_buffer);
 
 			jobs[m_renderable_objects[i].command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
 			{

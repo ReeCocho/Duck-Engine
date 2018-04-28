@@ -65,8 +65,8 @@ public:
 			if (ea.x < -80.0f) ea.x = -80.0f;
 
 			controller->m_transform->set_euler_angles(ea);
-			controller->m_transform->mod_position(controller->m_transform->get_forward() * y * delta_time);
-			controller->m_transform->mod_position(controller->m_transform->get_right() * x * delta_time);
+			controller->m_transform->mod_position(controller->m_transform->get_forward() * y * delta_time * 3.0f);
+			controller->m_transform->mod_position(controller->m_transform->get_right() * x * delta_time * 3.0f);
 		}
 	}
 
@@ -136,18 +136,17 @@ int main()
 	}
 
 	// Test sphere
-	for(float i = 0.0f; i < 10.0f; i += 1.0f)
-		for(float j = 0.0f; j < 15.0f; j += 1.0f)
-			for(float k = 0.0f; k < 10.0f; k += 1.0f)
-			{
-				dk::Entity entity = dk::Entity(&dk::engine::scene);
-				dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-				mesh_renderer->set_material(material);
-				mesh_renderer->set_mesh(sphere);
+	for(float i = 0.0f; i < 40.0f; i += 1.0f)
+		for(float k = 0.0f; k < 40.0f; k += 1.0f)
+		{
+			dk::Entity entity = dk::Entity(&dk::engine::scene);
+			dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
+			mesh_renderer->set_material(material);
+			mesh_renderer->set_mesh(sphere);
 
-				dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-				transform->set_position(glm::vec3(i, j, k));
-			}
+			dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+			transform->set_position(glm::vec3(i, 2.0f, k));
+		}
 
 	// Floor
 	{
@@ -172,17 +171,19 @@ int main()
 		light->set_intensity(4.0f);
 	}
 
-	// Point light
-	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
-		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-		transform->set_position(glm::vec3(1, 2, 1));
+	// Point lights
+	for (float i = 0.0f; i < 40.0f; i += 4.0f)
+		for (float k = 0.0f; k < 40.0f; k += 4.0f)
+		{
+			dk::Entity entity = dk::Entity(&dk::engine::scene);
+			dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+			transform->set_position(glm::vec3(i, 2, k));
 
-		dk::Handle<dk::PointLight> light = entity.add_component<dk::PointLight>();
-		light->set_color(glm::vec3(1, 0, 0));
-		light->set_intensity(64.0f);
-		light->set_range(4.0f);
-	}
+			dk::Handle<dk::PointLight> light = entity.add_component<dk::PointLight>();
+			light->set_color(glm::vec3(1, 0, 0));
+			light->set_intensity(64.0f);
+			light->set_range(4.0f);
+		}
 
 	dk::engine::simulate();
 	dk::engine::shutdown();

@@ -16,13 +16,28 @@
 #include "texture.hpp"
 
 /** Max number of point lights. */
-#define DK_MAX_POINT_LIGHTS 64
+#define DK_MAX_POINT_LIGHTS 128
 
 /** Max number of directional lights. */
 #define DK_MAX_DIRECTIONAL_LIGHTS 16
 
 namespace dk
 {
+	/**
+	 * @brief Camera data structure.
+	 */
+	struct CameraData
+	{
+		/** View-projection matrix. */
+		glm::mat4 vp_mat = {};
+
+		/** Position in space. */
+		glm::vec3 position = {};
+
+		/** View frustum. */
+		Frustum frustum = {};
+	};
+
 	/**
 	 * @brief An object that can be rendered onto the screen.
 	 */
@@ -42,6 +57,9 @@ namespace dk
 
 		/** Descriptor sets. */
 		std::vector<vk::DescriptorSet> descriptor_sets;
+
+		/** Model matrix. */
+		glm::mat4 model = {};
 	};
 
 	/**
@@ -201,22 +219,21 @@ namespace dk
 
 		/**
 		 * @brief Set main camera.
-		 * @param Camera matrix.
-		 * @param Camera position.
+		 * @param Camera data.
 		 */
-		void set_main_camera(glm::mat4 mat, glm::vec3 position)
+		void set_main_camera(const CameraData& data)
 		{
-			m_camera_matrix = mat;
-			m_lighting_data.camera_position = glm::vec4(position, 1.0f);
+			m_camera_data = data;
+			m_lighting_data.camera_position = glm::vec4(data.position, 1.0f);
 		}
 
 		/**
-		 * @brief Get main camera matrix.
-		 * @return Main camera matrix.
+		 * @brief Get main camera.
+		 * @return Main camera
 		 */
-		glm::mat4 get_main_camera_matrix() const
+		const CameraData& get_main_camera() const
 		{
-			return m_camera_matrix;
+			return m_camera_data;
 		}
 
 	private:
@@ -292,8 +309,8 @@ namespace dk
 		/** Framebuffers. */
 		std::vector<vk::Framebuffer> m_vk_framebuffers;
 
-		/** Main camera matrix. */
-		glm::mat4 m_camera_matrix = {};
+		/** Main camera data. */
+		CameraData m_camera_data = {};
 
 		/**
 		 * @brief Depth prepass image.
