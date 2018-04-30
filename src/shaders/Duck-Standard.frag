@@ -1,9 +1,5 @@
 #extension GL_ARB_separate_shader_objects : enable
 
-// Light macros
-#define DK_MAX_POINT_LIGHTS 128
-#define DK_MAX_DIRECTIONAL_LIGHTS 16
-
 struct PointLighData
 {
 	/** Position. */
@@ -53,26 +49,25 @@ layout(set = 0, binding = 3) uniform FragmentData
 };
 
 // Lighting data
-layout(set = 1, binding = 0) uniform LightingData
+layout(std430, set = 1, binding = 0) buffer PointLights
 {
-	layout(offset = 0) 
-	PointLighData point_lights[DK_MAX_POINT_LIGHTS];
-	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 32)) 
-	uint point_light_count;
-	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + 16) 
-	DirectionalLightData directional_lights[DK_MAX_DIRECTIONAL_LIGHTS];
-	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + (DK_MAX_DIRECTIONAL_LIGHTS * 32) + 16)
-	uint directional_light_count;
-	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + (DK_MAX_DIRECTIONAL_LIGHTS * 32) + 32)
+	uint light_count;
+	PointLighData data[];
+} point_lights;
+
+layout(std430, set = 1, binding = 1) buffer DirectionalLights
+{
+	uint light_count;
+	DirectionalLightData data[];
+} directional_lights;
+
+layout(set = 1, binding = 2) uniform LightingData
+{
+	layout(offset = 0)
 	vec4 ambient;
 	
-	layout(offset = (DK_MAX_POINT_LIGHTS * 32) + (DK_MAX_DIRECTIONAL_LIGHTS * 32) + 48)
+	layout(offset = 16)
 	vec4 camera_position;
-	
 } lighting_data;
 
 // Material data macro
@@ -160,11 +155,11 @@ vec3 total_lighting(vec3 position, vec3 normal, float metallic, float roughness,
 	vec3 total = vec3(0.0);
 	
 	// Directional lights
-	for(uint i = 0; i < lighting_data.directional_light_count; ++i)
+	for(uint i = 0; i < directional_lights.light_count; ++i)
 	{
 		CalculationData data;
-		data.direction = -normalize(lighting_data.directional_lights[i].direction.xyz);
-		data.light_color = lighting_data.directional_lights[i].color.rgb * lighting_data.directional_lights[i].color.a;
+		data.direction = -normalize(directional_lights.data[i].direction.xyz);
+		data.light_color = directional_lights.data[i].color.rgb * directional_lights.data[i].color.a;
 		data.attenuation = 1.0;
 		data.metallic = metallic;
 		data.roughness = roughness;
@@ -177,20 +172,20 @@ vec3 total_lighting(vec3 position, vec3 normal, float metallic, float roughness,
 	}
 	
 	// Point lights
-	for(uint i = 0; i < lighting_data.point_light_count; ++i)
+	for(uint i = 0; i < point_lights.light_count; ++i)
 	{
-		vec3 pos_diff = lighting_data.point_lights[i].position.xyz - position;
+		vec3 pos_diff = point_lights.data[i].position.xyz - position;
 		float dist = length(pos_diff);
 		
-		if(dist < lighting_data.point_lights[i].position.w)
+		if(dist < point_lights.data[i].position.w)
 		{	
 			vec3 direction = normalize(pos_diff);
-			float atten = clamp(1.0 - (dist/lighting_data.point_lights[i].position.w), 0.0, 1.0);
+			float atten = clamp(1.0 - (dist/point_lights.data[i].position.w), 0.0, 1.0);
 			atten *= atten;
 		
 			CalculationData data;
 			data.direction = direction;
-			data.light_color = lighting_data.point_lights[i].color.rgb * lighting_data.point_lights[i].color.a;
+			data.light_color = point_lights.data[i].color.rgb * point_lights.data[i].color.a;
 			data.attenuation = atten;
 			data.metallic = metallic;
 			data.roughness = roughness;

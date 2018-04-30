@@ -27,6 +27,7 @@ set(DUCK_GRAPHICS_HDRS
 	command_manager.hpp
 	mesh.hpp
 	material.hpp
+	lighting.hpp
 )
 
 # Sources
@@ -42,6 +43,7 @@ set(DUCK_GRAPHICS_SRCS
 	command_manager.cpp
 	mesh.cpp
 	material.cpp
+	lighting.cpp
 )
 
 # Graphics lib

@@ -270,38 +270,48 @@ namespace dk
 			dk_assert(m_vk_framebuffers[i]);
 		}
 
-		// Create lighting UBO
-		m_lighting_ubo = m_graphics->create_buffer
-		(
-			sizeof(m_lighting_data), 
-			vk::BufferUsageFlagBits::eUniformBuffer, 
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
-		);
-		m_lighting_map = m_graphics->get_logical_device().mapMemory(m_lighting_ubo.memory, 0, sizeof(m_lighting_data));
+		// Create lighting manager
+		m_lighting_manager = std::make_unique<LightingManager>(m_graphics, 512, 8);
 
 		// Create descriptor set
 		{
-			vk::DescriptorSetLayoutBinding binding = {};
-			binding.binding = 0;
-			binding.descriptorType = vk::DescriptorType::eUniformBuffer;
-			binding.descriptorCount = 1;
-			binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+			std::array<vk::DescriptorSetLayoutBinding, 3> bindings = {};
+			bindings[0].binding = 0;
+			bindings[0].descriptorType = vk::DescriptorType::eStorageBuffer;
+			bindings[0].descriptorCount = 1;
+			bindings[0].stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+			bindings[1].binding = 1;
+			bindings[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+			bindings[1].descriptorCount = 1;
+			bindings[1].stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+			bindings[2].binding = 2;
+			bindings[2].descriptorType = vk::DescriptorType::eUniformBuffer;
+			bindings[2].descriptorCount = 1;
+			bindings[2].stageFlags = vk::ShaderStageFlagBits::eFragment;
 
 			vk::DescriptorSetLayoutCreateInfo layout_info = {};
-			layout_info.bindingCount = 1;
-			layout_info.pBindings = &binding;
+			layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
+			layout_info.pBindings = bindings.data();
 
 			m_descriptor.layout = m_graphics->get_logical_device().createDescriptorSetLayout(layout_info);
 			dk_assert(m_descriptor.layout);
 
-			vk::DescriptorPoolSize pool_size = {};
-			pool_size.type = vk::DescriptorType::eUniformBuffer;
-			pool_size.descriptorCount = 1;
+			std::array<vk::DescriptorPoolSize, 3> pool_sizes = {};
+			pool_sizes[0].type = vk::DescriptorType::eStorageBuffer;
+			pool_sizes[0].descriptorCount = 1;
+
+			pool_sizes[1].type = vk::DescriptorType::eStorageBuffer;
+			pool_sizes[1].descriptorCount = 1;
+
+			pool_sizes[2].type = vk::DescriptorType::eUniformBuffer;
+			pool_sizes[2].descriptorCount = 1;
 
 			// Create descriptor pool
 			vk::DescriptorPoolCreateInfo pool_info = {};
-			pool_info.poolSizeCount = 1;
-			pool_info.pPoolSizes = &pool_size;
+			pool_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
+			pool_info.pPoolSizes = pool_sizes.data();
 			pool_info.maxSets = 1;
 
 			m_descriptor.pool = m_graphics->get_logical_device().createDescriptorPool(pool_info);
@@ -318,13 +328,13 @@ namespace dk
 
 			// Update descriptor set
 			vk::DescriptorBufferInfo buffer_info = {};
-			buffer_info.buffer = m_lighting_ubo.buffer;
+			buffer_info.buffer = m_lighting_manager->get_lighting_data_ubo().buffer;
 			buffer_info.offset = 0;
-			buffer_info.range = static_cast<uint32_t>(sizeof(m_lighting_data));
+			buffer_info.range = static_cast<uint32_t>(m_lighting_manager->get_lighting_data_size());
 
 			vk::WriteDescriptorSet write = {};
 			write.dstSet = m_descriptor.set;
-			write.dstBinding = static_cast<uint32_t>(0);
+			write.dstBinding = static_cast<uint32_t>(2);
 			write.dstArrayElement = 0;
 			write.descriptorType = vk::DescriptorType::eUniformBuffer;
 			write.descriptorCount = 1;
@@ -352,9 +362,8 @@ namespace dk
 		m_graphics->get_logical_device().destroyDescriptorPool(m_descriptor.pool);
 		m_graphics->get_logical_device().destroyDescriptorSetLayout(m_descriptor.layout);
 
-		// Destroy lighting UBO
-		m_graphics->get_logical_device().unmapMemory(m_lighting_ubo.memory);
-		m_lighting_ubo.free(m_graphics->get_logical_device());
+		// Destroy lighting manager
+		m_lighting_manager.reset();
 
 		// Destroy semaphores
 		m_graphics->get_logical_device().destroySemaphore(m_semaphores.image_available);
@@ -383,8 +392,7 @@ namespace dk
 
 	void Renderer::flush_queues()
 	{
-		m_lighting_data.point_light_count = 0;
-		m_lighting_data.directional_light_count = 0;
+		m_lighting_manager->flush_queues();
 		m_renderable_objects.clear();
 	}
 
@@ -403,10 +411,37 @@ namespace dk
 		).value;
 
 		// Submit lighting data
-		memcpy(m_lighting_map, &m_lighting_data, sizeof(m_lighting_data));
+		m_lighting_manager->upload();
+
+		// Update lighting descriptor sets
+		std::array<vk::DescriptorBufferInfo, 2> buffer_infos = {};
+		buffer_infos[0].buffer = m_lighting_manager->get_point_light_ssbo().buffer;
+		buffer_infos[0].offset = 0;
+		buffer_infos[0].range = static_cast<uint32_t>(m_lighting_manager->get_point_light_data_size());
+
+		buffer_infos[1].buffer = m_lighting_manager->get_directional_light_ssbo().buffer;
+		buffer_infos[1].offset = 0;
+		buffer_infos[1].range = static_cast<uint32_t>(m_lighting_manager->get_directional_light_data_size());
+
+		std::array<vk::WriteDescriptorSet, 2> writes = {};
+		writes[0].dstSet = m_descriptor.set;
+		writes[0].dstBinding = 0;
+		writes[0].dstArrayElement = 0;
+		writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
+		writes[0].descriptorCount = 1;
+		writes[0].pBufferInfo = &buffer_infos[0];
+
+		writes[1].dstSet = m_descriptor.set;
+		writes[1].dstBinding = 1;
+		writes[1].dstArrayElement = 0;
+		writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+		writes[1].descriptorCount = 1;
+		writes[1].pBufferInfo = &buffer_infos[1];
+
+		m_graphics->get_logical_device().updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 
 		// Perform depth prepass
-		do_depth_prepass();
+		generate_depth_prepass_command_buffer();
 		{
 			vk::PipelineStageFlags wait_stage = vk::PipelineStageFlagBits::eAllGraphics;
 
@@ -460,19 +495,20 @@ namespace dk
 		flush_queues();
 	}
 
-	void Renderer::do_depth_prepass()
+	void Renderer::generate_depth_prepass_command_buffer()
 	{
+		// Begin command buffer
 		vk::CommandBufferBeginInfo cmd_buf_info = {};
 		cmd_buf_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 		cmd_buf_info.pInheritanceInfo = nullptr;
 
-		// Begin renderpass
 		m_vk_depth_prepass_command_buffer.begin(cmd_buf_info);
 
 		// Clear values for all attachments written in the fragment shader
 		vk::ClearValue clear_value = {};
 		clear_value.setDepthStencil({ 1.0f, 0 });
 
+		// Begin render pass
 		vk::RenderPassBeginInfo render_pass_begin_info = {};
 		render_pass_begin_info.renderPass = m_render_passes.depth_prepass;
 		render_pass_begin_info.framebuffer = m_depth_prepass_image.framebuffer;
@@ -481,48 +517,45 @@ namespace dk
 		render_pass_begin_info.clearValueCount = 1;
 		render_pass_begin_info.pClearValues = &clear_value;
 
+		m_vk_depth_prepass_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+
 		// Inheritance info for the meshes command buffers
 		vk::CommandBufferInheritanceInfo inheritance_info = {};
 		inheritance_info.renderPass = m_render_passes.depth_prepass;
 		inheritance_info.framebuffer = m_depth_prepass_image.framebuffer;
 
-		m_vk_depth_prepass_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
-
+		// List of command buffers to execute
 		std::vector<vk::CommandBuffer> command_buffers = {};
-
-		// Wait for threads to finish
-		m_thread_pool->wait();
 
 		// List of jobs.
 		// First dimension is the queue.
 		// Second dimension is the job list.
 		std::vector<std::vector<std::function<void(void)>>> jobs(get_graphics().get_command_manager().get_pool_count());
 
+		// Loop over every mesh
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
-			glm::vec3 scale = 
-			{
-				glm::length(glm::vec3(m_renderable_objects[i].model[0][0], m_renderable_objects[i].model[1][0], m_renderable_objects[i].model[2][0])),
-				glm::length(glm::vec3(m_renderable_objects[i].model[0][1], m_renderable_objects[i].model[1][1], m_renderable_objects[i].model[2][1])),
-				glm::length(glm::vec3(m_renderable_objects[i].model[0][2], m_renderable_objects[i].model[1][2], m_renderable_objects[i].model[2][2]))
-			};
+			// Easy to reference
+			auto& obj = m_renderable_objects[i];
 
-			AABB new_aabb = m_renderable_objects[i].mesh->get_aabb();
-			new_aabb.center = glm::vec3(m_renderable_objects[i].model * glm::vec4(new_aabb.center, 1.0f));
-			new_aabb.extent *= scale;
+			// Frustum culling
+			AABB new_aabb = obj.mesh->get_aabb();
+			new_aabb.transform(obj.model);
 
 			if (!m_camera_data.frustum.check_inside(new_aabb)) continue;
 
-			auto& command_buffer = m_renderable_objects[i].depth_prepass_command_buffer.get_command_buffer();
+			// Add command buffer to list
+			auto& command_buffer = obj.depth_prepass_command_buffer.get_command_buffer();
 			command_buffers.push_back(command_buffer);
 
-			jobs[m_renderable_objects[i].depth_prepass_command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
+			// Create job
+			jobs[obj.depth_prepass_command_buffer.get_thread_index()].push_back(([this, &obj, command_buffer, inheritance_info]()
 			{
+				// Begin command buffer
 				vk::CommandBufferBeginInfo begin_info = {};
 				begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
 				begin_info.pInheritanceInfo = &inheritance_info;
 
-				// Draw
 				command_buffer.begin(begin_info);
 
 				// Set viewport
@@ -539,40 +572,49 @@ namespace dk
 				scissor.setOffset({ 0, 0 });
 				command_buffer.setScissor(0, 1, &scissor);
 
-				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_depth_pipeline());
+				// Bind shader
+				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, obj.shader->get_depth_pipeline());
 
-				const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
-				vk::DeviceSize offsets[] = { 0 };
-
+				// Bind descriptor sets
 				command_buffer.bindDescriptorSets
 				(
 					vk::PipelineBindPoint::eGraphics,
-					m_renderable_objects[i].shader->get_depth_pipeline_layout(),
+					obj.shader->get_depth_pipeline_layout(),
 					0,
-					static_cast<uint32_t>(m_renderable_objects[i].descriptor_sets.size()),
-					m_renderable_objects[i].descriptor_sets.data(),
+					static_cast<uint32_t>(obj.descriptor_sets.size()),
+					obj.descriptor_sets.data(),
 					0,
 					nullptr
 				);
 
+				// Draw mesh
+				const auto& mem_buffer = obj.mesh->get_vertex_buffer();
+				vk::DeviceSize offsets[] = { 0 };
+
 				command_buffer.bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
-				command_buffer.bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
-				command_buffer.drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
+				command_buffer.bindIndexBuffer(obj.mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+				command_buffer.drawIndexed(static_cast<uint32_t>(obj.mesh->get_index_count()), 1, 0, 0, 0);
+
+				// End command buffer
 				command_buffer.end();
 			}));
 		}
 
+		// Add jobs to thread pool
 		for (size_t i = 0; i < jobs.size(); ++i)
 			m_thread_pool->workers[i]->add_jobs(jobs[i]);
 
 		// Wait for threads to finish
 		m_thread_pool->wait();
 
-		// Execute command buffers and perform lighting
+		// Execute command buffers
 		if (command_buffers.size() > 0)
 			m_vk_depth_prepass_command_buffer.executeCommands(command_buffers);
 
+		// End render pas
 		m_vk_depth_prepass_command_buffer.endRenderPass();
+
+		// End command buffer
 		m_vk_depth_prepass_command_buffer.end();
 	}
 
@@ -592,6 +634,7 @@ namespace dk
 		vk::ClearValue clear_color = {};
 		clear_color.color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
 
+		// Begin render pass
 		vk::RenderPassBeginInfo render_pass_info = {};
 		render_pass_info.renderPass = m_render_passes.shader_pass;
 		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
@@ -600,21 +643,9 @@ namespace dk
 		render_pass_info.clearValueCount = 1;
 		render_pass_info.pClearValues = &clear_color;
 
-		// Begin render pass
 		m_vk_rendering_command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eSecondaryCommandBuffers);
 
-		auto command_buffers = generate_renderable_command_buffers(inheritance_info);
-
-		if (command_buffers.size() > 0)
-			m_vk_rendering_command_buffer.executeCommands(command_buffers);
-
-		// End render pass and command buffer
-		m_vk_rendering_command_buffer.endRenderPass();
-		m_vk_rendering_command_buffer.end();
-	}
-
-	std::vector<vk::CommandBuffer> Renderer::generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info)
-	{
+		// Command buffers to execute
 		std::vector<vk::CommandBuffer> command_buffers = {};
 
 		// List of jobs.
@@ -622,31 +653,30 @@ namespace dk
 		// Second dimension is the job list.
 		std::vector<std::vector<std::function<void(void)>>> jobs(get_graphics().get_command_manager().get_pool_count());
 
+		// Loop over every mesh
 		for (size_t i = 0; i < m_renderable_objects.size(); ++i)
 		{
-			glm::vec3 scale =
-			{
-				glm::length(glm::vec3(m_renderable_objects[i].model[0][0], m_renderable_objects[i].model[1][0], m_renderable_objects[i].model[2][0])),
-				glm::length(glm::vec3(m_renderable_objects[i].model[0][1], m_renderable_objects[i].model[1][1], m_renderable_objects[i].model[2][1])),
-				glm::length(glm::vec3(m_renderable_objects[i].model[0][2], m_renderable_objects[i].model[1][2], m_renderable_objects[i].model[2][2]))
-			};
+			// Easy reference
+			auto& obj = m_renderable_objects[i];
 
-			AABB new_aabb = m_renderable_objects[i].mesh->get_aabb();
-			new_aabb.center = glm::vec3(m_renderable_objects[i].model * glm::vec4(new_aabb.center, 1.0f));
-			new_aabb.extent *= scale;
+			// Frustum culling
+			AABB new_aabb = obj.mesh->get_aabb();
+			new_aabb.transform(obj.model);
 
 			if (!m_camera_data.frustum.check_inside(new_aabb)) continue;
 
-			auto& command_buffer = m_renderable_objects[i].command_buffer.get_command_buffer();
+			// Add command buffer to list
+			auto& command_buffer = obj.command_buffer.get_command_buffer();
 			command_buffers.push_back(command_buffer);
 
-			jobs[m_renderable_objects[i].command_buffer.get_thread_index()].push_back(([this, i, command_buffer, inheritance_info]()
+			// Create job
+			jobs[obj.command_buffer.get_thread_index()].push_back(([this, &obj, command_buffer, inheritance_info]()
 			{
+				// Begin command buffer
 				vk::CommandBufferBeginInfo begin_info = {};
 				begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
 				begin_info.pInheritanceInfo = &inheritance_info;
 
-				// Draw
 				command_buffer.begin(begin_info);
 
 				// Set viewport
@@ -663,35 +693,47 @@ namespace dk
 				scissor.setOffset({ 0, 0 });
 				command_buffer.setScissor(0, 1, &scissor);
 
-				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_renderable_objects[i].shader->get_graphics_pipeline());
+				// Bind shader
+				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, obj.shader->get_graphics_pipeline());
 
-				const auto& mem_buffer = m_renderable_objects[i].mesh->get_vertex_buffer();
-				vk::DeviceSize offsets[] = { 0 };
-
+				// Bind descriptor sets
 				command_buffer.bindDescriptorSets
 				(
 					vk::PipelineBindPoint::eGraphics,
-					m_renderable_objects[i].shader->get_graphics_pipeline_layout(),
+					obj.shader->get_graphics_pipeline_layout(),
 					0,
-					static_cast<uint32_t>(m_renderable_objects[i].descriptor_sets.size()),
-					m_renderable_objects[i].descriptor_sets.data(),
+					static_cast<uint32_t>(obj.descriptor_sets.size()),
+					obj.descriptor_sets.data(),
 					0,
 					nullptr
 				);
 
+				// Draw mesh
+				const auto& mem_buffer = obj.mesh->get_vertex_buffer();
+				vk::DeviceSize offsets[] = { 0 };
+
 				command_buffer.bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
-				command_buffer.bindIndexBuffer(m_renderable_objects[i].mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
-				command_buffer.drawIndexed(static_cast<uint32_t>(m_renderable_objects[i].mesh->get_index_count()), 1, 0, 0, 0);
+				command_buffer.bindIndexBuffer(obj.mesh->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+				command_buffer.drawIndexed(static_cast<uint32_t>(obj.mesh->get_index_count()), 1, 0, 0, 0);
+
+				// End command buffer
 				command_buffer.end();
 			}));
 		}
 
+		// Add jobs to worker threads
 		for (size_t i = 0; i < jobs.size(); ++i)
 			m_thread_pool->workers[i]->add_jobs(jobs[i]);
 
 		// Wait for threads to finish
 		m_thread_pool->wait();
 
-		return command_buffers;
+		// Execute command buffers
+		if (command_buffers.size() > 0)
+			m_vk_rendering_command_buffer.executeCommands(command_buffers);
+
+		// End render pass and command buffer
+		m_vk_rendering_command_buffer.endRenderPass();
+		m_vk_rendering_command_buffer.end();
 	}
 }

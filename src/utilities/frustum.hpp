@@ -22,6 +22,13 @@ namespace dk
 
 		/** Extents */
 		glm::vec3 extent = {};
+
+		/**
+		 * @brief Transform the AABB by a model matrix.
+		 * @param Model matrix.
+		 * @return This.
+		 */
+		AABB& transform(glm::mat4 model);
 	};
 
 

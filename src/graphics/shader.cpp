@@ -114,9 +114,9 @@ namespace dk
 			for (size_t i = 0; i < m_texture_count; ++i)
 			{
 				bindings[i].binding = static_cast<uint32_t>(i);
-bindings[i].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-bindings[i].descriptorCount = 1;
-bindings[i].stageFlags = vk::ShaderStageFlagBits::eFragment;
+				bindings[i].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+				bindings[i].descriptorCount = 1;
+				bindings[i].stageFlags = vk::ShaderStageFlagBits::eFragment;
 			}
 
 			vk::DescriptorSetLayoutCreateInfo layout_info = {};

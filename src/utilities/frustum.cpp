@@ -10,6 +10,21 @@
 
 namespace dk
 {
+	AABB& AABB::transform(glm::mat4 model)
+	{
+		glm::vec3 scale =
+		{
+			glm::length(glm::vec3(model[0][0], model[1][0], model[2][0])),
+			glm::length(glm::vec3(model[0][1], model[1][1], model[2][1])),
+			glm::length(glm::vec3(model[0][2], model[1][2], model[2][2]))
+		};
+
+		center = glm::vec3(model * glm::vec4(center, 1.0f));
+		extent *= scale;
+
+		return *this;
+	}
+
 	Frustum::Frustum(glm::mat4 mat)
 	{
 		// Compute plane equations

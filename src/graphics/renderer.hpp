@@ -11,15 +11,10 @@
 #include <utilities\threading.hpp>
 #include "graphics.hpp"
 #include "swapchain_manager.hpp"
+#include "lighting.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
 #include "texture.hpp"
-
-/** Max number of point lights. */
-#define DK_MAX_POINT_LIGHTS 128
-
-/** Max number of directional lights. */
-#define DK_MAX_DIRECTIONAL_LIGHTS 16
 
 namespace dk
 {
@@ -60,30 +55,6 @@ namespace dk
 
 		/** Model matrix. */
 		glm::mat4 model = {};
-	};
-
-	/**
-	 * @brief Directional light data.
-	 */
-	struct DirectionalLightData
-	{
-		/** Direction. */
-		glm::vec4 direction = {};
-
-		/** Color. (W is intensity) */
-		glm::vec4 color = {};
-	};
-
-	/**
-	 * @brief Point light data.
-	 */
-	struct PointLightData
-	{
-		/** Position. (W is range) */
-		glm::vec4 position = {};
-
-		/** Color. (W is intensity) */
-		glm::vec4 color = {};
 	};
 
 
@@ -201,9 +172,7 @@ namespace dk
 		 */
 		void draw(const PointLightData& point_light)
 		{
-			dk_assert(m_lighting_data.point_light_count + 1 < DK_MAX_POINT_LIGHTS);
-			m_lighting_data.point_lights[m_lighting_data.point_light_count] = point_light;
-			++m_lighting_data.point_light_count;
+			m_lighting_manager->draw(point_light);
 		}
 
 		/**
@@ -212,9 +181,7 @@ namespace dk
 		 */
 		void draw(const DirectionalLightData& dir_light)
 		{
-			dk_assert(m_lighting_data.directional_light_count + 1 < DK_MAX_DIRECTIONAL_LIGHTS);
-			m_lighting_data.directional_lights[m_lighting_data.directional_light_count] = dir_light;
-			++m_lighting_data.directional_light_count;
+			m_lighting_manager->draw(dir_light);
 		}
 
 		/**
@@ -224,7 +191,7 @@ namespace dk
 		void set_main_camera(const CameraData& data)
 		{
 			m_camera_data = data;
-			m_lighting_data.camera_position = glm::vec4(data.position, 1.0f);
+			m_lighting_manager->set_camera_position(data.position);
 		}
 
 		/**
@@ -254,20 +221,13 @@ namespace dk
 		/**
 		 * @brief Perform the depth prepass.
 		 */
-		void do_depth_prepass();
+		void generate_depth_prepass_command_buffer();
 
 		/**
 		 * @brief Generate the rendering command buffer.
 		 * @param Image index.
 		 */
 		void generate_rendering_command_buffer(uint32_t image_index);
-
-		/**
-		 * @brief Generate command buffers for renderable objects.
-		 * @param Inheritence info for the buffers.
-		 * @return Vector of command buffers to submit.
-		 */
-		std::vector<vk::CommandBuffer> generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info);
 
 		/**
 		 * @brief Clear the rendering queues.
@@ -281,6 +241,9 @@ namespace dk
 
 		/** Swapchain manager. */
 		std::unique_ptr<VkSwapchainManager> m_swapchain_manager;
+		
+		/** Lighting manager. */
+		std::unique_ptr<LightingManager> m_lighting_manager;
 
 		/** Texture allocator. */
 		ResourceAllocator<Texture>* m_texture_allocator;
@@ -351,43 +314,6 @@ namespace dk
 			/** Semaphore to indicate an image is available for rendering too. */
 			vk::Semaphore image_available;
 		} m_semaphores;
-
-		/**
-		 * @brief Lighting data
-		 */
-		struct
-		{
-			/** Point light data. */
-			PointLightData point_lights[DK_MAX_POINT_LIGHTS] = {};
-
-			/** Number of point lights used. */
-			uint32_t point_light_count = 0;
-
-			/** Padding */
-			char padding1[12];
-
-			/** Directional light data. */
-			DirectionalLightData directional_lights[DK_MAX_DIRECTIONAL_LIGHTS] = {};
-
-			/** Number of directional lights used. */
-			uint32_t directional_light_count = 0;
-
-			/** Padding */
-			char padding2[12];
-
-			/** Ambient color (W value is intensity.) */
-			glm::vec4 ambient = { 1.0f, 1.0f, 1.0f, 0.2f };
-
-			/** Camera position. */
-			glm::vec4 camera_position = {};
-
-		} m_lighting_data;
-
-		/** Lighting uniform buffer. */
-		VkMemBuffer m_lighting_ubo = {};
-
-		/** Lighting UBO mapping pointer. */
-		void* m_lighting_map = nullptr;
 
 		/**
 		 * @brief Renderer descriptor.
