@@ -1,1 +1,15 @@
-﻿
+﻿  Checking Build System
+  CMake does not need to re-run because C:/Users/xXDea/Documents/Code/Duck-Engine/build/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because C:/Users/xXDea/Documents/Code/Duck-Engine/build/src/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because C:/Users/xXDea/Documents/Code/Duck-Engine/build/src/utilities/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because C:/Users/xXDea/Documents/Code/Duck-Engine/build/src/graphics/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because C:/Users/xXDea/Documents/Code/Duck-Engine/build/src/ecs/CMakeFiles/generate.stamp is up-to-date.
+  CMake does not need to re-run because C:/Users/xXDea/Documents/Code/Duck-Engine/build/examples/CMakeFiles/generate.stamp is up-to-date.
+  CMake is re-running because C:/Users/xXDea/Documents/Code/Duck-Engine/build/examples/testing/CMakeFiles/generate.stamp is out-of-date.
+    the file 'C:/Users/xXDea/Documents/Code/Duck-Engine/examples/testing/CMakeLists.txt'
+    is newer than 'C:/Users/xXDea/Documents/Code/Duck-Engine/build/examples/testing/CMakeFiles/generate.stamp.depend'
+    result='-1'
+  -- Selecting Windows SDK version 10.0.14393.0 to target Windows 10.0.16299.
+  -- Configuring done
+  -- Generating done
+  -- Build files have been written to: C:/Users/xXDea/Documents/Code/Duck-Engine/build

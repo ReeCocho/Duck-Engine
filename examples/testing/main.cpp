@@ -85,7 +85,7 @@ struct MaterialData
 
 int main()
 {
-	dk::engine::initialize(4, "Test Window", 1280, 720);
+	dk::engine::initialize("./config.json");
 
 	// Add systems
 	dk::engine::scene.add_system<dk::TransformSystem>();

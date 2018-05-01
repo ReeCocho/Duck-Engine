@@ -32,8 +32,19 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Renderer.
+		 * @param Path to folder containing meshes.
+		 * @param Path to folder containing textures.
+		 * @param Path to folder containing shaders.
+		 * @param Path to folder containing materials.
 		 */
-		ResourceManager(Renderer* renderer);
+		ResourceManager
+		(
+			Renderer* renderer, 
+			const std::string& meshes, 
+			const std::string& textures, 
+			const std::string& shaders, 
+			const std::string& mateirals
+		);
 
 		/**
 		 * @brief Shutdown the resource manager.

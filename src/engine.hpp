@@ -36,12 +36,9 @@ namespace dk
 
 		/**
 		 * @brief Initialize the engine.
-		 * @param Thread count.
-		 * @param Name of the window.
-		 * @param Width of the window.
-		 * @param Height of the window.
+		 * @param Path to config file.
 		 */
-		extern void initialize(size_t thread_count, const std::string& name, int width, int height);
+		extern void initialize(const std::string& path);
 
 		/**
 		 * @brief Simulate the game until completion.

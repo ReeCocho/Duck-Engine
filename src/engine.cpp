@@ -8,7 +8,12 @@
 #include <utilities\threading.hpp>
 #include <utilities\clock.hpp>
 #include <graphics\material.hpp>
+#include <json.hpp>
+#include <fstream>
 #include "engine.hpp"
+
+/** For convenience */
+using json = nlohmann::json;
 
 namespace
 {
@@ -35,12 +40,33 @@ namespace dk
 
 
 
-		void initialize(size_t thread_count, const std::string& name, int width, int height)
+		void initialize(const std::string& path)
 		{
-			::new(&graphics)(Graphics)(thread_count, name, width, height);
-			::new(&resource_manager)(ResourceManager)(static_cast<Renderer*>(&renderer));
+			// Read config file
+			std::ifstream stream(path);
+			json j;
+			stream >> j;
+
+			// Init graphics
+			::new(&graphics)(Graphics)(j["thread_count"], j["title"], j["width"], j["height"]);
+
+			// Init resource manager
+			::new(&resource_manager)(ResourceManager)
+			(
+				static_cast<Renderer*>(&renderer),
+				j["meshes"],
+				j["textures"],
+				j["shaders"],
+				j["materials"]
+			);
+
+			// Init renderer
 			::new(&renderer)(Renderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+
+			// Init input manager
 			input = Input();
+
+			// Init scene
 			scene = {};
 
 			rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });

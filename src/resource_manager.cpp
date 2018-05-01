@@ -7,11 +7,23 @@
 /** Includes. */
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
+#include <json.hpp>
+#include <fstream>
 #include "resource_manager.hpp"
+
+/** For convenience */
+using json = nlohmann::json;
 
 namespace dk
 {
-	ResourceManager::ResourceManager(Renderer* renderer) : 
+	ResourceManager::ResourceManager
+	(
+		Renderer* renderer,
+		const std::string& meshes,
+		const std::string& textures,
+		const std::string& shaders,
+		const std::string& mateirals
+	) :
 		m_renderer(renderer),
 		m_mesh_map({}),
 		m_shader_map({}),

@@ -1,0 +1,10 @@
+{
+	"title" : "Testing",
+	"width" : 1280,
+	"height" : 720,
+	"thread_count" : 4,
+	"meshes" : "./meshes/",
+	"textures" : "./textures/",
+	"shaders" : "./shaders/",
+	"materials" : "./materials/"
+}

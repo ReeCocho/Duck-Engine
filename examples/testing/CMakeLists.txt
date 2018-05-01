@@ -30,3 +30,13 @@ add_custom_command(TARGET Testing POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	"${CMAKE_SOURCE_DIR}/examples/testing/meshes" "$<TARGET_FILE_DIR:Testing>/../meshes"
 )
+
+add_custom_command(TARGET Testing POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${CMAKE_SOURCE_DIR}/examples/testing/materials" "$<TARGET_FILE_DIR:Testing>/../materials"
+)
+
+add_custom_command(TARGET Testing POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
+	"${CMAKE_SOURCE_DIR}/examples/testing/config.json" "$<TARGET_FILE_DIR:Testing>/../config.json"
+)
