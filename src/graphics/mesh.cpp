@@ -53,6 +53,7 @@ namespace dk
 		m_indices(indices),
 		m_vertices(vertices)
 	{
+		calculate_aabb();
 		calculate_tangents();
 	}
 
@@ -60,6 +61,52 @@ namespace dk
 	{
 		m_vertex_buffer.free(m_graphics->get_logical_device());
 		m_index_buffer.free(m_graphics->get_logical_device());
+	}
+
+	void Mesh::compute_normals()
+	{
+		// Zero out normals
+		for (size_t i = 0; i < m_vertices.size(); ++i)
+			m_vertices[i].normal = glm::vec3(0);
+
+		// Compute normals
+		for (size_t i = 0; i < m_indices.size(); i += 3)
+		{
+			auto v1 = m_vertices[m_indices[i]].position;
+			auto v2 = m_vertices[m_indices[i + 1]].position;
+			auto v3 = m_vertices[m_indices[i + 2]].position;
+
+			glm::vec3 n = glm::normalize(glm::cross((v1 - v2), (v1 - v3)));
+
+			m_vertices[m_indices[i]].normal += n;
+			m_vertices[m_indices[i + 1]].normal += n;
+			m_vertices[m_indices[i + 2]].normal += n;
+		}
+
+		// Normalize
+		for (size_t i = 0; i < m_vertices.size(); ++i)
+			m_vertices[i].normal = glm::normalize(m_vertices[i].normal);
+
+		vk::DeviceSize buffer_size = sizeof(m_vertices[0]) * m_vertices.size();
+
+		// Create staging buffer
+		VkMemBuffer staging_buffer = m_graphics->create_buffer
+		(
+			buffer_size,
+			vk::BufferUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+		);
+
+		// Put vertices into the buffer
+		void* data = m_graphics->get_logical_device().mapMemory(staging_buffer.memory, 0, buffer_size);
+		memcpy(data, m_vertices.data(), static_cast<size_t>(buffer_size));
+		m_graphics->get_logical_device().unmapMemory(staging_buffer.memory);
+
+		// Copy data from staging buffer into the vertex buffer
+		m_graphics->copy_buffer(staging_buffer.buffer, m_vertex_buffer.buffer, buffer_size);
+
+		// Free the staging buffer
+		staging_buffer.free(m_graphics->get_logical_device());
 	}
 
 	void Mesh::init_index_buffer()
@@ -167,5 +214,27 @@ namespace dk
 
 		init_vertex_buffer();
 		init_index_buffer();
+	}
+
+	void Mesh::calculate_aabb()
+	{
+		// Reset bounding box
+		glm::vec3 min = {}, max = {};
+
+		// Loop over every vertex finding the min and max values.
+		for (auto& vertex : m_vertices)
+		{
+			if (vertex.position.x < min.x) min.x = vertex.position.x;
+			if (vertex.position.x > max.x) max.x = vertex.position.x;
+								    	   
+			if (vertex.position.y < min.y) min.y = vertex.position.y;
+			if (vertex.position.y > max.y) max.y = vertex.position.y;
+								    	   
+			if (vertex.position.z < min.z) min.z = vertex.position.z;
+			if (vertex.position.z > max.z) max.z = vertex.position.z;
+		}
+
+		m_aabb.center = (min + max) / 2.0f;
+		m_aabb.extent = (max - min) / 2.0f;
 	}
 }

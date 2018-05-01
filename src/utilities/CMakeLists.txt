@@ -7,6 +7,7 @@ set(DUCK_UTILS_HDRS
 	file_io.hpp
 	threading.hpp
 	clock.hpp
+	frustum.hpp
 )
 
 # Sources
@@ -15,6 +16,7 @@ set(DUCK_UTILS_SRCS
 	file_io.cpp
 	threading.cpp
 	clock.cpp
+	frustum.cpp
 )
 
 # Utilities lib

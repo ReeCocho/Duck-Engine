@@ -1,30 +1,23 @@
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
+#include "Duck-Standard.vert"
 
-layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec2 in_uv;
-layout(location = 2) in vec3 in_normal;
-layout(location = 3) in vec3 in_tangent;
+MATERIAL_DATA { int unused; };
 
-out gl_PerVertex 
-{
-    vec4 gl_Position;
-};
-
-layout(set = 0, binding = 0) uniform MaterialData
-{
-	int unused;
-} material_data;
-
-layout(set = 0, binding = 1) uniform VertexData
-{
-	mat4 MVP;
-} inst_data;
-
-layout(location = 0) out vec2 f_uv;
+FRAGMENT_IN(0) vec2 F_UV;
+FRAGMENT_IN(1) vec3 F_NORMAL;
+FRAGMENT_IN(2) vec3 F_FRAG_POS;
+FRAGMENT_IN(3) mat3 F_TBN;
 
 void main() 
 {
-    gl_Position = inst_data.MVP * vec4(in_position, 1.0);
-	f_uv = in_uv;
+    OUT_POSITION = MVP * vec4(IN_POSITION, 1.0);
+	
+	// Calculate normal and tangent
+	F_NORMAL = mat3(transpose(inverse(MODEL))) * normalize(IN_NORMAL);
+	vec3 tangent = vec3(MODEL * vec4(normalize(IN_TANGENT), 0.0)).xyz;
+	tangent = normalize(tangent - dot(tangent, F_NORMAL) * F_NORMAL);
+	F_TBN = mat3(tangent, cross(F_NORMAL, tangent), F_NORMAL);
+	
+	F_UV = IN_UV;
+	F_FRAG_POS = vec3(MODEL * vec4(IN_POSITION, 1.0));
 }

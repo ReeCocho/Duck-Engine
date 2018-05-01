@@ -11,6 +11,7 @@
 #include <utilities\threading.hpp>
 #include "graphics.hpp"
 #include "swapchain_manager.hpp"
+#include "lighting.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
 #include "texture.hpp"
@@ -18,27 +19,18 @@
 namespace dk
 {
 	/**
-	 * @brief Camera information used by renderers.
+	 * @brief Camera data structure.
 	 */
-	struct VirtualCamera
+	struct CameraData
 	{
-		/** Framebuffer width. */
-		uint32_t width = 0;
+		/** View-projection matrix. */
+		glm::mat4 vp_mat = {};
 
-		/** Framebuffer height. */
-		uint32_t height = 0;
+		/** Position in space. */
+		glm::vec3 position = {};
 
-		/** Command buffer for drawing to. */
-		VkManagedCommandBuffer command_buffer = {};
-
-		/** Framebuffer. */
-		vk::Framebuffer framebuffer = {};
-
-		/** Attachment. */
-		std::vector<Handle<Texture>> attachments = {};
-
-		/** Clear color. */
-		glm::vec3 clear_color = { 0, 0, 0 };
+		/** View frustum. */
+		Frustum frustum = {};
 	};
 
 	/**
@@ -49,6 +41,9 @@ namespace dk
 		/** Command buffer to record to. */
 		VkManagedCommandBuffer command_buffer;
 
+		/** Depth prepass command buffer. */
+		VkManagedCommandBuffer depth_prepass_command_buffer;
+
 		/** Shader. */
 		Handle<Shader> shader;
 
@@ -57,6 +52,9 @@ namespace dk
 
 		/** Descriptor sets. */
 		std::vector<vk::DescriptorSet> descriptor_sets;
+
+		/** Model matrix. */
+		glm::mat4 model = {};
 	};
 
 
@@ -115,7 +113,16 @@ namespace dk
 		 */
 		const vk::RenderPass& get_shader_render_pass() const
 		{
-			return m_vk_shader_pass;
+			return m_render_passes.shader_pass;
+		}
+
+		/**
+		 * @brief Get depth prepass used by shaders.
+		 * @return Depth prepass.
+		 */
+		const vk::RenderPass& get_depth_prepass() const
+		{
+			return m_render_passes.depth_prepass;
 		}
 
 		/**
@@ -128,27 +135,27 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get descriptor set used by the renderer.
+		 * @return Descriptor set.
+		 */
+		vk::DescriptorSet& get_descriptor_set()
+		{
+			return m_descriptor.set;
+		}
+
+		/**
+		 * @brief Get descriptor set layout used by the renderer.
+		 * @return Descriptor set layout.
+		 */
+		vk::DescriptorSetLayout& get_descriptor_set_layout()
+		{
+			return m_descriptor.layout;
+		}
+
+		/**
 		 * @brief Render everything to the screen.
 		 */
 		void render();
-		
-		/**
-		 * @brief Create a virtual camera
-		 * @return Virtual camera.
-		 */
-		Handle<VirtualCamera> create_camera();
-
-		/**
-		 * @brief Destroy a virtual camera.
-		 * @param Camera to destroy.
-		 */
-		void destroy_camera(Handle<VirtualCamera> camera);
-
-		/**
-		 * @brief Change the main camera.
-		 * @param New main camera.
-		 */
-		void set_main_camera(Handle<VirtualCamera> camera);
 
 		/**
 		 * @brief Submit a renderable object.
@@ -157,6 +164,43 @@ namespace dk
 		void draw(const RenderableObject& ro)
 		{
 			m_renderable_objects.push_back(ro);
+		}
+
+		/**
+		 * @brief Draw a point light.
+		 * @param Point light.
+		 */
+		void draw(const PointLightData& point_light)
+		{
+			m_lighting_manager->draw(point_light);
+		}
+
+		/**
+		 * @brief Draw a directional light.
+		 * @param Directional light.
+		 */
+		void draw(const DirectionalLightData& dir_light)
+		{
+			m_lighting_manager->draw(dir_light);
+		}
+
+		/**
+		 * @brief Set main camera.
+		 * @param Camera data.
+		 */
+		void set_main_camera(const CameraData& data)
+		{
+			m_camera_data = data;
+			m_lighting_manager->set_camera_position(data.position);
+		}
+
+		/**
+		 * @brief Get main camera.
+		 * @return Main camera
+		 */
+		const CameraData& get_main_camera() const
+		{
+			return m_camera_data;
 		}
 
 	private:
@@ -175,23 +219,15 @@ namespace dk
 		Renderer& operator=(const Renderer& other) { return *this; };
 
 		/**
-		 * @brief Generate the primary command buffer for rendering.
+		 * @brief Perform the depth prepass.
+		 */
+		void generate_depth_prepass_command_buffer();
+
+		/**
+		 * @brief Generate the rendering command buffer.
 		 * @param Image index.
 		 */
-		void generate_primary_command_buffer(uint32_t image_index);
-
-		/**
-		 * @brief Render to camera.
-		 * @param Camera handle.
-		 */
-		void render_to_camera(Handle<VirtualCamera> camera);
-
-		/**
-		 * @brief Generate command buffers for renderable objects.
-		 * @param Inheritence info for the buffers.
-		 * @return Vector of command buffers to submit.
-		 */
-		std::vector<vk::CommandBuffer> generate_renderable_command_buffers(const vk::CommandBufferInheritanceInfo& inheritance_info);
+		void generate_rendering_command_buffer(uint32_t image_index);
 
 		/**
 		 * @brief Clear the rendering queues.
@@ -200,26 +236,14 @@ namespace dk
 
 
 
-		/** Render pass used for shaders. */
-		vk::RenderPass m_vk_shader_pass;
+		/** Graphics context. */
+		Graphics* m_graphics;
 
-		/** Onscreen render pass. */
-		vk::RenderPass m_vk_on_screen_pass;
-
-		/** Framebuffers. */
-		std::vector<vk::Framebuffer> m_vk_framebuffers;
-
-		/** Semaphore to indicate off screen rendering has finished. */
-		vk::Semaphore m_vk_off_screen_rendering_finished;
-
-		/** Semaphore to indicate on screen rendering has finished. */
-		vk::Semaphore m_vk_on_screen_rendering_finished;
-
-		/** Semaphore to indicate an image is available for rendering too. */
-		vk::Semaphore m_vk_image_available;
-
-		/** List of renderable objects. */
-		std::vector<RenderableObject> m_renderable_objects;
+		/** Swapchain manager. */
+		std::unique_ptr<VkSwapchainManager> m_swapchain_manager;
+		
+		/** Lighting manager. */
+		std::unique_ptr<LightingManager> m_lighting_manager;
 
 		/** Texture allocator. */
 		ResourceAllocator<Texture>* m_texture_allocator;
@@ -227,17 +251,8 @@ namespace dk
 		/** Mesh allocator. */
 		ResourceAllocator<Mesh>* m_mesh_allocator;
 
-		/** Virtual camera allocator. */
-		std::unique_ptr<ResourceAllocator<VirtualCamera>> m_cameras;
-
-		/** Handle of main camera. */
-		Handle<VirtualCamera> m_main_camera = Handle<VirtualCamera>(0, nullptr);
-
-		/** Graphics context. */
-		Graphics* m_graphics;
-
-		/** Swapchain manager. */
-		std::unique_ptr<VkSwapchainManager> m_swapchain_manager;
+		/** Thread pool for rendering. */
+		std::unique_ptr<ThreadPool> m_thread_pool;
 
 		/** Command pool. */
 		vk::CommandPool m_vk_command_pool;
@@ -245,36 +260,75 @@ namespace dk
 		/** Primary graphics command buffer. */
 		vk::CommandBuffer m_vk_primary_command_buffer;
 
-		/** Thread pool for rendering. */
-		std::unique_ptr<ThreadPool> m_thread_pool;
+		/** Depth prepass command buffer. */
+		vk::CommandBuffer m_vk_depth_prepass_command_buffer;
 
-		/** Screen quad. */
-		Handle<Mesh> m_quad;
+		/** Rendering command buffer. */
+		vk::CommandBuffer m_vk_rendering_command_buffer;
 
-		/** Screen shader */
+		/** List of renderable objects. */
+		std::vector<RenderableObject> m_renderable_objects;
+
+		/** Framebuffers. */
+		std::vector<vk::Framebuffer> m_vk_framebuffers;
+
+		/** Main camera data. */
+		CameraData m_camera_data = {};
+
+		/**
+		 * @brief Depth prepass image.
+		 */
 		struct
 		{
-			/** Vertex shader module. */
-			vk::ShaderModule vk_vertex_shader_module;
+			/** Framebuffer. */
+			vk::Framebuffer framebuffer = {};
 
-			/** Fragment shader module. */
-			vk::ShaderModule vk_fragment_shader_module;
+			/** Depth texture. */
+			Handle<Texture> depth_texture = {};
 
+		} m_depth_prepass_image;
+
+		/**
+		 * @brief Render passes.
+		 */
+		struct
+		{
+			/** Render pass used for shaders. */
+			vk::RenderPass shader_pass;
+
+			/** Depth prepass used for shaders. */
+			vk::RenderPass depth_prepass;
+		} m_render_passes;
+
+		/**
+		 * @brief Semaphores.
+		 */
+		struct
+		{
+			/** Semaphore to indicate depth prepass has finished. */
+			vk::Semaphore depth_prepass_finished;
+
+			/** Semaphore to indicate on screen rendering has finished. */
+			vk::Semaphore on_screen_rendering_finished;
+
+			/** Semaphore to indicate an image is available for rendering too. */
+			vk::Semaphore image_available;
+		} m_semaphores;
+
+		/**
+		 * @brief Renderer descriptor.
+		 */
+		struct
+		{
 			/** Descriptor set layout. */
-			vk::DescriptorSetLayout vk_descriptor_set_layout;
+			vk::DescriptorSetLayout layout = {};
 
 			/** Descriptor pool. */
-			vk::DescriptorPool vk_descriptor_pool;
+			vk::DescriptorPool pool = {};
 
 			/** Descriptor set. */
-			vk::DescriptorSet vk_descriptor_set;
+			vk::DescriptorSet set = {};
 
-			/** Graphics pipeline layout */
-			vk::PipelineLayout vk_pipeline_layout;
-
-			/** Graphics pipeline. */
-			vk::Pipeline vk_graphics_pipeline;
-
-		} m_screen_shader;
+		} m_descriptor;
 	};
 }

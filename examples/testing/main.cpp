@@ -8,6 +8,7 @@
 #include <ecs\transform.hpp>
 #include <components\camera.hpp>
 #include <components\mesh_renderer.hpp>
+#include <components\lights.hpp>
 
 class CameraController : public dk::Component<CameraController>
 {
@@ -64,8 +65,8 @@ public:
 			if (ea.x < -80.0f) ea.x = -80.0f;
 
 			controller->m_transform->set_euler_angles(ea);
-			controller->m_transform->mod_position(controller->m_transform->get_forward() * y * delta_time);
-			controller->m_transform->mod_position(controller->m_transform->get_right() * x * delta_time);
+			controller->m_transform->mod_position(controller->m_transform->get_forward() * y * delta_time * 3.0f);
+			controller->m_transform->mod_position(controller->m_transform->get_right() * x * delta_time * 3.0f);
 		}
 	}
 
@@ -73,6 +74,14 @@ private:
 
 	bool m_mouse_lock = false;
 };
+
+struct MaterialData
+{
+	float metallic = 1.0f;
+	char padding[12];
+
+	float roughness = 1.0f;
+} mat_data;
 
 int main()
 {
@@ -82,6 +91,8 @@ int main()
 	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<CameraControllerSystem>();
 	dk::engine::scene.add_system<dk::CameraSystem>();
+	dk::engine::scene.add_system<dk::DirectionalLightSystem>();
+	dk::engine::scene.add_system<dk::PointLightSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
 
 	auto shader = dk::engine::resource_manager.create_shader
@@ -91,27 +102,26 @@ int main()
 		dk::read_binary_file("shaders/standard.frag.spv")
 	);
 
-	auto texture = dk::engine::resource_manager.create_texture("textures/CoolCat.JPG", vk::Filter::eLinear);
+	auto metal_albedo = dk::engine::resource_manager.create_texture("textures/Metal_Albedo.png", vk::Filter::eLinear);
+	auto metal_normal = dk::engine::resource_manager.create_texture("textures/Metal_Normal.png", vk::Filter::eLinear);
+	auto metal_metallic = dk::engine::resource_manager.create_texture("textures/Metal_Metallic.png", vk::Filter::eLinear);
+	auto metal_roughness = dk::engine::resource_manager.create_texture("textures/Metal_Roughness.png", vk::Filter::eLinear);
+	auto metal_ao = dk::engine::resource_manager.create_texture("textures/Metal_AO.png", vk::Filter::eLinear);
+
+	auto white = dk::engine::resource_manager.create_texture("textures/white.png", vk::Filter::eNearest);
 
 	auto material = dk::engine::resource_manager.create_material("standard", shader);
-	material->set_texture(0, texture);
+	material->set_texture(0, metal_albedo);
+	material->set_texture(1, metal_normal);
+	material->set_texture(2, metal_metallic);
+	material->set_texture(3, metal_roughness);
+	material->set_texture(4, metal_ao);
+	material->set_fragment_data<MaterialData>(mat_data);
 
-	auto mesh = dk::engine::resource_manager.create_mesh
-	(
-		"quad",
-		std::vector<uint16_t>
-		{
-			0, 1, 2,
-			2, 3, 0
-		},
-		std::vector<dk::Vertex>
-		{
-			{ glm::vec3(-1, -1,  0), glm::vec2(1, 1), glm::vec3(0, 0, 1) },
-			{ glm::vec3( 1, -1,  0), glm::vec2(0, 1), glm::vec3(0, 0, 1) },
-			{ glm::vec3( 1,  1,  0), glm::vec2(0, 0), glm::vec3(0, 0, 1) },
-			{ glm::vec3(-1,  1,  0), glm::vec2(1, 0), glm::vec3(0, 0, 1) }
-		}
-	);
+	auto sphere = dk::engine::resource_manager.create_mesh("./meshes/sphere.obj");
+	auto cube = dk::engine::resource_manager.create_mesh("./meshes/cube.obj");
+	auto bunny = dk::engine::resource_manager.create_mesh("./meshes/bunny.obj");
+	bunny->compute_normals();
 
 	// Camera
 	{
@@ -127,12 +137,40 @@ int main()
 		transform->set_euler_angles(glm::vec3(0, 225.0f, 0));
 	}
 
-	// Test quad
+	// Test bunny
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 		mesh_renderer->set_material(material);
-		mesh_renderer->set_mesh(mesh);
+		mesh_renderer->set_mesh(bunny);
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
+		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
+		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
+	}
+
+	// Floor
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
+		mesh_renderer->set_material(material);
+		mesh_renderer->set_mesh(cube);
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(0, -1, 0));
+		transform->set_local_scale(glm::vec3(16, 1, 16));
+	}
+
+	// Directional light
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_euler_angles(glm::vec3(45, 45, 0));
+
+		dk::Handle<dk::DirectionalLight> light = entity.add_component<dk::DirectionalLight>();
+		light->set_color(glm::vec3(1, 1, 1));
+		light->set_intensity(4.0f);
 	}
 
 	dk::engine::simulate();

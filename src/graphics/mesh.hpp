@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <glm\glm.hpp>
+#include <utilities\frustum.hpp>
 #include "graphics.hpp"
 
 namespace dk
@@ -123,6 +124,20 @@ namespace dk
 			return m_indices.size();
 		}
 
+		/**
+		 * @brief Get AABB bounding box.
+		 * @return AABB.
+		 */
+		AABB get_aabb() const
+		{
+			return m_aabb;
+		}
+
+		/**
+		 * @brief Compute normals.
+		 */
+		void compute_normals();
+
 	private:
 
 		/**
@@ -140,6 +155,11 @@ namespace dk
 		 */
 		void calculate_tangents();
 
+		/**
+		 * @brief Calculate AABB bounding box.
+		 */
+		void calculate_aabb();
+
 
 
 		/** Graphics context. */
@@ -156,5 +176,8 @@ namespace dk
 
 		/** Vertices. */
 		std::vector<Vertex> m_vertices = {};
+
+		/** AABB box. */
+		AABB m_aabb = {};
 	};
 }

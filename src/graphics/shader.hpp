@@ -27,6 +27,8 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Graphics context the shader is bound to.
 		 * @param Render pass used by the shader.
+		 * @param Render pass for depth only rendering.
+		 * @param Custom descriptor set layouts.
 		 * @param Vertex shader byte code.
 		 * @param Fragment shader byte code.
 		 */
@@ -34,6 +36,8 @@ namespace dk
 		(
 			Graphics* graphics, 
 			const vk::RenderPass& render_pass,
+			const vk::RenderPass& depth_pass,
+			const std::vector<vk::DescriptorSetLayout>& dsl,
 			const std::vector<char>& vert_byte_code, 
 			const std::vector<char>& frag_byte_code
 		);
@@ -59,12 +63,30 @@ namespace dk
 		}
 
 		/**
-		 * @brief Get pipeline layout.
-		 * @return Pipeline layout.
+		 * @brief Get graphics pipeline layout.
+		 * @return Graphics pipeline layout.
 		 */
-		vk::PipelineLayout& get_pipeline_layout()
+		vk::PipelineLayout& get_graphics_pipeline_layout()
 		{
-			return m_vk_pipeline_layout;
+			return m_vk_graphics_pipeline_layout;
+		}
+
+		/**
+		 * @brief Get depth pipeline.
+		 * @return Depth pipeline.
+		 */
+		vk::Pipeline& get_depth_pipeline()
+		{
+			return m_vk_depth_pipeline;
+		}
+
+		/**
+		 * @brief Get depth pipeline layout.
+		 * @return Depth pipeline layout.
+		 */
+		vk::PipelineLayout& get_depth_pipeline_layout()
+		{
+			return m_vk_depth_pipeline_layout;
 		}
 
 		/**
@@ -148,10 +170,16 @@ namespace dk
 		vk::DescriptorSetLayout m_vk_texture_descriptor_set_layout;
 
 		/** Graphics pipeline layout */
-		vk::PipelineLayout m_vk_pipeline_layout;
+		vk::PipelineLayout m_vk_graphics_pipeline_layout;
 
 		/** Graphics pipeline. */
 		vk::Pipeline m_vk_graphics_pipeline;
+
+		/** Depth pipeline layout */
+		vk::PipelineLayout m_vk_depth_pipeline_layout;
+
+		/** Depth pipeline. */
+		vk::Pipeline m_vk_depth_pipeline;
 
 		/** Number of textures. */
 		size_t m_texture_count;

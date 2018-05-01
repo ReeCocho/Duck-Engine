@@ -133,6 +133,7 @@ namespace dk
 		Handle<MeshRenderer> mesh_renderer = get_component();
 		mesh_renderer->m_transform = mesh_renderer->get_entity().get_component<Transform>();
 		mesh_renderer->m_command_buffer = engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
+		mesh_renderer->m_depth_prepass_command_buffer = engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
 	}
 
 	void MeshRendererSystem::on_pre_render(float delta_time)
@@ -159,6 +160,7 @@ namespace dk
 			// Upload vertex shader data
 			{
 				VertexShaderData v_data = {};
+				v_data.model = mesh_renderer->m_transform->get_model_matrix();
 				v_data.mvp = CameraSystem::get_main_camera()->get_pv_matrix() * mesh_renderer->m_transform->get_model_matrix();
 				memcpy(mesh_renderer->m_vertex_map, &v_data, sizeof(VertexShaderData));
 			}
@@ -173,9 +175,11 @@ namespace dk
 			dk::RenderableObject renderable =
 			{
 				mesh_renderer->m_command_buffer,
+				mesh_renderer->m_depth_prepass_command_buffer,
 				mesh_renderer->m_material->get_shader(),
 				mesh_renderer->m_mesh,
-				{ mesh_renderer->m_vk_descriptor_set }
+				{ mesh_renderer->m_vk_descriptor_set, dk::engine::renderer.get_descriptor_set() },
+				mesh_renderer->m_transform->get_model_matrix()
 			};
 
 			if (mesh_renderer->m_material->get_shader()->get_texture_count() > 0)
@@ -189,6 +193,7 @@ namespace dk
 	{
 		Handle<MeshRenderer> mesh_renderer = get_component();
 		mesh_renderer->m_command_buffer.free();
+		mesh_renderer->m_depth_prepass_command_buffer.free();
 		mesh_renderer->free_resources();
 	}
 }

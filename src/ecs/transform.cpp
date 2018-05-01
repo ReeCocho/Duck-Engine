@@ -98,7 +98,7 @@ namespace dk
 		value.z = std::fmod(value.z, 360.0f);
 
 		m_euler_angles = value;
-		m_rotation = glm::quat(glm::radians(value));
+		m_rotation = glm::quat(value * (glm::pi<float>() / 180.0f));
 		
 		if (m_parent == Handle<Transform>(0, nullptr))
 		{
