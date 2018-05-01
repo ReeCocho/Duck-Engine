@@ -120,6 +120,8 @@ int main()
 
 	auto sphere = dk::engine::resource_manager.create_mesh("./meshes/sphere.obj");
 	auto cube = dk::engine::resource_manager.create_mesh("./meshes/cube.obj");
+	auto bunny = dk::engine::resource_manager.create_mesh("./meshes/bunny.obj");
+	bunny->compute_normals();
 
 	// Camera
 	{
@@ -135,18 +137,18 @@ int main()
 		transform->set_euler_angles(glm::vec3(0, 225.0f, 0));
 	}
 
-	// Test sphere
-	for(float i = 0.0f; i < 40.0f; i += 1.0f)
-		for(float k = 0.0f; k < 40.0f; k += 1.0f)
-		{
-			dk::Entity entity = dk::Entity(&dk::engine::scene);
-			dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-			mesh_renderer->set_material(material);
-			mesh_renderer->set_mesh(sphere);
+	// Test bunny
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
+		mesh_renderer->set_material(material);
+		mesh_renderer->set_mesh(bunny);
 
-			dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-			transform->set_position(glm::vec3(i, 2.0f, k));
-		}
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
+		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
+		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
+	}
 
 	// Floor
 	{
@@ -170,20 +172,6 @@ int main()
 		light->set_color(glm::vec3(1, 1, 1));
 		light->set_intensity(4.0f);
 	}
-
-	// Point lights
-	for (float i = 0.0f; i < 40.0f; i += 4.0f)
-		for (float k = 0.0f; k < 40.0f; k += 4.0f)
-		{
-			dk::Entity entity = dk::Entity(&dk::engine::scene);
-			dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-			transform->set_position(glm::vec3(i, 2, k));
-
-			dk::Handle<dk::PointLight> light = entity.add_component<dk::PointLight>();
-			light->set_color(glm::vec3(1, 0, 0));
-			light->set_intensity(64.0f);
-			light->set_range(4.0f);
-		}
 
 	dk::engine::simulate();
 	dk::engine::shutdown();

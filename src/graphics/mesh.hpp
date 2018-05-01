@@ -133,6 +133,11 @@ namespace dk
 			return m_aabb;
 		}
 
+		/**
+		 * @brief Compute normals.
+		 */
+		void compute_normals();
+
 	private:
 
 		/**
