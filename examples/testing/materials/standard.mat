@@ -1,11 +1,11 @@
 {
-	"shader" : "standard",
+	"shader" : "standard.shd",
 	"textures" : 
 	[  
-		"./textures/Metal_Albedo.png",
-		"./textures/Metal_Normal.png",
-		"./textures/Metal_Metallic.png",
-		"./textures/Metal_Roughness.png",
-		"./textures/Metal_AO.png"
-	],
+		"Metal_Albedo.tex",
+		"Metal_Normal.tex",
+		"Metal_Metallic.tex",
+		"Metal_Roughness.tex",
+		"Metal_AO.tex"
+	]
 }

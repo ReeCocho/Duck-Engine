@@ -32,24 +32,28 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Renderer.
-		 * @param Path to folder containing meshes.
-		 * @param Path to folder containing textures.
-		 * @param Path to folder containing shaders.
-		 * @param Path to folder containing materials.
 		 */
-		ResourceManager
-		(
-			Renderer* renderer, 
-			const std::string& meshes, 
-			const std::string& textures, 
-			const std::string& shaders, 
-			const std::string& mateirals
-		);
+		ResourceManager(Renderer* renderer);
 
 		/**
 		 * @brief Shutdown the resource manager.
 		 */
 		void shutdown();
+
+		/**
+		 * @brief Load resource files.
+		 * @param Path to folder containing meshes.
+		 * @param Path to folder containing textures.
+		 * @param Path to folder containing shaders.
+		 * @param Path to folder containing materials.
+		 */
+		void load_resources
+		(
+			const std::string& meshes,
+			const std::string& textures,
+			const std::string& shaders,
+			const std::string& materials
+		);
 
 		/**
 		 * @brief Get mesh allocator.
@@ -150,10 +154,11 @@ namespace dk
 
 		/**
 		 * @brief Create a mesh.
+		 * @param Name.
 		 * @param Path to the OBJ file.
 		 * @return Mesh handle.
 		 */
-		Handle<Mesh> create_mesh(const std::string& path);
+		Handle<Mesh> create_mesh(const std::string& name, const std::string& path);
 
 		/**
 		 * @brief Create a shader.
@@ -174,11 +179,12 @@ namespace dk
 
 		/**
 		 * @brief Create a texture.
+		 * @param Name.
 		 * @param Path to texture.
 		 * @param Filtering mode.
 		 * @return Texture handle.
 		 */
-		Handle<Texture> create_texture(const std::string& path, vk::Filter filtering);
+		Handle<Texture> create_texture(const std::string& name, const std::string& path, vk::Filter filtering);
 
 		/**
 		 * @brief Destroy a mesh.

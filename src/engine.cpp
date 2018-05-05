@@ -44,6 +44,7 @@ namespace dk
 		{
 			// Read config file
 			std::ifstream stream(path);
+			dk_assert(stream.is_open());
 			json j;
 			stream >> j;
 
@@ -51,17 +52,19 @@ namespace dk
 			::new(&graphics)(Graphics)(j["thread_count"], j["title"], j["width"], j["height"]);
 
 			// Init resource manager
-			::new(&resource_manager)(ResourceManager)
+			::new(&resource_manager)(ResourceManager)(&renderer);
+
+			// Init renderer
+			::new(&renderer)(Renderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+
+			// Load resources
+			resource_manager.load_resources
 			(
-				static_cast<Renderer*>(&renderer),
 				j["meshes"],
 				j["textures"],
 				j["shaders"],
 				j["materials"]
 			);
-
-			// Init renderer
-			::new(&renderer)(Renderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
 
 			// Init input manager
 			input = Input();

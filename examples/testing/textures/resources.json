@@ -1,0 +1,12 @@
+{
+	"files" :
+	[
+		"CutePom.tex",
+		"Metal_Albedo.tex",
+		"Metal_AO.tex",
+		"Metal_Metallic.tex",
+		"Metal_Normal.tex",
+		"Metal_Roughness.tex",
+		"white.tex"
+	]
+}

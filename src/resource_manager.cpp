@@ -9,6 +9,8 @@
 #include <tiny_obj_loader.h>
 #include <json.hpp>
 #include <fstream>
+#include <utilities\debugging.hpp>
+#include <utilities\file_io.hpp>
 #include "resource_manager.hpp"
 
 /** For convenience */
@@ -16,23 +18,17 @@ using json = nlohmann::json;
 
 namespace dk
 {
-	ResourceManager::ResourceManager
-	(
-		Renderer* renderer,
-		const std::string& meshes,
-		const std::string& textures,
-		const std::string& shaders,
-		const std::string& mateirals
-	) :
+	ResourceManager::ResourceManager(Renderer* renderer) :
 		m_renderer(renderer),
 		m_mesh_map({}),
 		m_shader_map({}),
 		m_material_map({}),
 		m_texture_map({})
 	{
+		// Create allocators
 		m_mesh_allocator = std::make_unique<ResourceAllocator<Mesh>>(32);
-		m_shader_allocator = std::make_unique<ResourceAllocator<Shader>>(8);
-		m_material_allocator = std::make_unique<ResourceAllocator<Material>>(16);
+		m_shader_allocator = std::make_unique<ResourceAllocator<Shader>>(4);
+		m_material_allocator = std::make_unique<ResourceAllocator<Material>>(8);
 		m_texture_allocator = std::make_unique<ResourceAllocator<Texture>>(8);
 	}
 
@@ -77,6 +73,128 @@ namespace dk
 		m_texture_allocator.reset();
 	}
 
+	void ResourceManager::load_resources
+	(
+		const std::string& meshes,
+		const std::string& textures,
+		const std::string& shaders,
+		const std::string& materials
+	)
+	{
+		// Resource JSON
+		json mesh_j;
+		json shader_j;
+		json material_j;
+		json texture_j;
+
+		// Load resource files
+		{
+			// Meshes
+			std::ifstream stream(meshes + "resources.json");
+			dk_assert(stream.is_open());
+			stream >> mesh_j;
+			stream.close();
+
+			// Textures
+			stream.open(textures + "resources.json");
+			dk_assert(stream.is_open());
+			stream >> texture_j;
+			stream.close();
+
+			// Shaders
+			stream.open(shaders + "resources.json");
+			dk_assert(stream.is_open());
+			stream >> shader_j;
+			stream.close();
+
+			// Materials
+			stream.open(materials + "resources.json");
+			dk_assert(stream.is_open());
+			stream >> material_j;
+			stream.close();
+		}
+
+		// Load meshes
+		for (const std::string& path : mesh_j["files"])
+		{
+			// Load mesh file
+			std::ifstream stream(meshes + path);
+			dk_assert(stream.is_open());
+			json j;
+			stream >> j;
+			stream.close();
+
+			// Load file
+			std::string mesh_path = j["path"];
+			Handle<Mesh> mesh = create_mesh(path, meshes + mesh_path);
+
+			// Calculate normals if requested
+			if (j["calc_normals"]) mesh->compute_normals();
+		}
+
+		// Load textures
+		for (const std::string& path : texture_j["files"])
+		{
+			// Load texture file
+			std::ifstream stream(textures + path);
+			dk_assert(stream.is_open());
+			json j;
+			stream >> j;
+			stream.close();
+
+			// Find filtering mode
+			vk::Filter filter = vk::Filter::eLinear;
+
+			if (j["filter"] == "nearest")
+				filter = vk::Filter::eNearest;
+			else if (j["filter"] == "linear")
+				filter = vk::Filter::eLinear;
+
+			// Create texture
+			std::string tex_path = j["path"];
+			create_texture(path, textures + tex_path, filter);
+		}
+
+		// Load shaders
+		for (const std::string& path : shader_j["files"])
+		{
+			// Load shader file
+			std::ifstream stream(shaders + path);
+			dk_assert(stream.is_open());
+			json j;
+			stream >> j;
+			stream.close();
+
+			// Create shader
+			std::string vert_path = j["vertex"];
+			std::string frag_path = j["fragment"];
+			create_shader
+			(
+				path,
+				read_binary_file(shaders + vert_path),
+				read_binary_file(shaders + frag_path)
+			);
+		}
+
+		// Load materials
+		for (const std::string& path : material_j["files"])
+		{
+			// Load material file
+			std::ifstream stream(materials + path);
+			dk_assert(stream.is_open());
+			json j;
+			stream >> j;
+			stream.close();
+
+			// Create material
+			Handle<Material> material = create_material(path, get_shader(j["shader"]));
+
+			// Set textures
+			for (size_t i = 0; i < j["textures"].size(); ++i)
+				material->set_texture(i, get_texture(j["textures"][i]));
+		}
+	}
+
 	Handle<Mesh> ResourceManager::create_mesh(const std::string& name, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
 	{
 		dk_assert(m_mesh_map.find(name) == m_mesh_map.end());
@@ -92,9 +210,9 @@ namespace dk
 		return mesh;
 	}
 
-	Handle<Mesh> ResourceManager::create_mesh(const std::string& path)
+	Handle<Mesh> ResourceManager::create_mesh(const std::string& name, const std::string& path)
 	{
-		dk_assert(m_mesh_map.find(path) == m_mesh_map.end());
+		dk_assert(m_mesh_map.find(name) == m_mesh_map.end());
 
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -170,7 +288,7 @@ namespace dk
 		auto mesh = Handle<Mesh>(m_mesh_allocator->allocate(), m_mesh_allocator.get());
 		::new(m_mesh_allocator->get_resource_by_handle(mesh.id))(Mesh)(&m_renderer->get_graphics(), indices, unique_vertices);
 
-		m_mesh_map[path] = mesh.id;
+		m_mesh_map[name] = mesh.id;
 
 		return mesh;
 	}
@@ -213,9 +331,9 @@ namespace dk
 		return material;
 	}
 
-	Handle<Texture> ResourceManager::create_texture(const std::string& path, vk::Filter filtering)
+	Handle<Texture> ResourceManager::create_texture(const std::string& name, const std::string& path, vk::Filter filtering)
 	{
-		dk_assert(m_texture_map.find(path) == m_texture_map.end());
+		dk_assert(m_texture_map.find(name) == m_texture_map.end());
 
 		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
 			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
@@ -223,7 +341,7 @@ namespace dk
 		auto texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator.get());
 		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)(&m_renderer->get_graphics(), path, filtering);
 
-		m_texture_map[path] = texture.id;
+		m_texture_map[name] = texture.id;
 
 		return texture;
 	}

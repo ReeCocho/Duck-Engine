@@ -38,6 +38,7 @@ add_custom_target(
 
 add_dependencies(Testing Shaders)
 
+# Copy files
 add_custom_command(OUTPUT Testing
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Testing>/../shaders/"
     COMMAND ${CMAKE_COMMAND} -E copy_directory

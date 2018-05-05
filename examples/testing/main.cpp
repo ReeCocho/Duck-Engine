@@ -85,6 +85,7 @@ struct MaterialData
 
 int main()
 {
+	// Initialize the engine
 	dk::engine::initialize("./config.json");
 
 	// Add systems
@@ -94,34 +95,6 @@ int main()
 	dk::engine::scene.add_system<dk::DirectionalLightSystem>();
 	dk::engine::scene.add_system<dk::PointLightSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
-
-	auto shader = dk::engine::resource_manager.create_shader
-	(
-		"standard",
-		dk::read_binary_file("shaders/standard.vert.spv"),
-		dk::read_binary_file("shaders/standard.frag.spv")
-	);
-
-	auto metal_albedo = dk::engine::resource_manager.create_texture("textures/Metal_Albedo.png", vk::Filter::eLinear);
-	auto metal_normal = dk::engine::resource_manager.create_texture("textures/Metal_Normal.png", vk::Filter::eLinear);
-	auto metal_metallic = dk::engine::resource_manager.create_texture("textures/Metal_Metallic.png", vk::Filter::eLinear);
-	auto metal_roughness = dk::engine::resource_manager.create_texture("textures/Metal_Roughness.png", vk::Filter::eLinear);
-	auto metal_ao = dk::engine::resource_manager.create_texture("textures/Metal_AO.png", vk::Filter::eLinear);
-
-	auto white = dk::engine::resource_manager.create_texture("textures/white.png", vk::Filter::eNearest);
-
-	auto material = dk::engine::resource_manager.create_material("standard", shader);
-	material->set_texture(0, metal_albedo);
-	material->set_texture(1, metal_normal);
-	material->set_texture(2, metal_metallic);
-	material->set_texture(3, metal_roughness);
-	material->set_texture(4, metal_ao);
-	material->set_fragment_data<MaterialData>(mat_data);
-
-	auto sphere = dk::engine::resource_manager.create_mesh("./meshes/sphere.obj");
-	auto cube = dk::engine::resource_manager.create_mesh("./meshes/cube.obj");
-	auto bunny = dk::engine::resource_manager.create_mesh("./meshes/bunny.obj");
-	bunny->compute_normals();
 
 	// Camera
 	{
@@ -141,8 +114,8 @@ int main()
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(material);
-		mesh_renderer->set_mesh(bunny);
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("bunny.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
@@ -154,8 +127,8 @@ int main()
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(material);
-		mesh_renderer->set_mesh(cube);
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0, -1, 0));

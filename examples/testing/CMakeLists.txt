@@ -22,6 +22,13 @@ add_custom_command(TARGET Testing POST_BUILD
 )
 
 add_custom_command(TARGET Testing POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy
+	"${CMAKE_SOURCE_DIR}/src/shaders/resources.json" "$<TARGET_FILE_DIR:Testing>/../shaders/resources.json"
+	COMMAND ${CMAKE_COMMAND} -E copy
+	"${CMAKE_SOURCE_DIR}/src/shaders/standard.shd" "$<TARGET_FILE_DIR:Testing>/../shaders/standard.shd"
+)
+
+add_custom_command(TARGET Testing POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	"${CMAKE_SOURCE_DIR}/examples/testing/textures" "$<TARGET_FILE_DIR:Testing>/../textures"
 )
