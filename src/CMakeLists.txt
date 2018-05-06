@@ -1,7 +1,7 @@
 add_subdirectory(utilities)
 add_subdirectory(graphics)
+add_subdirectory(physics)
 add_subdirectory(ecs)
-
 
 # Headers
 set(DUCK_ENGINE_HDRS
@@ -11,6 +11,7 @@ set(DUCK_ENGINE_HDRS
 	components/mesh_renderer.hpp
 	components/camera.hpp
 	components/lights.hpp
+	components/rigidbody.hpp
 )
 
 # Sources
@@ -21,6 +22,7 @@ set(DUCK_ENGINE_SRCS
 	components/mesh_renderer.cpp
 	components/camera.cpp
 	components/lights.cpp
+	components/rigidbody.cpp
 )
 
 # Engine lib

@@ -11,6 +11,7 @@
 #include "graphics\renderer.hpp"
 #include "input.hpp"
 #include "ecs\scene.hpp"
+#include "physics\physics.hpp"
 #include "resource_manager.hpp"
 
 namespace dk
@@ -25,6 +26,9 @@ namespace dk
 
 		/** Resource manager. */
 		extern ResourceManager resource_manager;
+
+		/* Physics engine. */
+		extern Physics physics;
 
 		/** Input manager. */
 		extern Input input;

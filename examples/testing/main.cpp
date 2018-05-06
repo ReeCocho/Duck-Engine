@@ -9,6 +9,7 @@
 #include <components\camera.hpp>
 #include <components\mesh_renderer.hpp>
 #include <components\lights.hpp>
+#include <components\rigidbody.hpp>
 
 class CameraController : public dk::Component<CameraController>
 {
@@ -32,7 +33,7 @@ public:
 	CameraControllerSystem(dk::Scene* scene) : dk::System<CameraController>(scene, 32) 
 	{
 		dk::engine::input.register_axis("Horizontal", { { dk::KeyCode::A, -1.0f }, { dk::KeyCode::D, 1.0f }});
-		dk::engine::input.register_axis("Vertical", { { dk::KeyCode::W, 1.0f },{ dk::KeyCode::S, -1.0f } });
+		dk::engine::input.register_axis("Vertical", { { dk::KeyCode::W, 1.0f }, { dk::KeyCode::S, -1.0f } });
 		dk::engine::input.register_button("MouseLock", dk::KeyCode::M);
 	 }
 
@@ -92,6 +93,7 @@ int main()
 	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<CameraControllerSystem>();
 	dk::engine::scene.add_system<dk::CameraSystem>();
+	dk::engine::scene.add_system<dk::RigidBodySystem>();
 	dk::engine::scene.add_system<dk::DirectionalLightSystem>();
 	dk::engine::scene.add_system<dk::PointLightSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
@@ -121,11 +123,15 @@ int main()
 		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
 		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
 		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
+
+		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
+		rigid_body->set_sphere_shape(0.5f);
 	}
 
 	// Floor
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
+
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
@@ -133,6 +139,10 @@ int main()
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0, -1, 0));
 		transform->set_local_scale(glm::vec3(16, 1, 16));
+
+		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
+		rigid_body->set_box_shape(glm::vec3(16, 1, 16));
+		rigid_body->set_static(true);
 	}
 
 	// Directional light

@@ -8,6 +8,7 @@
 #include <utilities\threading.hpp>
 #include <utilities\clock.hpp>
 #include <graphics\material.hpp>
+#include <config.hpp>
 #include <json.hpp>
 #include <fstream>
 #include "engine.hpp"
@@ -20,23 +21,34 @@ namespace
 	/** Rendering thread. */
 	std::unique_ptr<dk::SimulationThread> rendering_thread;
 
+	/* Physics thread. */
+	std::unique_ptr<dk::SimulationThread> physics_thread;
+
 	/** Game time clock. */
-	dk::Clock game_clock;
+	dk::Clock game_clock = {};
+
+	/** Physics clock. */
+	dk::Clock physics_clock = {};
+
+	/** Physics timer. */
+	float physics_timer = 0.0f;
 }
 
 namespace dk
 {
 	namespace engine
 	{
-		Graphics graphics = {};
+		Graphics graphics;
 
-		Renderer renderer = {};
+		Renderer renderer;
 
-		ResourceManager resource_manager = {};
+		ResourceManager resource_manager;
+
+		Physics physics;
 
 		Input input;
 
-		Scene scene = {};
+		Scene scene;
 
 
 
@@ -53,6 +65,9 @@ namespace dk
 
 			// Init resource manager
 			::new(&resource_manager)(ResourceManager)(&renderer);
+
+			// Create physics engine
+			::new(&physics)(Physics)(glm::vec3(j["gravity"][0], j["gravity"][1], j["gravity"][2]));
 
 			// Init renderer
 			::new(&renderer)(Renderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
@@ -72,17 +87,20 @@ namespace dk
 			// Init scene
 			scene = {};
 
+			// Create threads
 			rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });
+			physics_thread = std::make_unique<SimulationThread>([]() { physics.step(physics_timer); physics_timer = 0.0f; });
 		}
 
 		void simulate()
 		{
-			// Reset delta time
+			// Reset clocks
 			game_clock.get_delta_time();
-			
+			physics_clock.get_delta_time();
+
 			// FPS timer data
 			uint64_t frames_per_sec = 0;
-			float fps_timer = 0;
+			float fps_timer = 0.0f;
 
 			while (!input.is_closing())
 			{
@@ -91,6 +109,7 @@ namespace dk
 
 				// Wait for threads to finish
 				rendering_thread->wait();
+				physics_thread->wait();
 
 				// Get delta time
 				float dt = game_clock.get_delta_time();
@@ -110,6 +129,13 @@ namespace dk
 
 				// Start rendering thread
 				rendering_thread->start();
+
+				// Increment physics timer
+				physics_timer += physics_clock.get_delta_time();
+
+				// Run physics
+				if(physics_timer >= DK_PHYSICS_STEP_RATE)
+					physics_thread->start();
 			}
 
 			// Wait for presentation to finish
@@ -121,9 +147,11 @@ namespace dk
 		{
 			// Stop threads
 			rendering_thread.reset();
+			physics_thread.reset();
 
 			scene.shutdown();
 			renderer.shutdown();
+			physics.shutdown();
 			resource_manager.shutdown();
 			graphics.shutdown();
 		}
