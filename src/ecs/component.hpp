@@ -9,6 +9,11 @@
 /** Includes. */
 #include "entity.hpp"
 
+/** Defines constructors for a component. */
+#define DK_COMPONENT_BODY(T) \
+T() : Component<T>(Handle<T>(0, nullptr), Entity()) {} \
+T(Handle<T> handle, Entity entity) : Component<T>(handle, entity) {}
+
 namespace dk
 {
 	template<class T>

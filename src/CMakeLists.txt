@@ -12,6 +12,7 @@ set(DUCK_ENGINE_HDRS
 	components/camera.hpp
 	components/lights.hpp
 	components/rigidbody.hpp
+	components/character_controller.hpp
 )
 
 # Sources
@@ -23,6 +24,7 @@ set(DUCK_ENGINE_SRCS
 	components/camera.cpp
 	components/lights.cpp
 	components/rigidbody.cpp
+	components/character_controller.cpp
 )
 
 # Engine lib

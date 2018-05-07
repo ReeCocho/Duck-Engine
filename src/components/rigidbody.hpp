@@ -32,17 +32,7 @@ namespace dk
 
 	public:
 
-		/**
-		 * @brief Default constructor.
-		 */
-		RigidBody() : Component<RigidBody>(Handle<RigidBody>(0, nullptr), Entity()) {}
-
-		/**
-		 * @brief Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
-		 */
-		RigidBody(Handle<RigidBody> handle, Entity entity) : Component<RigidBody>(handle, entity) {}
+		DK_COMPONENT_BODY(RigidBody)
 
         /**
          * @brief Get shape type.
@@ -149,6 +139,48 @@ namespace dk
 		 * @return New mass.
 		 */
 		float set_mass(float mass);
+
+		/**
+		 * @brief Set the position of the rigid body.
+		 * @param New position.
+		 * @return New position.
+		 */
+		glm::vec3 set_position(glm::vec3 pos);
+
+		/**
+		 * @brief Set the local position of the rigid body.
+		 * @param New position.
+		 * @return New position.
+		 */
+		glm::vec3 set_local_position(glm::vec3 pos);
+
+		/**
+		 * @brief Set the euler angles of the rigid body.
+		 * @param New euler angles.
+		 * @return New euler angles.
+		 */
+		glm::vec3 set_euler_angles(glm::vec3 rot);
+
+		/**
+		 * @brief Set the local euler angles of the rigid body.
+		 * @param New euler angles.
+		 * @return New euler angles.
+		 */
+		glm::vec3 set_local_euler_angles(glm::vec3 rot);
+
+		/**
+		 * @brief Set the rotation of the rigid body.
+		 * @param New rotation.
+		 * @return New rotation.
+		 */
+		glm::quat set_rotation(glm::quat rot);
+
+		/**
+		 * @brief Set the local rotation of the rigid body.
+		 * @param New rotation.
+		 * @return New rotation.
+		 */
+		glm::quat set_local_rotation(glm::quat rot);
 
         /**
 		 * @brief Set linear velocity.

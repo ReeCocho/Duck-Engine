@@ -149,6 +149,7 @@ namespace dk
 			rendering_thread.reset();
 			physics_thread.reset();
 
+			// Shutdown systems
 			scene.shutdown();
 			renderer.shutdown();
 			physics.shutdown();

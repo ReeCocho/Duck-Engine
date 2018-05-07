@@ -21,17 +21,7 @@ namespace dk
 
 	public:
 
-		/**
-		 * @brief Default constructor.
-		 */
-		DirectionalLight() : Component<DirectionalLight>(Handle<DirectionalLight>(0, nullptr), Entity()) {}
-
-		/**
-		 * @brief Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
-		 */
-		DirectionalLight(Handle<DirectionalLight> handle, Entity entity) : Component<DirectionalLight>(handle, entity) {}
+		DK_COMPONENT_BODY(DirectionalLight)
 
 		/**
 		 * @brief Set color.
@@ -73,17 +63,7 @@ namespace dk
 
 	public:
 
-		/**
-		 * @brief Default constructor.
-		 */
-		PointLight() : Component<PointLight>(Handle<PointLight>(0, nullptr), Entity()) {}
-
-		/**
-		 * @brief Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
-		 */
-		PointLight(Handle<PointLight> handle, Entity entity) : Component<PointLight>(handle, entity) {}
+		DK_COMPONENT_BODY(PointLight)
 
 		/**
 		 * @brief Set color.

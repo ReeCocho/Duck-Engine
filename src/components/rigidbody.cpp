@@ -131,6 +131,67 @@ namespace dk
         return s;
     }
 
+    glm::vec3 RigidBody::set_position(glm::vec3 pos)
+    {
+        auto new_pos = m_transform->set_position(pos);
+        auto transform = m_rigid_body->getWorldTransform();
+        transform.setOrigin(btVector3(new_pos.x, new_pos.y, new_pos.z));
+        m_rigid_body->setWorldTransform(transform);
+        return new_pos;
+    }
+
+    glm::vec3 RigidBody::set_local_position(glm::vec3 pos)
+    {
+        auto new_pos = m_transform->set_local_position(pos);
+        auto global_pos = m_transform->get_position();
+        auto transform = m_rigid_body->getWorldTransform();
+        transform.setOrigin(btVector3(global_pos.x, global_pos.y, global_pos.z));
+        m_rigid_body->setWorldTransform(transform);
+        return new_pos;
+    }
+
+    glm::vec3 RigidBody::set_euler_angles(glm::vec3 rot)
+    {
+        auto new_rot = m_transform->set_euler_angles(rot);
+        auto transform = m_rigid_body->getWorldTransform();
+        auto quat = btQuaternion();
+        quat.setEuler(glm::radians(new_rot.y), glm::radians(new_rot.x), glm::radians(new_rot.z));
+        transform.setRotation(quat);
+        m_rigid_body->setWorldTransform(transform);
+        return new_rot;
+    }
+
+    glm::vec3 RigidBody::set_local_euler_angles(glm::vec3 rot)
+    {
+        auto new_rot = m_transform->set_local_euler_angles(rot);
+        auto global_rot = m_transform->get_euler_angles();
+        auto transform = m_rigid_body->getWorldTransform();
+        auto quat = btQuaternion();
+        quat.setEuler(glm::radians(global_rot.y), glm::radians(global_rot.x), glm::radians(global_rot.z));
+        transform.setRotation(quat);
+        m_rigid_body->setWorldTransform(transform);
+        return new_rot;
+    }
+
+    glm::quat RigidBody::set_rotation(glm::quat rot)
+    {
+        auto new_rot = m_transform->set_rotation(rot);
+        auto transform = m_rigid_body->getWorldTransform();
+        transform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
+        m_rigid_body->setWorldTransform(transform);
+        return new_rot;
+    }
+
+    glm::quat RigidBody::set_local_rotation(glm::quat rot)
+    {
+        auto new_rot = m_transform->set_local_rotation(rot);
+        auto global_rot = m_transform->get_rotation();
+        auto transform = m_rigid_body->getWorldTransform();
+        transform.setRotation(btQuaternion(global_rot.x, global_rot.y, global_rot.z, global_rot.w));
+        m_rigid_body->setWorldTransform(transform);
+        return new_rot;
+    }
+
 
 
     void RigidBodySystem::on_begin()

@@ -23,17 +23,7 @@ namespace dk
 
 	public:
 
-		/**
-		 * @brief Default constructor.
-		 */
-		Transform() : Component<Transform>(Handle<Transform>(0, nullptr), Entity()) {}
-
-		/**
-		 * @brief Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
-		 */
-		Transform(Handle<Transform> handle, Entity entity) : Component<Transform>(handle, entity) {}
+		DK_COMPONENT_BODY(Transform)
 
 		/**
 		 * @brief Get the transforms position.

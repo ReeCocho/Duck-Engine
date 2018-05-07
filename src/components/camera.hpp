@@ -22,17 +22,7 @@ namespace dk
 
 	public:
 
-		/**
-		 * @brief Default constructor.
-		 */
-		Camera() : Component<Camera>(Handle<Camera>(0, nullptr), Entity()) {}
-
-		/**
-		 * @brief Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
-		 */
-		Camera(Handle<Camera> handle, Entity entity) : Component<Camera>(handle, entity) {}
+		DK_COMPONENT_BODY(Camera)
 
 		/**
 		 * @brief Get projection-view matrix.

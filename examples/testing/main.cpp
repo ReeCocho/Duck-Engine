@@ -62,8 +62,8 @@ public:
 			auto ea = controller->m_transform->get_euler_angles();
 			ea += glm::vec3(m_vel.y, m_vel.x, 0) * 0.08f;
 			
-			if (ea.x > 80.0f) ea.x = 80.0f;
-			if (ea.x < -80.0f) ea.x = -80.0f;
+			if (ea.x > 90.0f) ea.x = 90.0f;
+			if (ea.x < -90.0f) ea.x = -90.0f;
 
 			controller->m_transform->set_euler_angles(ea);
 			controller->m_transform->mod_position(controller->m_transform->get_forward() * y * delta_time * 3.0f);
@@ -90,10 +90,16 @@ int main()
 	dk::engine::initialize("./config.json");
 
 	// Add systems
+
+	// Physics systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
-	dk::engine::scene.add_system<CameraControllerSystem>();
-	dk::engine::scene.add_system<dk::CameraSystem>();
 	dk::engine::scene.add_system<dk::RigidBodySystem>();
+
+	// Gameplay systems
+	dk::engine::scene.add_system<CameraControllerSystem>();
+
+	// Rendering system
+	dk::engine::scene.add_system<dk::CameraSystem>();
 	dk::engine::scene.add_system<dk::DirectionalLightSystem>();
 	dk::engine::scene.add_system<dk::PointLightSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
@@ -112,7 +118,7 @@ int main()
 		transform->set_euler_angles(glm::vec3(0, 225.0f, 0));
 	}
 
-	// Test bunny
+	// Test bunny 1
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
@@ -121,6 +127,22 @@ int main()
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
+		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
+		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
+
+		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
+		rigid_body->set_sphere_shape(0.5f);
+	}
+
+	// Test bunny 2
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("bunny.mesh"));
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(0.1f, 4.0f, 0.2f));
 		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
 		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
 

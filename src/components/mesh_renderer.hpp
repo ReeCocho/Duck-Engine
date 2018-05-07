@@ -33,17 +33,7 @@ namespace dk
 
 	public:
 
-		/**
-		 * @brief Default constructor.
-		 */
-		MeshRenderer() : Component<MeshRenderer>(Handle<MeshRenderer>(0, nullptr), Entity()) {}
-
-		/**
-		 * @brief Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
-		 */
-		MeshRenderer(Handle<MeshRenderer> handle, Entity entity) : Component<MeshRenderer>(handle, entity) {}
+		DK_COMPONENT_BODY(MeshRenderer)
 
 		/**
 		 * @brief Set the material.
