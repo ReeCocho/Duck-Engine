@@ -10,39 +10,44 @@
 #include <components\mesh_renderer.hpp>
 #include <components\lights.hpp>
 #include <components\rigidbody.hpp>
+#include <components\character_controller.hpp>
 
-class CameraController : public dk::Component<CameraController>
+class Player : public dk::Component<Player>
 {
-	friend class CameraControllerSystem;
+	friend class PlayerSystem;
 
 public:
 
-	CameraController() : dk::Component<CameraController>(dk::Handle<CameraController>(0, nullptr), dk::Entity()) {}
-
-	CameraController(dk::Handle<CameraController> handle, dk::Entity entity) : Component<CameraController>(handle, entity) {}
+	DK_COMPONENT_BODY(Player)
 
 private:
 
 	dk::Handle<dk::Transform> m_transform;
+
+	dk::Handle<dk::Transform> m_camera_transform;
+
+	dk::Handle<dk::CharacterController> m_character_controller;
 };
 
-class CameraControllerSystem : public dk::System<CameraController>
+class PlayerSystem : public dk::System<Player>
 {
 public:
 
-	CameraControllerSystem(dk::Scene* scene) : dk::System<CameraController>(scene, 32) 
+	PlayerSystem(dk::Scene* scene) : dk::System<Player>(scene, 1)
 	{
 		dk::engine::input.register_axis("Horizontal", { { dk::KeyCode::A, -1.0f }, { dk::KeyCode::D, 1.0f }});
 		dk::engine::input.register_axis("Vertical", { { dk::KeyCode::W, 1.0f }, { dk::KeyCode::S, -1.0f } });
 		dk::engine::input.register_button("MouseLock", dk::KeyCode::M);
 	 }
 
-	~CameraControllerSystem() = default;
+	~PlayerSystem() = default;
 
 	void on_begin() override
 	{
 		auto component = get_component();
 		component->m_transform = component->get_entity().get_component<dk::Transform>();
+		component->m_camera_transform = component->m_transform->get_child(0);
+		component->m_character_controller = component->get_entity().get_component<dk::CharacterController>();
 	}
 
 	void on_late_tick(float delta_time) override
@@ -57,17 +62,24 @@ public:
 			dk::engine::input.set_locked_mouse(m_mouse_lock);
 		}
 
-		for (dk::Handle<CameraController> controller : *this)
+		for (dk::Handle<Player> player : *this)
 		{
-			auto ea = controller->m_transform->get_euler_angles();
-			ea += glm::vec3(m_vel.y, m_vel.x, 0) * 0.08f;
-			
+			// Rotate body
+			player->m_transform->mod_euler_angles(glm::vec3(0, m_vel.x * 0.08f, 0));
+
+			// Rotate camera
+			auto ea = player->m_camera_transform->get_local_euler_angles();
+			dk_log(ea.x << ' ' << ea.y << ' ' << ea.z);
+			ea += glm::vec3(m_vel.y * 0.08f, 0, 0);
 			if (ea.x > 90.0f) ea.x = 90.0f;
 			if (ea.x < -90.0f) ea.x = -90.0f;
-
-			controller->m_transform->set_euler_angles(ea);
-			controller->m_transform->mod_position(controller->m_transform->get_forward() * y * delta_time * 3.0f);
-			controller->m_transform->mod_position(controller->m_transform->get_right() * x * delta_time * 3.0f);
+			player->m_camera_transform->set_local_euler_angles(ea);
+			
+			// Move player
+			glm::vec3 movement_vec = {};
+			movement_vec += player->m_transform->get_forward() * y * delta_time;
+			movement_vec += player->m_transform->get_right() * x * delta_time;
+			player->m_character_controller->move(movement_vec);
 		}
 	}
 
@@ -94,9 +106,10 @@ int main()
 	// Physics systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<dk::RigidBodySystem>();
+	dk::engine::scene.add_system<dk::CharacterControllerSystem>();
 
 	// Gameplay systems
-	dk::engine::scene.add_system<CameraControllerSystem>();
+	dk::engine::scene.add_system<PlayerSystem>();
 
 	// Rendering system
 	dk::engine::scene.add_system<dk::CameraSystem>();
@@ -104,18 +117,27 @@ int main()
 	dk::engine::scene.add_system<dk::PointLightSystem>();
 	dk::engine::scene.add_system<dk::MeshRendererSystem>();
 
-	// Camera
+	// Player
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity1 = dk::Entity(&dk::engine::scene);
 
-		dk::Handle<dk::Camera> camera = entity.add_component<dk::Camera>();
-		dk::CameraSystem::set_main_camera(camera);
+		dk::Handle<dk::Transform> transform1 = entity1.get_component<dk::Transform>();
 
-		entity.add_component<CameraController>();
+		entity1.add_component<dk::CharacterController>();
 
-		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-		transform->set_position(glm::vec3(3, 0, 3));
-		transform->set_euler_angles(glm::vec3(0, 225.0f, 0));
+		// Camera
+		{
+			dk::Entity entity2 = dk::Entity(&dk::engine::scene);
+
+			dk::Handle<dk::Camera> camera = entity2.add_component<dk::Camera>();
+			dk::CameraSystem::set_main_camera(camera);
+
+			dk::Handle<dk::Transform> transform2 = entity2.get_component<dk::Transform>();
+			transform2->set_parent(transform1);
+			transform2->set_position(glm::vec3(0, 0, 0));
+		}
+
+		entity1.add_component<Player>();
 	}
 
 	// Test bunny 1

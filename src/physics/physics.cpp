@@ -52,13 +52,67 @@ namespace dk
 
     void Physics::step(float delta_time)
     {
+        // Clear old collision data
+        for(auto& col_data : m_collision_data)
+            col_data.second.clear();
+
         // Do a step
 		m_dynamics_world->stepSimulation(delta_time, 50, 1 / 144.0f);
+
+        // Get number of manifolds and loop over them
+		int num_manifolds = m_dynamics_world->getDispatcher()->getNumManifolds();
+		for (int i = 0; i < num_manifolds; ++i)
+		{
+			// Get objects colliding
+			btPersistentManifold* contact_manifold = m_dynamics_world->getDispatcher()->getManifoldByIndexInternal(i);
+			const btCollisionObject* obA = contact_manifold->getBody0();
+			const btCollisionObject* obB = contact_manifold->getBody1();
+
+			// Get number of contacts and loop over them
+			int num_contacts = contact_manifold->getNumContacts();
+			for (int j = 0; j < num_contacts; ++j)
+			{
+				btManifoldPoint& pt = contact_manifold->getContactPoint(j);
+				if (pt.getDistance() <= 0.0f)
+				{
+					const btVector3& ptA = pt.getPositionWorldOnA();
+					const btVector3& ptB = pt.getPositionWorldOnB();
+					const btVector3& normalOnB = pt.m_normalWorldOnB;
+
+					btRigidBody* rbA = nullptr;
+					btRigidBody* rbB = nullptr;
+
+					// Find bodies
+					for (auto rigid_body : m_bodies)
+					{
+						if (rbA && rbB)
+							break;
+
+						if (obA == rigid_body)
+							rbA = rigid_body;
+
+						if (obB == rigid_body)
+							rbB = rigid_body;
+					}
+
+					PhysicsCollisionData data = {};
+					data.point = { ptA.x(), ptA.y(), ptA.z() };
+					data.normal = { normalOnB.x(), normalOnB.y(), normalOnB.z() };
+					data.touched = rbB;
+					data.touching = rbA;
+					data.penetration = pt.getDistance();
+
+					// Add collision data
+					m_collision_data[rbA].push_back(data);
+				}
+			}
+		}
     }
 
     void Physics::register_rigid_body(btRigidBody* body)
     {
         m_dynamics_world->addRigidBody(body);
+        m_collision_data[body] = {};
         m_bodies.push_back(body);
     }
 
@@ -70,6 +124,7 @@ namespace dk
     void Physics::unregister_rigid_body(btRigidBody* body)
     {
         m_bodies.erase(std::remove(m_bodies.begin(), m_bodies.end(), body), m_bodies.end());
+        m_collision_data.erase(body);
         m_dynamics_world->removeRigidBody(body);
     }
 

@@ -10,11 +10,36 @@
 #include <glm\glm.hpp>
 #include <memory>
 #include <vector>
+#include <unordered_map>
+#include <utilities\debugging.hpp>
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision\CollisionDispatch\btGhostObject.h>
 
 namespace dk
 {
+	/**
+	 * @brief Data retrieved during a collision.
+	 */
+	struct PhysicsCollisionData
+	{
+		/** Collider tocuhed. */
+		btCollisionObject* touched = nullptr;
+
+		/** Collider touching. */
+		btCollisionObject* touching = nullptr;
+
+		/** Contact point in world space. */
+		glm::vec3 point = {};
+
+		/** Normal on touched object. */
+		glm::vec3 normal = {};
+
+		/** Penetration. */
+		float penetration = 0.0f;
+	};
+
+
+
     /**
      * @brief Physics engine powered by Bullet Physics.
      */
@@ -73,6 +98,17 @@ namespace dk
          */
         void unregister_collision_object(btCollisionObject* obj);
 
+		/**
+		 * @brief Get a rigid bodies collision data.
+		 * @param Rigid body.
+		 * @return Collision data.
+		 */
+		const std::vector<PhysicsCollisionData>& get_collision_data(btRigidBody* body) const
+		{
+			dk_assert(m_collision_data.find(body) != m_collision_data.end());
+			return m_collision_data.at(body);
+		}
+
     private:  
 
         /** Collision configuration. */
@@ -92,5 +128,8 @@ namespace dk
 
         /** List of rigid bodies. */
         std::vector<btRigidBody*> m_bodies = {};
+
+        /** Mapping of rigid bodies to collisions. */
+        std::unordered_map<btRigidBody*, std::vector<PhysicsCollisionData>> m_collision_data = {};
     };
 }

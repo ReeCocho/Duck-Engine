@@ -227,7 +227,7 @@ namespace dk
 
 		// Register body with dynamics world
 		dk::engine::physics.register_rigid_body(rigid_body->m_rigid_body.get());
-		rigid_body->m_rigid_body->setSleepingThresholds(0.025f, 0.01f);
+		rigid_body->m_rigid_body->setSleepingThresholds(DK_PHYSICS_LINEAR_SLEEP_THRESHOLD, DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD);
     }
 
     void RigidBodySystem::on_late_tick(float delta_time)

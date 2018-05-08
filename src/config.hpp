@@ -27,6 +27,12 @@
 /** Time in between physics steps. */
 #define DK_PHYSICS_STEP_RATE (1.0f/30.0f)
 
+/** Linear sleeping threshold for physics bodies. */
+#define DK_PHYSICS_LINEAR_SLEEP_THRESHOLD 0.025f
+
+/** Angular sleeping threshold for physics bodies. */
+#define DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD 0.01f
+
 #if DUCK_USE_RADIANS
 	#define DUCK_RAD_CONST 1.0f
 #else

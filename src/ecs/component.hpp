@@ -11,8 +11,8 @@
 
 /** Defines constructors for a component. */
 #define DK_COMPONENT_BODY(T) \
-T() : Component<T>(Handle<T>(0, nullptr), Entity()) {} \
-T(Handle<T> handle, Entity entity) : Component<T>(handle, entity) {}
+T() : dk::Component<T>(dk::Handle<T>(0, nullptr), dk::Entity()) {} \
+T(dk::Handle<T> handle, dk::Entity entity) : dk::Component<T>(handle, entity) {}
 
 namespace dk
 {

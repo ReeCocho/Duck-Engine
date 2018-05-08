@@ -23,13 +23,51 @@ namespace dk
 
         DK_COMPONENT_BODY(CharacterController)
 
+		/**
+		 * @brief Move the player.
+		 * @param Position delta.
+		 */
+		void move(glm::vec3 del);
+
+		/**
+		 * @brief Set radius.
+		 * @param New radius.
+		 * @return New radius. 
+		 */
+		float set_radius(float r);
+
+		/**
+		 * @brief Set height.
+		 * @param New height.
+		 * @return New height.
+		 */
+		float set_height(float h);
+
+		/**
+		 * @brief Get radius.
+		 * @return Radius. 
+		 */
+		float get_radius() const
+		{
+			return static_cast<float>(m_shape->getRadius());
+		}
+
+		/**
+		 * @brief Get height.
+		 * @return Height. 
+		 */
+		float get_height() const
+		{
+			return static_cast<float>(m_shape->getHalfHeight() * 2.0f);
+		}
+
     private:
 
         /** Entities transform. */
 		Handle<Transform> m_transform = {};
 
 		/** Collision shape. */
-		std::unique_ptr<btCollisionShape> m_shape;
+		std::unique_ptr<btCapsuleShape> m_shape;
 
 		/** Motion state. */
 		std::unique_ptr<btMotionState> m_motion_state;
