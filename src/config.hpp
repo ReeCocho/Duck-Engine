@@ -33,6 +33,9 @@
 /** Angular sleeping threshold for physics bodies. */
 #define DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD 0.01f
 
+/** Character controller grounding epsilon. */
+#define DK_CHARACTER_CONTROLLER_GRND_EPS 0.1f
+
 #if DUCK_USE_RADIANS
 	#define DUCK_RAD_CONST 1.0f
 #else

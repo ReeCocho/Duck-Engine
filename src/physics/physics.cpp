@@ -96,7 +96,8 @@ namespace dk
 					}
 
 					PhysicsCollisionData data = {};
-					data.point = { ptA.x(), ptA.y(), ptA.z() };
+					data.touched_point = { ptA.x(), ptA.y(), ptA.z() };
+					data.touching_point = { ptB.x(), ptB.y(), ptB.z() };
 					data.normal = { normalOnB.x(), normalOnB.y(), normalOnB.z() };
 					data.touched = rbB;
 					data.touching = rbA;
@@ -132,4 +133,50 @@ namespace dk
     {
         m_dynamics_world->removeCollisionObject(obj);
     }
+
+	RaycastHitData Physics::linecast(glm::vec3 origin, glm::vec3 destination)
+	{
+		btCollisionWorld::ClosestRayResultCallback ray_callback
+		(
+			{ origin.x, origin.y, origin.z },
+			{ destination.x, destination.y, destination.z }
+		);
+
+		// Perform the raycast
+		m_dynamics_world->rayTest
+		(
+			{ origin.x, origin.y, origin.z },
+			{ destination.x, destination.y, destination.z },
+			ray_callback
+		);
+
+		// Raycast data
+		RaycastHitData data = {};
+
+		if (ray_callback.hasHit())
+		{
+			data.hit = true;
+
+			data.point =
+			{
+				ray_callback.m_hitPointWorld.x(),
+				ray_callback.m_hitPointWorld.y(),
+				ray_callback.m_hitPointWorld.z()
+			};
+
+			data.normal =
+			{
+				ray_callback.m_hitNormalWorld.x(),
+				ray_callback.m_hitNormalWorld.y(),
+				ray_callback.m_hitNormalWorld.z()
+			};
+		}
+
+		return data;
+	}
+
+	RaycastHitData Physics::raycast(glm::vec3 origin, glm::vec3 direction, float magnitude)
+	{
+		return linecast(origin, origin + (direction * magnitude));
+	}
 }

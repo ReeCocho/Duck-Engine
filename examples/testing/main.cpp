@@ -27,6 +27,8 @@ private:
 	dk::Handle<dk::Transform> m_camera_transform;
 
 	dk::Handle<dk::CharacterController> m_character_controller;
+
+	float m_y_vel = 0.0f;
 };
 
 class PlayerSystem : public dk::System<Player>
@@ -38,6 +40,7 @@ public:
 		dk::engine::input.register_axis("Horizontal", { { dk::KeyCode::A, -1.0f }, { dk::KeyCode::D, 1.0f }});
 		dk::engine::input.register_axis("Vertical", { { dk::KeyCode::W, 1.0f }, { dk::KeyCode::S, -1.0f } });
 		dk::engine::input.register_button("MouseLock", dk::KeyCode::M);
+		dk::engine::input.register_button("Jump", dk::KeyCode::Space);
 	 }
 
 	~PlayerSystem() = default;
@@ -64,12 +67,23 @@ public:
 
 		for (dk::Handle<Player> player : *this)
 		{
+			// Apply gravity
+			if (player->m_character_controller->is_grounded())
+			{
+				// Jump
+				if (dk::engine::input.get_button_down("Jump"))
+					player->m_y_vel = 6.0f;
+				else
+					player->m_y_vel = 0.0f;
+			}
+			else
+				player->m_y_vel -= delta_time * 9.8f;
+
 			// Rotate body
 			player->m_transform->mod_euler_angles(glm::vec3(0, m_vel.x * 0.08f, 0));
 
 			// Rotate camera
 			auto ea = player->m_camera_transform->get_local_euler_angles();
-			dk_log(ea.x << ' ' << ea.y << ' ' << ea.z);
 			ea += glm::vec3(m_vel.y * 0.08f, 0, 0);
 			if (ea.x > 90.0f) ea.x = 90.0f;
 			if (ea.x < -90.0f) ea.x = -90.0f;
@@ -79,6 +93,7 @@ public:
 			glm::vec3 movement_vec = {};
 			movement_vec += player->m_transform->get_forward() * y * delta_time;
 			movement_vec += player->m_transform->get_right() * x * delta_time;
+			movement_vec.y += player->m_y_vel * delta_time;
 			player->m_character_controller->move(movement_vec);
 		}
 	}
@@ -106,10 +121,11 @@ int main()
 	// Physics systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<dk::RigidBodySystem>();
-	dk::engine::scene.add_system<dk::CharacterControllerSystem>();
+	
 
 	// Gameplay systems
 	dk::engine::scene.add_system<PlayerSystem>();
+	dk::engine::scene.add_system<dk::CharacterControllerSystem>();
 
 	// Rendering system
 	dk::engine::scene.add_system<dk::CameraSystem>();
@@ -122,6 +138,7 @@ int main()
 		dk::Entity entity1 = dk::Entity(&dk::engine::scene);
 
 		dk::Handle<dk::Transform> transform1 = entity1.get_component<dk::Transform>();
+		transform1->set_position(glm::vec3(0, 16, 1));
 
 		entity1.add_component<dk::CharacterController>();
 
@@ -134,7 +151,7 @@ int main()
 
 			dk::Handle<dk::Transform> transform2 = entity2.get_component<dk::Transform>();
 			transform2->set_parent(transform1);
-			transform2->set_position(glm::vec3(0, 0, 0));
+			transform2->set_local_position(glm::vec3(0, 0, 0));
 		}
 
 		entity1.add_component<Player>();
@@ -186,6 +203,23 @@ int main()
 
 		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
 		rigid_body->set_box_shape(glm::vec3(16, 1, 16));
+		rigid_body->set_static(true);
+	}
+
+	// Wall
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+
+		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(0, 1, 0));
+		transform->set_local_scale(glm::vec3(8, 4, 1));
+
+		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
+		rigid_body->set_box_shape(glm::vec3(8, 4, 1));
 		rigid_body->set_static(true);
 	}
 

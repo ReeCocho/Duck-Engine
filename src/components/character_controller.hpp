@@ -61,6 +61,15 @@ namespace dk
 			return static_cast<float>(m_shape->getHalfHeight() * 2.0f);
 		}
 
+		/**
+		 * @brief Get if the character controller is grounded.
+		 * @return If the controller is grounded.
+		 */
+		bool is_grounded() const
+		{
+			return m_grounded;
+		}
+
     private:
 
         /** Entities transform. */
@@ -74,6 +83,9 @@ namespace dk
 
 		/** Rigid body. */
 		std::unique_ptr<btRigidBody> m_rigid_body;
+
+		/** Is the controller grounded? */
+		bool m_grounded = false;
     };
 
 

@@ -89,7 +89,7 @@ namespace dk
 
 			// Create threads
 			rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });
-			physics_thread = std::make_unique<SimulationThread>([]() { physics.step(physics_timer); physics_timer = 0.0f; });
+			physics_thread = std::make_unique<SimulationThread>([]() { physics.step(DK_PHYSICS_STEP_RATE); physics_timer = 0.0f; });
 		}
 
 		void simulate()

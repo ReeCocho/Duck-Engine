@@ -9,12 +9,10 @@ namespace dk
 	void CharacterController::move(glm::vec3 del)
 	{
 		// Get physics transform
-		btTransform t = {}; 
-		m_motion_state->getWorldTransform(t);
-		auto pos = t.getOrigin();
-		pos += btVector3(del.x, del.y, del.z);
-		m_motion_state->setWorldTransform(t);
+		btTransform t = m_rigid_body->getWorldTransform();
+		t.setOrigin(t.getOrigin() + btVector3(del.x, del.y, del.z));
 		m_rigid_body->setWorldTransform(t);
+		m_rigid_body->activate(true);
 	}
 
 	float CharacterController::set_radius(float r)
@@ -64,8 +62,8 @@ namespace dk
 		// Create rigid body
 		controller->m_rigid_body = std::make_unique<btRigidBody>(info);
 		controller->m_rigid_body->setGravity(btVector3(0, 0, 0));
-		controller->m_rigid_body->setLinearFactor(btVector3(0, 0, 0));
 		controller->m_rigid_body->setAngularFactor(0);
+		controller->m_rigid_body->setLinearFactor(btVector3(0, 0, 0));
 
 		// Register body with dynamics world
 		dk::engine::physics.register_rigid_body(controller->m_rigid_body.get());
@@ -80,8 +78,7 @@ namespace dk
 			auto cur_pos = controller->m_transform->get_position();
 
 			// Get physics transform
-			btTransform t = {};
-			controller->m_motion_state->getWorldTransform(t);
+			btTransform t = controller->m_rigid_body->getWorldTransform();
 			auto pos = t.getOrigin();
 
 			// Get collision data
@@ -90,17 +87,40 @@ namespace dk
 			// Move away from every collision
 			glm::vec3 pos_diff = {};
 			for (const auto& data : collision_data)
-				if (data.penetration > 0.0f)
-					pos_diff -= glm::normalize(glm::vec3(pos.x(), pos.y(), pos.z()) - data.point) * data.penetration;
+				if (data.penetration < 0.0f)
+					pos_diff -= data.normal * data.penetration * 0.23f;
 
 			// Change position
 			pos += btVector3(pos_diff.x, pos_diff.y, pos_diff.z);
+			t.setOrigin(pos);
+			controller->m_rigid_body->setWorldTransform(t);
+
+			// Check for grounding
+			RaycastHitData hit_data = dk::engine::physics.raycast
+			(
+				{ pos.x(), pos.y(), pos.z() },
+				glm::vec3(0, -1, 0),
+				(controller->get_height() / 2.0f) + controller->get_radius() + DK_CHARACTER_CONTROLLER_GRND_EPS
+			);
+
+			if (hit_data.hit)
+			{
+				controller->m_grounded = true;
+				float dist = glm::distance(hit_data.point, { pos.x(), pos.y(), pos.z() });
+				dist = ((controller->get_height() / 2.0f) + controller->get_radius()) - dist;
+				pos.setY(pos.y() + dist);
+			}
+			else
+				controller->m_grounded = false;
 
 			// Interpolate transform
 			cur_pos = glm::mix(cur_pos, { pos.x(), pos.y(), pos.z() }, delta_time * DK_PHYSICS_POSITION_INTERPOLATION_RATE);
 
 			// Set position
 			controller->m_transform->set_position(cur_pos);
+
+			// Set rotation
+			controller->m_transform->set_euler_angles(glm::vec3(0, controller->m_transform->get_euler_angles().y, 0));
         }
     }
 

@@ -28,14 +28,32 @@ namespace dk
 		/** Collider touching. */
 		btCollisionObject* touching = nullptr;
 
-		/** Contact point in world space. */
-		glm::vec3 point = {};
+		/** Contact point in world space on touched object. */
+		glm::vec3 touched_point = {};
+
+		/** Contact point in world space on touching object. */
+		glm::vec3 touching_point = {};
 
 		/** Normal on touched object. */
 		glm::vec3 normal = {};
 
 		/** Penetration. */
 		float penetration = 0.0f;
+	};
+
+	/**
+	 * @brief Holds information about a raycast hit.
+	 */
+	struct RaycastHitData
+	{
+		/** Did the raycast hit? */
+		bool hit = false;
+
+		/** Point of contact. */
+		glm::vec3 point = {};
+
+		/** Normal to the hit surface. */
+		glm::vec3 normal = {};
 	};
 
 
@@ -108,6 +126,23 @@ namespace dk
 			dk_assert(m_collision_data.find(body) != m_collision_data.end());
 			return m_collision_data.at(body);
 		}
+
+		/**
+		 * @brief Perform a linecast.
+		 * @brief Origin.
+		 * @brief Destination.
+		 * @return Hit data.
+		 */
+		RaycastHitData linecast(glm::vec3 origin, glm::vec3 destination);
+
+		/**
+		 * @brief Perform a raycast.
+		 * @brief Origin.
+		 * @brief Direction vector (Should be normalized).
+		 * @brief Magnitude
+		 * @return Hit data.
+		 */
+		RaycastHitData raycast(glm::vec3 origin, glm::vec3 direction, float magnitude);
 
     private:  
 
