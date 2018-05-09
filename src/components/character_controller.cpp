@@ -9,9 +9,10 @@ namespace dk
 	void CharacterController::move(glm::vec3 del)
 	{
 		// Get physics transform
-		btTransform t = m_rigid_body->getWorldTransform();
+		btTransform t = m_ghost->getWorldTransform();
 		t.setOrigin(t.getOrigin() + btVector3(del.x, del.y, del.z));
 		m_rigid_body->setWorldTransform(t);
+		m_ghost->setWorldTransform(t);
 		m_rigid_body->activate(true);
 	}
 
@@ -20,6 +21,7 @@ namespace dk
 		const float h = get_height();
 		m_shape = std::make_unique<btCapsuleShape>(r, h);
 		m_rigid_body->setCollisionShape(m_shape.get());
+		m_ghost->setCollisionShape(m_shape.get());
 		return r;
 	}
 
@@ -28,7 +30,20 @@ namespace dk
 		const float r = get_radius();
 		m_shape = std::make_unique<btCapsuleShape>(r, h);
 		m_rigid_body->setCollisionShape(m_shape.get());
+		m_ghost->setCollisionShape(m_shape.get());
 		return h;
+	}
+
+	float CharacterController::set_sliding_angle(float sa)
+	{
+		m_sliding_angle = sa;
+		return m_sliding_angle;
+	}
+
+	bool CharacterController::set_ground_snap(bool s)
+	{
+		m_ground_snap = s;
+		return m_ground_snap;
 	}
 
     void CharacterControllerSystem::on_begin()
@@ -46,18 +61,16 @@ namespace dk
 		transform.setOrigin({ pos.x, pos.y, pos.z });
 		transform.setRotation({ rot.x, rot.y, rot.z, rot.w });
 
-		// Create motion state
-		controller->m_motion_state = std::make_unique<btDefaultMotionState>(transform);
-
 		// Create shape
 		controller->m_shape = std::make_unique<btCapsuleShape>(0.25f, 1.5f);
 
 		btRigidBody::btRigidBodyConstructionInfo info
 		(
 			1.0f,
-			controller->m_motion_state.get(),
+			nullptr,
 			controller->m_shape.get()
 		);
+		info.m_startWorldTransform = transform;
 
 		// Create rigid body
 		controller->m_rigid_body = std::make_unique<btRigidBody>(info);
@@ -65,8 +78,14 @@ namespace dk
 		controller->m_rigid_body->setAngularFactor(0);
 		controller->m_rigid_body->setLinearFactor(btVector3(0, 0, 0));
 
-		// Register body with dynamics world
+		// Create ghost
+		controller->m_ghost = std::make_unique<btGhostObject>();
+		controller->m_ghost->setCollisionShape(controller->m_shape.get());
+		controller->m_ghost->setWorldTransform(transform);
+
+		// Register bodies with dynamics world
 		dk::engine::physics.register_rigid_body(controller->m_rigid_body.get());
+		dk::engine::physics.register_collision_object(controller->m_ghost.get());
 		controller->m_rigid_body->setSleepingThresholds(DK_PHYSICS_LINEAR_SLEEP_THRESHOLD, DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD);
     }
 
@@ -78,40 +97,52 @@ namespace dk
 			auto cur_pos = controller->m_transform->get_position();
 
 			// Get physics transform
-			btTransform t = controller->m_rigid_body->getWorldTransform();
-			auto pos = t.getOrigin();
+			btTransform t = controller->m_ghost->getWorldTransform();
+			btVector3 pos = t.getOrigin();
 
-			// Get collision data
-			const auto& collision_data = dk::engine::physics.get_collision_data(controller->m_rigid_body.get());
-
-			// Move away from every collision
+			// Move away from every collision and detect grounding
+			const auto& col_dat = dk::engine::physics.get_collision_data(controller->m_rigid_body.get());
+			float cos_sa = glm::cos(glm::radians(controller->m_sliding_angle));
 			glm::vec3 pos_diff = {};
-			for (const auto& data : collision_data)
-				if (data.penetration < 0.0f)
-					pos_diff -= data.normal * data.penetration * 0.23f;
+			glm::vec3 bottom_pos = { pos.x(), pos.y() - (controller->get_height() / 2.0f), pos.z() };
+			controller->m_grounded = false;
+			
+			for (const auto dat : col_dat)
+				if 
+				(
+					dat.touched != nullptr && 
+					dat.touching != nullptr && 
+					dat.touched != controller->m_ghost.get() && 
+					dat.touching != controller->m_ghost.get()
+				)
+				{
+					glm::vec3 del = dat.normal * -dat.penetration * DK_PHYSICS_STEP_RATE;
+					pos_diff.x += del.x;
+					pos_diff.z += del.z;
+				}
 
-			// Change position
+			// Ground snap
+			if (controller->m_ground_snap)
+			{
+				RaycastHitData data = dk::engine::physics.raycast
+				(
+					bottom_pos,
+					glm::vec3(0, -1, 0),
+					controller->get_radius() + DK_CHARACTER_CONTROLLER_GRND_EPS
+				);
+
+				if (data.hit)
+				{
+					controller->m_grounded = true;
+					pos.setY(data.point.y + controller->get_radius() + (controller->get_height() / 2.0f));
+				}
+			}
+
+			// // Change position
 			pos += btVector3(pos_diff.x, pos_diff.y, pos_diff.z);
 			t.setOrigin(pos);
 			controller->m_rigid_body->setWorldTransform(t);
-
-			// Check for grounding
-			RaycastHitData hit_data = dk::engine::physics.raycast
-			(
-				{ pos.x(), pos.y(), pos.z() },
-				glm::vec3(0, -1, 0),
-				(controller->get_height() / 2.0f) + controller->get_radius() + DK_CHARACTER_CONTROLLER_GRND_EPS
-			);
-
-			if (hit_data.hit)
-			{
-				controller->m_grounded = true;
-				float dist = glm::distance(hit_data.point, { pos.x(), pos.y(), pos.z() });
-				dist = ((controller->get_height() / 2.0f) + controller->get_radius()) - dist;
-				pos.setY(pos.y() + dist);
-			}
-			else
-				controller->m_grounded = false;
+			controller->m_ghost->setWorldTransform(t);
 
 			// Interpolate transform
 			cur_pos = glm::mix(cur_pos, { pos.x(), pos.y(), pos.z() }, delta_time * DK_PHYSICS_POSITION_INTERPOLATION_RATE);
@@ -128,7 +159,7 @@ namespace dk
     {
         Handle<CharacterController> controller = get_component();
 		dk::engine::physics.unregister_rigid_body(controller->m_rigid_body.get());
-		controller->m_motion_state.reset();
+		dk::engine::physics.unregister_collision_object(controller->m_ghost.get());
 		controller->m_shape.reset();
 		controller->m_rigid_body.reset();
     }

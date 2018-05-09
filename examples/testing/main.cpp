@@ -1,6 +1,7 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <utilities\common.hpp>
+#include <config.hpp>
 #include <engine.hpp>
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
@@ -29,6 +30,8 @@ private:
 	dk::Handle<dk::CharacterController> m_character_controller;
 
 	float m_y_vel = 0.0f;
+
+	float m_jump_timer = 0.0f;
 };
 
 class PlayerSystem : public dk::System<Player>
@@ -67,12 +70,21 @@ public:
 
 		for (dk::Handle<Player> player : *this)
 		{
+			// Decrement jump timer
+			player->m_jump_timer -= delta_time;
+
+			// Check ground snap
+			player->m_character_controller->set_ground_snap(player->m_jump_timer <= 0.0f);
+
 			// Apply gravity
-			if (player->m_character_controller->is_grounded())
+			if (player->m_character_controller->is_grounded() && player->m_jump_timer <= 0.0f)
 			{
 				// Jump
 				if (dk::engine::input.get_button_down("Jump"))
-					player->m_y_vel = 6.0f;
+				{
+					player->m_y_vel = 5.0f;
+					player->m_jump_timer = 0.3f;
+				}
 				else
 					player->m_y_vel = 0.0f;
 			}
@@ -91,8 +103,8 @@ public:
 			
 			// Move player
 			glm::vec3 movement_vec = {};
-			movement_vec += player->m_transform->get_forward() * y * delta_time;
-			movement_vec += player->m_transform->get_right() * x * delta_time;
+			movement_vec += player->m_transform->get_forward() * y * 3.0f * delta_time;
+			movement_vec += player->m_transform->get_right() * x * 3.0f * delta_time;
 			movement_vec.y += player->m_y_vel * delta_time;
 			player->m_character_controller->move(movement_vec);
 		}
@@ -121,11 +133,10 @@ int main()
 	// Physics systems
 	dk::engine::scene.add_system<dk::TransformSystem>();
 	dk::engine::scene.add_system<dk::RigidBodySystem>();
-	
+	dk::engine::scene.add_system<dk::CharacterControllerSystem>();
 
 	// Gameplay systems
 	dk::engine::scene.add_system<PlayerSystem>();
-	dk::engine::scene.add_system<dk::CharacterControllerSystem>();
 
 	// Rendering system
 	dk::engine::scene.add_system<dk::CameraSystem>();
@@ -200,6 +211,24 @@ int main()
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0, -1, 0));
 		transform->set_local_scale(glm::vec3(16, 1, 16));
+
+		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
+		rigid_body->set_box_shape(glm::vec3(16, 1, 16));
+		rigid_body->set_static(true);
+	}
+
+	// Sloped floor
+	{
+		dk::Entity entity = dk::Entity(&dk::engine::scene);
+
+		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
+
+		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
+		transform->set_position(glm::vec3(0, 0, 12));
+		transform->set_local_scale(glm::vec3(16, 1, 16));
+		transform->set_euler_angles(glm::vec3(-45.0f, 0, 0));
 
 		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
 		rigid_body->set_box_shape(glm::vec3(16, 1, 16));

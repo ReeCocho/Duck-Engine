@@ -44,6 +44,20 @@ namespace dk
 		float set_height(float h);
 
 		/**
+		 * @brief Set sliding angle.
+		 * @param New sliding angle.
+		 * @return New sliding angle.
+		 */
+		float set_sliding_angle(float sa);
+
+		/**
+		 * @brief Get ground snap.
+		 * @param New ground snap.
+		 * @return New ground snap.
+		 */
+		bool set_ground_snap(bool s);
+
+		/**
 		 * @brief Get radius.
 		 * @return Radius. 
 		 */
@@ -59,6 +73,24 @@ namespace dk
 		float get_height() const
 		{
 			return static_cast<float>(m_shape->getHalfHeight() * 2.0f);
+		}
+
+		/**
+		 * @brief Get sliding angle.
+		 * @return Sliding angle.
+		 */
+		float get_sliding_angle() const
+		{
+			return m_sliding_angle;
+		}
+
+		/**
+		 * @brief Get ground snap.
+		 * @return Ground snap.
+		 */
+		bool get_ground_snap() const
+		{
+			return m_ground_snap;
 		}
 
 		/**
@@ -78,14 +110,20 @@ namespace dk
 		/** Collision shape. */
 		std::unique_ptr<btCapsuleShape> m_shape;
 
-		/** Motion state. */
-		std::unique_ptr<btMotionState> m_motion_state;
-
 		/** Rigid body. */
 		std::unique_ptr<btRigidBody> m_rigid_body;
 
+		/** Ghost for collisions. */
+		std::unique_ptr<btGhostObject> m_ghost;
+
 		/** Is the controller grounded? */
 		bool m_grounded = false;
+
+		/** Angle at which the controller will slide. */
+		float m_sliding_angle = 70.0f;
+
+		/** Should the controller snap to the ground? */
+		bool m_ground_snap = true;
     };
 
 
