@@ -18,6 +18,7 @@ namespace dk
 
 	float CharacterController::set_radius(float r)
 	{
+		dk_assert(r > 0.0f);
 		const float h = get_height();
 		m_shape = std::make_unique<btCapsuleShape>(r, h);
 		m_rigid_body->setCollisionShape(m_shape.get());
@@ -27,6 +28,7 @@ namespace dk
 
 	float CharacterController::set_height(float h)
 	{
+		dk_assert(h >= 0.0f);
 		const float r = get_radius();
 		m_shape = std::make_unique<btCapsuleShape>(r, h);
 		m_rigid_body->setCollisionShape(m_shape.get());
@@ -36,6 +38,7 @@ namespace dk
 
 	float CharacterController::set_sliding_angle(float sa)
 	{
+		dk_assert(sa >= 0.0f && sa < 90.0f);
 		m_sliding_angle = sa;
 		return m_sliding_angle;
 	}
@@ -52,8 +55,8 @@ namespace dk
 
         // Get transform component
 		controller->m_transform = controller->get_entity().get_component<Transform>();
-		auto pos = controller->m_transform->get_position();
-		auto rot = controller->m_transform->get_rotation();
+		const auto pos = controller->m_transform->get_position();
+		const auto rot = controller->m_transform->get_rotation();
 
 		// Set physics transform
 		btTransform transform = {};
@@ -103,10 +106,13 @@ namespace dk
 			// Update controller in the physics world
 			btVector3 minAabb, maxAabb;
 			controller->m_shape->getAabb(controller->m_ghost->getWorldTransform(), minAabb, maxAabb);
-			dynamics_word.getBroadphase()->setAabb(	controller->m_ghost->getBroadphaseHandle(),
-													minAabb,
-													maxAabb,
-													dynamics_word.getDispatcher());
+			dynamics_word.getBroadphase()->setAabb
+			(	
+				controller->m_ghost->getBroadphaseHandle(),
+				minAabb,
+				maxAabb,
+				dynamics_word.getDispatcher()
+			);
 
 			dynamics_word.getDispatcher()->dispatchAllCollisionPairs
 			(
@@ -115,35 +121,35 @@ namespace dk
 				dynamics_word.getDispatcher()
 			);
 
-			// Get current transform
+			// Get current transform position
 			auto cur_pos = controller->m_transform->get_position();
 
 			// Get physics transform
 			btTransform t = controller->m_ghost->getWorldTransform();
-			btVector3 phys_pos = t.getOrigin();
+			const btVector3 phys_pos = t.getOrigin();
 
 			// Cosine of the sliding angle
-			float cos_sa = glm::cos(glm::radians(controller->m_sliding_angle));
+			const float cos_sa = glm::cos(glm::radians(controller->m_sliding_angle));
 
 			// Position to move to
 			glm::vec3 new_pos = { phys_pos.x(), phys_pos.y(), phys_pos.z() };
 
-			// Wait position of the controller
-			glm::vec3 bottom_pos = { new_pos.x, new_pos.y - (controller->get_height() / 2.0f), new_pos.z };
+			// Waist position of the controller
+			const glm::vec3 bottom_pos = { new_pos.x, new_pos.y - (controller->get_height() / 2.0f), new_pos.z };
 
 			// Reset grounding flag
 			controller->m_grounded = false;
 			
 			// Loop over every ghost contact
-			for (int i = 0; i < controller->m_ghost->getOverlappingPairCache()->getNumOverlappingPairs(); i++)
+			for (int i = 0; i < controller->m_ghost->getOverlappingPairCache()->getNumOverlappingPairs(); ++i)
 			{
 				// Clear old manifold array
 				controller->m_manifold_array.resize(0);
 
 				// Get objects in contact
-				btBroadphasePair* collisionPair = &controller->m_ghost->getOverlappingPairCache()->getOverlappingPairArray()[i];
-				btCollisionObject* obj0 = static_cast<btCollisionObject*>(collisionPair->m_pProxy0->m_clientObject);
-				btCollisionObject* obj1 = static_cast<btCollisionObject*>(collisionPair->m_pProxy1->m_clientObject);
+				const btBroadphasePair* collisionPair = &controller->m_ghost->getOverlappingPairCache()->getOverlappingPairArray()[i];
+				const btCollisionObject* obj0 = static_cast<btCollisionObject*>(collisionPair->m_pProxy0->m_clientObject);
+				const btCollisionObject* obj1 = static_cast<btCollisionObject*>(collisionPair->m_pProxy1->m_clientObject);
 
 				// Continue if we don't have contact or we
 				// see the contact with the rigid body
@@ -158,22 +164,24 @@ namespace dk
 					collisionPair->m_algorithm->getAllContactManifolds(controller->m_manifold_array);
 
 				// Loop over every manifold
-				for (int j = 0; j < controller->m_manifold_array.size(); j++)
+				for (int j = 0; j < controller->m_manifold_array.size(); ++j)
 				{
 					// Get manifold
-					btPersistentManifold* manifold = controller->m_manifold_array[j];
+					const btPersistentManifold* manifold = controller->m_manifold_array[j];
 
 					// Sign for moving away from walls
-					float direction_sign = manifold->getBody0() == controller->m_ghost.get() ? -1.0f : 1.0f;
+					const float direction_sign = manifold->getBody0() == controller->m_ghost.get() ? -1.0f : 1.0f;
 
 					// Loop over every contact and move away if needed
-					for (int p = 0; p<manifold->getNumContacts(); p++)
+					for (int p = 0; p < manifold->getNumContacts(); ++p)
 					{
 						const btManifoldPoint& pt = manifold->getContactPoint(p);
+
+						// Is this contact ground?
 						bool grounding_point = false;
 
-						// Cosine of the contact normal and down.
-						float cos_cp = glm::dot(glm::vec3(0, -1, 0), { pt.m_normalWorldOnB.x(),  pt.m_normalWorldOnB.y(),  pt.m_normalWorldOnB.z() });
+						// Cosine of the angle between the contact normal and down vector.
+						const float cos_cp = glm::dot(glm::vec3(0, -1, 0), { pt.m_normalWorldOnB.x(),  pt.m_normalWorldOnB.y(),  pt.m_normalWorldOnB.z() });
 
 						// Check if we are on the ground
 						if (pt.getPositionWorldOnB().y() < bottom_pos.y && cos_cp * direction_sign > cos_sa)
@@ -182,7 +190,10 @@ namespace dk
 							controller->m_grounded = true;
 						}
 
-						float dist = static_cast<float>(pt.getDistance());
+						// Distance inside the contact
+						const float dist = static_cast<float>(pt.getDistance());
+
+						// Snap or push out
 						if(grounding_point && controller->m_ground_snap)
 							new_pos += glm::vec3(0, pt.m_normalWorldOnB.y(), 0) * (dist + 0.03f) * direction_sign;
 						else if (dist < 0.0)
@@ -191,16 +202,13 @@ namespace dk
 				}
 			}
 
-			// New waist position of the controller
-			bottom_pos = { new_pos.x, new_pos.y - (controller->get_height() / 2.0f), new_pos.z };
-
 			// Change position
 			t.setOrigin(btVector3(new_pos.x, new_pos.y, new_pos.z));
 			controller->m_rigid_body->setWorldTransform(t);
 			controller->m_ghost->setWorldTransform(t);
 
 			// Interpolate transform
-			cur_pos = glm::mix(cur_pos, { new_pos.x, new_pos.y, new_pos.z }, delta_time * DK_PHYSICS_POSITION_INTERPOLATION_RATE);
+			cur_pos = glm::mix(cur_pos, new_pos, delta_time * DK_PHYSICS_POSITION_INTERPOLATION_RATE);
 
 			// Set position
 			controller->m_transform->set_position(cur_pos);

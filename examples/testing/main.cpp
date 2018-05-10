@@ -59,9 +59,10 @@ public:
 	void on_late_tick(float delta_time) override
 	{
 		glm::vec2 m_vel = dk::engine::input.get_mouse_delta();
-		float x = dk::engine::input.get_axis("Horizontal");
-		float y = dk::engine::input.get_axis("Vertical");
+		const float x = dk::engine::input.get_axis("Horizontal");
+		const float y = dk::engine::input.get_axis("Vertical");
 
+		// Toggle mouse lock
 		if (dk::engine::input.get_button_down("MouseLock"))
 		{
 			m_mouse_lock = !m_mouse_lock;
@@ -76,7 +77,7 @@ public:
 			// Check ground snap
 			player->m_character_controller->set_ground_snap(player->m_jump_timer <= 0.0f);
 
-			// Apply gravity
+			// Apply gravity and jump
 			if (player->m_character_controller->is_grounded() && player->m_jump_timer <= 0.0f)
 			{
 				// Jump
@@ -85,11 +86,9 @@ public:
 					player->m_y_vel = 5.0f;
 					player->m_jump_timer = 0.3f;
 				}
-				else
-					player->m_y_vel = 0.0f;
+				else player->m_y_vel = 0.0f;
 			}
-			else
-				player->m_y_vel -= delta_time * 9.8f;
+			else player->m_y_vel -= delta_time * 9.8f;
 
 			// Rotate body
 			player->m_transform->mod_euler_angles(glm::vec3(0, m_vel.x * 0.08f, 0));
@@ -163,7 +162,7 @@ int main()
 
 			dk::Handle<dk::Transform> transform2 = entity2.get_component<dk::Transform>();
 			transform2->set_parent(transform1);
-			transform2->set_local_position(glm::vec3(0, 0, 0));
+			transform2->set_local_position(glm::vec3(0, 1, 0));
 		}
 
 		entity1.add_component<Player>();
