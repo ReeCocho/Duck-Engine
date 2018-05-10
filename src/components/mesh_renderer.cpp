@@ -174,8 +174,10 @@ namespace dk
 			// Draw
 			dk::RenderableObject renderable =
 			{
-				mesh_renderer->m_command_buffer,
-				mesh_renderer->m_depth_prepass_command_buffer,
+				{
+					mesh_renderer->m_command_buffer,
+					mesh_renderer->m_depth_prepass_command_buffer
+				},
 				mesh_renderer->m_material->get_shader(),
 				mesh_renderer->m_mesh,
 				{ mesh_renderer->m_vk_descriptor_set, dk::engine::renderer.get_descriptor_set() },

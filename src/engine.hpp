@@ -8,7 +8,7 @@
 
 /** Includes. */
 #include "graphics\graphics.hpp"
-#include "graphics\renderer.hpp"
+#include "graphics\forward_renderer.hpp"
 #include "input.hpp"
 #include "ecs\scene.hpp"
 #include "physics\physics.hpp"
@@ -22,7 +22,7 @@ namespace dk
 		extern Graphics graphics;
 
 		/** Rendering engine. */
-		extern Renderer renderer;
+		extern ForwardRenderer renderer;
 
 		/** Resource manager. */
 		extern ResourceManager resource_manager;

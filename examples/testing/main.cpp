@@ -172,7 +172,7 @@ int main()
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("bunny.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
@@ -188,7 +188,7 @@ int main()
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("mud.mat"));
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("bunny.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
@@ -205,7 +205,7 @@ int main()
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("mud.mat"));
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
@@ -222,7 +222,7 @@ int main()
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
@@ -240,7 +240,7 @@ int main()
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("standard.mat"));
+		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();

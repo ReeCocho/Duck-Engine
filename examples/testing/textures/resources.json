@@ -7,6 +7,11 @@
 		"Metal_Metallic.tex",
 		"Metal_Normal.tex",
 		"Metal_Roughness.tex",
+		"Mud_Albedo.tex",
+		"Mud_AO.tex",
+		"Mud_Normal.tex",
+		"Mud_Roughness.tex",
+		"black.tex",
 		"white.tex"
 	]
 }

@@ -1,0 +1,11 @@
+{
+	"shader" : "standard.shd",
+	"textures" : 
+	[  
+		"Mud_Albedo.tex",
+		"Mud_Normal.tex",
+		"black.tex",
+		"Mud_Roughness.tex",
+		"Mud_AO.tex"
+	]
+}

@@ -40,7 +40,7 @@ namespace dk
 	{
 		Graphics graphics;
 
-		Renderer renderer;
+		ForwardRenderer renderer;
 
 		ResourceManager resource_manager;
 
@@ -70,7 +70,7 @@ namespace dk
 			::new(&physics)(Physics)(glm::vec3(j["gravity"][0], j["gravity"][1], j["gravity"][2]));
 
 			// Init renderer
-			::new(&renderer)(Renderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+			::new(&renderer)(ForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
 
 			// Load resources
 			resource_manager.load_resources

@@ -9,7 +9,7 @@
 /** Includes. */
 #include <unordered_map>
 #include <utilities\resource_allocator.hpp>
-#include <graphics\renderer.hpp>
+#include <graphics\forward_renderer.hpp>
 #include <graphics\material.hpp>
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
@@ -33,7 +33,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Renderer.
 		 */
-		ResourceManager(Renderer* renderer);
+		ResourceManager(ForwardRenderer* renderer);
 
 		/**
 		 * @brief Shutdown the resource manager.
@@ -213,7 +213,7 @@ namespace dk
 	private:
 		
 		/** Rendering engine. */
-		Renderer* m_renderer;
+		ForwardRenderer* m_renderer;
 
 		/** Mesh allocator. */
 		std::unique_ptr<ResourceAllocator<Mesh>> m_mesh_allocator;

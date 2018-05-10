@@ -1,6 +1,7 @@
 {
 	"files" :
 	[
-		"standard.mat"
+		"metal.mat",
+		"mud.mat"
 	]
 }
