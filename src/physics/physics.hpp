@@ -86,6 +86,15 @@ namespace dk
          */
         void shutdown();
 
+		/**
+		 * @brief Get dynamics world.
+		 * @return Dynamics world.
+		 */
+		btDynamicsWorld& get_dynamics_world()
+		{
+			return *m_dynamics_world.get();
+		}
+
         /**
          * @brief Perform a step in the physics simulation.
          * @param Time since last tick.

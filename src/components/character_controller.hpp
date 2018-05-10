@@ -114,16 +114,19 @@ namespace dk
 		std::unique_ptr<btRigidBody> m_rigid_body;
 
 		/** Ghost for collisions. */
-		std::unique_ptr<btGhostObject> m_ghost;
+		std::unique_ptr<btPairCachingGhostObject> m_ghost;
 
 		/** Is the controller grounded? */
 		bool m_grounded = false;
 
 		/** Angle at which the controller will slide. */
-		float m_sliding_angle = 70.0f;
+		float m_sliding_angle = 60.0f;
 
 		/** Should the controller snap to the ground? */
 		bool m_ground_snap = true;
+
+		/** Keeps track of contack manifolds. */
+		btManifoldArray	m_manifold_array;
     };
 
 

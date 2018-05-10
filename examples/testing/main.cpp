@@ -103,9 +103,10 @@ public:
 			
 			// Move player
 			glm::vec3 movement_vec = {};
-			movement_vec += player->m_transform->get_forward() * y * 3.0f * delta_time;
-			movement_vec += player->m_transform->get_right() * x * 3.0f * delta_time;
-			movement_vec.y += player->m_y_vel * delta_time;
+			movement_vec += player->m_transform->get_forward() * y * 3.0f;
+			movement_vec += player->m_transform->get_right() * x * 3.0f;
+			movement_vec.y += player->m_y_vel;
+			movement_vec *= delta_time;
 			player->m_character_controller->move(movement_vec);
 		}
 	}
@@ -226,9 +227,9 @@ int main()
 		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-		transform->set_position(glm::vec3(0, 0, 12));
+		transform->set_position(glm::vec3(0, 2.5f, 14));
 		transform->set_local_scale(glm::vec3(16, 1, 16));
-		transform->set_euler_angles(glm::vec3(-45.0f, 0, 0));
+		transform->set_euler_angles(glm::vec3(-30.0f, 0, 0));
 
 		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
 		rigid_body->set_box_shape(glm::vec3(16, 1, 16));
