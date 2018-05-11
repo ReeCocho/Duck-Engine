@@ -108,6 +108,10 @@ namespace dk
 		 */
 		void render() override;
 
+		/**
+		 * @brief Draw a renderable object.
+		 * @param Renderable object.
+		 */
 		void draw(const RenderableObject& obj) override;
 
 		/**
@@ -153,15 +157,20 @@ namespace dk
 		ForwardRenderer& operator=(const ForwardRenderer& other) { return *this; };
 
 		/**
+		 * @brief Update lighting data.
+		 */
+		void upate_lighting_data();
+
+		/**
 		 * @brief Perform the depth prepass.
 		 */
 		void generate_depth_prepass_command_buffer();
 
 		/**
 		 * @brief Generate the rendering command buffer.
-		 * @param Image index.
+		 * @param Frame buffer to render too.
 		 */
-		void generate_rendering_command_buffer(uint32_t image_index);
+		void generate_rendering_command_buffer(const vk::Framebuffer& framebuffer);
 
 		/**
 		 * @brief Clear the rendering queues.

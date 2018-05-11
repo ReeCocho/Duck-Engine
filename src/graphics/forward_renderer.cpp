@@ -411,35 +411,8 @@ namespace dk
 			vk::Fence()
 		).value;
 
-		// Submit lighting data
-		m_lighting_manager->upload();
-
-		// Update lighting descriptor sets
-		std::array<vk::DescriptorBufferInfo, 2> buffer_infos = {};
-		buffer_infos[0].buffer = m_lighting_manager->get_point_light_ssbo().buffer;
-		buffer_infos[0].offset = 0;
-		buffer_infos[0].range = static_cast<uint32_t>(m_lighting_manager->get_point_light_data_size());
-
-		buffer_infos[1].buffer = m_lighting_manager->get_directional_light_ssbo().buffer;
-		buffer_infos[1].offset = 0;
-		buffer_infos[1].range = static_cast<uint32_t>(m_lighting_manager->get_directional_light_data_size());
-
-		std::array<vk::WriteDescriptorSet, 2> writes = {};
-		writes[0].dstSet = m_descriptor.set;
-		writes[0].dstBinding = 0;
-		writes[0].dstArrayElement = 0;
-		writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
-		writes[0].descriptorCount = 1;
-		writes[0].pBufferInfo = &buffer_infos[0];
-
-		writes[1].dstSet = m_descriptor.set;
-		writes[1].dstBinding = 1;
-		writes[1].dstArrayElement = 0;
-		writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
-		writes[1].descriptorCount = 1;
-		writes[1].pBufferInfo = &buffer_infos[1];
-
-		get_graphics().get_logical_device().updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+		// Update lights
+		upate_lighting_data();
 
 		// Perform depth prepass
 		generate_depth_prepass_command_buffer();
@@ -460,7 +433,7 @@ namespace dk
 		}
 
 		// Prepare rendering command buffer
-		generate_rendering_command_buffer(image_index);
+		generate_rendering_command_buffer(m_vk_framebuffers[image_index]);
 		{
 			vk::PipelineStageFlags wait_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
@@ -494,6 +467,39 @@ namespace dk
 
 		// Clear rendering queues
 		flush_queues();
+	}
+
+	void ForwardRenderer::upate_lighting_data()
+	{
+		// Submit lighting data
+		m_lighting_manager->upload();
+
+		// Update lighting descriptor sets
+		std::array<vk::DescriptorBufferInfo, 2> buffer_infos = {};
+		buffer_infos[0].buffer = m_lighting_manager->get_point_light_ssbo().buffer;
+		buffer_infos[0].offset = 0;
+		buffer_infos[0].range = static_cast<uint32_t>(m_lighting_manager->get_point_light_data_size());
+
+		buffer_infos[1].buffer = m_lighting_manager->get_directional_light_ssbo().buffer;
+		buffer_infos[1].offset = 0;
+		buffer_infos[1].range = static_cast<uint32_t>(m_lighting_manager->get_directional_light_data_size());
+
+		std::array<vk::WriteDescriptorSet, 2> writes = {};
+		writes[0].dstSet = m_descriptor.set;
+		writes[0].dstBinding = 0;
+		writes[0].dstArrayElement = 0;
+		writes[0].descriptorType = vk::DescriptorType::eStorageBuffer;
+		writes[0].descriptorCount = 1;
+		writes[0].pBufferInfo = &buffer_infos[0];
+
+		writes[1].dstSet = m_descriptor.set;
+		writes[1].dstBinding = 1;
+		writes[1].dstArrayElement = 0;
+		writes[1].descriptorType = vk::DescriptorType::eStorageBuffer;
+		writes[1].descriptorCount = 1;
+		writes[1].pBufferInfo = &buffer_infos[1];
+
+		get_graphics().get_logical_device().updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 	}
 
 	void ForwardRenderer::generate_depth_prepass_command_buffer()
@@ -619,7 +625,7 @@ namespace dk
 		m_vk_depth_prepass_command_buffer.end();
 	}
 
-	void ForwardRenderer::generate_rendering_command_buffer(uint32_t image_index)
+	void ForwardRenderer::generate_rendering_command_buffer(const vk::Framebuffer& framebuffer)
 	{
 		// Begin recording to primary command buffer
 		vk::CommandBufferBeginInfo begin_info = {};
@@ -630,7 +636,7 @@ namespace dk
 		// Inheritance info for the meshes command buffers
 		vk::CommandBufferInheritanceInfo inheritance_info = {};
 		inheritance_info.renderPass = m_render_passes.shader_pass;
-		inheritance_info.framebuffer = m_vk_framebuffers[image_index];
+		inheritance_info.framebuffer = framebuffer;
 
 		vk::ClearValue clear_color = {};
 		clear_color.color = std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -638,7 +644,7 @@ namespace dk
 		// Begin render pass
 		vk::RenderPassBeginInfo render_pass_info = {};
 		render_pass_info.renderPass = m_render_passes.shader_pass;
-		render_pass_info.framebuffer = m_vk_framebuffers[image_index];
+		render_pass_info.framebuffer = framebuffer;
 		render_pass_info.renderArea.offset = { 0, 0 };
 		render_pass_info.renderArea.extent = get_swapchain_manager().get_image_extent();
 		render_pass_info.clearValueCount = 1;
