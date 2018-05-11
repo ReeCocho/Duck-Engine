@@ -29,9 +29,15 @@ private:
 
 	dk::Handle<dk::CharacterController> m_character_controller;
 
-	float m_y_vel = 0.0f;
-
 	float m_jump_timer = 0.0f;
+
+	float m_movement_timer = 0.0f;
+
+	glm::vec3 m_velocity = {};
+
+	glm::vec3 m_cam_start_pos = {};
+
+	glm::vec3 m_cam_cur_pos = {};
 };
 
 class PlayerSystem : public dk::System<Player>
@@ -54,6 +60,8 @@ public:
 		component->m_transform = component->get_entity().get_component<dk::Transform>();
 		component->m_camera_transform = component->m_transform->get_child(0);
 		component->m_character_controller = component->get_entity().get_component<dk::CharacterController>();
+		component->m_cam_start_pos = component->m_camera_transform->get_local_position();
+		component->m_cam_cur_pos = component->m_cam_start_pos;
 	}
 
 	void on_late_tick(float delta_time) override
@@ -77,18 +85,51 @@ public:
 			// Check ground snap
 			player->m_character_controller->set_ground_snap(player->m_jump_timer <= 0.0f);
 
-			// Apply gravity and jump
+			// Compute movement vector
+			glm::vec3 movement_vec = {};
+			movement_vec += player->m_transform->get_forward() * y;
+			movement_vec += player->m_transform->get_right() * x;
+
+			// Normalize movement vector
+			if (movement_vec.x != 0.0f && movement_vec.y != 0.0f)
+				movement_vec = glm::normalize(movement_vec);
+
+			// If we are moving do head bob
+			if (movement_vec.x != 0.0f || movement_vec.y != 0.0f)
+			{
+				player->m_movement_timer += delta_time * m_head_bob_rate;
+				player->m_cam_cur_pos = player->m_cam_start_pos;
+				player->m_cam_cur_pos.x += glm::cos(player->m_movement_timer) * m_head_bob;
+				player->m_cam_cur_pos.y += glm::sin(player->m_movement_timer * 2.0f) * m_head_bob;
+			}
+			else
+			{
+				player->m_cam_cur_pos = glm::mix(player->m_cam_cur_pos, player->m_cam_start_pos, delta_time * m_head_return_rate);
+			}
+
+			// Move camera position
+			player->m_camera_transform->set_local_position(player->m_cam_cur_pos);
+
+			// Movement
+			player->m_velocity.x = movement_vec.x * m_speed;
+			player->m_velocity.z = movement_vec.z * m_speed;
+
+			// Movement logic
 			if (player->m_character_controller->is_grounded() && player->m_jump_timer <= 0.0f)
 			{
 				// Jump
 				if (dk::engine::input.get_button_down("Jump"))
 				{
-					player->m_y_vel = 5.0f;
+					player->m_velocity.y = 5.0f;
 					player->m_jump_timer = 0.3f;
 				}
-				else player->m_y_vel = 0.0f;
+				else player->m_velocity.y = 0.0f;
 			}
-			else player->m_y_vel -= delta_time * 9.8f;
+			else
+			{
+				// Gravity
+				player->m_velocity.y -= delta_time * 9.8f;
+			}
 
 			// Rotate body
 			player->m_transform->mod_euler_angles(glm::vec3(0, m_vel.x * 0.08f, 0));
@@ -101,18 +142,21 @@ public:
 			player->m_camera_transform->set_local_euler_angles(ea);
 			
 			// Move player
-			glm::vec3 movement_vec = {};
-			movement_vec += player->m_transform->get_forward() * y * 3.0f;
-			movement_vec += player->m_transform->get_right() * x * 3.0f;
-			movement_vec.y += player->m_y_vel;
-			movement_vec *= delta_time;
-			player->m_character_controller->move(movement_vec);
+			player->m_character_controller->move(player->m_velocity * delta_time);
 		}
 	}
 
 private:
 
 	bool m_mouse_lock = false;
+
+	const float m_speed = 6.0f;
+
+	const float m_head_bob = 0.025f;
+
+	const float m_head_bob_rate = 10.0f;
+
+	const float m_head_return_rate = 3.0f;
 };
 
 struct MaterialData
