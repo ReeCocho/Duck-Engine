@@ -20,7 +20,8 @@ namespace dk
 		const vk::RenderPass& depth_pass,
 		const std::vector<vk::DescriptorSetLayout>& dsl,
 		const std::vector<char>& vert_byte_code,
-		const std::vector<char>& frag_byte_code
+		const std::vector<char>& frag_byte_code,
+		bool depth_testing
 	) : m_graphics(graphics)
 	{
 		{
@@ -63,7 +64,7 @@ namespace dk
 			}
 
 			// Get texture count
-			m_texture_count = resources.sampled_images.size();
+			m_texture_count = resources.sampled_images.size()
 		}
 
 		dk_assert
@@ -200,7 +201,7 @@ namespace dk
 			dynamic_state.pDynamicStates = dynamic_states.data();
 
 			vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
-			depth_stencil.depthTestEnable = VK_TRUE;
+			depth_stencil.depthTestEnable = static_cast<vk::Bool32>(depth_testing);
 			depth_stencil.depthWriteEnable = VK_TRUE;
 			depth_stencil.depthCompareOp = vk::CompareOp::eLess;
 			depth_stencil.depthBoundsTestEnable = VK_FALSE;
@@ -348,7 +349,7 @@ namespace dk
 			dynamic_state.pDynamicStates = dynamic_states.data();
 
 			vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
-			depth_stencil.depthTestEnable = VK_TRUE;
+			depth_stencil.depthTestEnable = static_cast<vk::Bool32>(depth_testing);
 			depth_stencil.depthWriteEnable = VK_FALSE;
 			depth_stencil.depthCompareOp = vk::CompareOp::eEqual;
 			depth_stencil.depthBoundsTestEnable = VK_FALSE;

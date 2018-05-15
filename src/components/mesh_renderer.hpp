@@ -13,17 +13,6 @@
 
 namespace dk
 {
-	struct VertexShaderData
-	{
-		glm::mat4 model;
-		glm::mat4 mvp;
-	};
-
-	struct FragmentShaderData
-	{
-		int unused;
-	};
-
 	/**
 	 * @brief Component that renders meshes.
 	 */

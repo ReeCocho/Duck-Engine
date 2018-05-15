@@ -14,6 +14,7 @@
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
 #include <graphics\texture.hpp>
+#include <graphics\sky_box.hpp>
 
 namespace dk
 {
@@ -92,6 +93,24 @@ namespace dk
 		}
 
 		/**
+		 * Get sky box allocator.
+		 * @return Sky box allocator.
+		 */
+		ResourceAllocator<SkyBox>& get_sky_box_allocator()
+		{
+			return *m_sky_box_allocator.get();
+		}
+
+		/**
+		 * Get cube map allocator.
+		 * @return Cube map allocator.
+		 */
+		ResourceAllocator<CubeMap>& get_cube_map_allocator()
+		{
+			return *m_cube_map_allocator.get();
+		}
+
+		/**
 		 * @brief Get a mesh.
 		 * @param Name.
 		 * @param Mesh handle.
@@ -144,6 +163,32 @@ namespace dk
 		}
 
 		/**
+		 * @brief Get a sky box.
+		 * @param Name.
+		 * @param Sky box handle.
+		 */
+		Handle<SkyBox> get_sky_box(const std::string& name)
+		{
+			ResourceID id = 0;
+			try { id = m_sky_box_map.at(name); }
+			catch (std::out_of_range e) { return Handle<SkyBox>(0, nullptr); }
+			return Handle<SkyBox>(id, m_sky_box_allocator.get());
+		}
+
+		/**
+		 * @brief Get a cube map.
+		 * @param Name.
+		 * @param Cube map handle.
+		 */
+		Handle<CubeMap> get_cube_map(const std::string& name)
+		{
+			ResourceID id = 0;
+			try { id = m_cube_map_map.at(name); }
+			catch (std::out_of_range e) { return Handle<CubeMap>(0, nullptr); }
+			return Handle<CubeMap>(id, m_cube_map_allocator.get());
+		}
+
+		/**
 		 * @brief Create a mesh.
 		 * @param Name.
 		 * @param Indices.
@@ -187,6 +232,35 @@ namespace dk
 		Handle<Texture> create_texture(const std::string& name, const std::string& path, vk::Filter filtering);
 
 		/**
+		 * Create a sky box.
+		 * @param Name.
+		 */
+		Handle<SkyBox> create_sky_box(const std::string& name);
+
+		/**
+		 * Create a cube map.
+		 * @param Name.
+		 * @param Path to file containing top image.
+		 * @param Path to file containing bottom image.
+		 * @param Path to file containing north image.
+		 * @param Path to file containing east image.
+		 * @param Path to file containing south image.
+		 * @param Path to file containing west image.
+		 * @param Texture filtering.
+		 */
+		Handle<CubeMap> create_cube_map
+		(
+			const std::string& name,
+			const std::string& top,
+			const std::string& bottom,
+			const std::string& north,
+			const std::string& east,
+			const std::string& south,
+			const std::string& west,
+			vk::Filter filter
+		);
+
+		/**
 		 * @brief Destroy a mesh.
 		 * @param Mesh handle.
 		 */
@@ -209,6 +283,18 @@ namespace dk
 		 * @param Texture handle.
 		 */
 		void destroy(Handle<Texture> texture);
+
+		/**
+		 * Destroy a sky box.
+		 * @param Sky box handle.
+		 */
+		void destroy(Handle<SkyBox> sky_box);
+
+		/**
+		 * Destroy a cube map.
+		 * @param Cube map handle.
+		 */
+		void destroy(Handle<CubeMap> cube_map);
 
 	private:
 		
@@ -238,5 +324,17 @@ namespace dk
 
 		/** Texture map. */
 		std::unordered_map<std::string, ResourceID> m_texture_map;
+
+		/** Sky box allocator. */
+		std::unique_ptr<ResourceAllocator<SkyBox>> m_sky_box_allocator;
+
+		/** Sky box map. */
+		std::unordered_map<std::string, ResourceID> m_sky_box_map;
+
+		/** Cube map allocator. */
+		std::unique_ptr<ResourceAllocator<CubeMap>> m_cube_map_allocator;
+
+		/** Cube map map. */
+		std::unordered_map<std::string, ResourceID> m_cube_map_map;
 	};
 }

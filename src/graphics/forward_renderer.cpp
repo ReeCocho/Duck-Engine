@@ -534,6 +534,15 @@ namespace dk
 		// List of command buffers to execute
 		std::vector<vk::CommandBuffer> command_buffers = {};
 
+		// Draw skybox if allowed
+		if (m_main_camera.sky_box.allocator && 
+			m_main_camera.sky_box->get_material() != Handle<Material>() && 
+			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
+		{
+			command_buffers.push_back(m_main_camera.command_buffers[1].get_command_buffer());
+			draw_sky_box(m_main_camera.command_buffers[1], inheritance_info);
+		}
+
 		// List of jobs.
 		// First dimension is the queue.
 		// Second dimension is the job list.
@@ -655,6 +664,15 @@ namespace dk
 		// Command buffers to execute
 		std::vector<vk::CommandBuffer> command_buffers = {};
 
+		// Draw skybox if allowed
+		if (m_main_camera.sky_box != Handle<SkyBox>() &&
+			m_main_camera.sky_box->get_material() != Handle<Material>() &&
+			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
+		{
+			command_buffers.push_back(m_main_camera.command_buffers[0].get_command_buffer());
+			draw_sky_box(m_main_camera.command_buffers[0], inheritance_info);
+		}
+
 		// List of jobs.
 		// First dimension is the queue.
 		// Second dimension is the job list.
@@ -742,5 +760,64 @@ namespace dk
 		// End render pass and command buffer
 		m_vk_rendering_command_buffer.endRenderPass();
 		m_vk_rendering_command_buffer.end();
+	}
+
+	void ForwardRenderer::draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inheritance_info)
+	{
+		auto& command_buffer = managed_command_buffer.get_command_buffer();
+
+		// Descriptor sets
+		std::vector<vk::DescriptorSet> descriptor_sets = 
+		{ 
+			m_main_camera.sky_box->get_descriptor_set(), 
+			m_main_camera.sky_box->get_material()->get_texture_descriptor_set() 
+		};
+
+		// Begin command buffer
+		vk::CommandBufferBeginInfo begin_info = {};
+		begin_info.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse | vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+		begin_info.pInheritanceInfo = &inheritance_info;
+
+		command_buffer.begin(begin_info);
+
+		// Set viewport
+		vk::Viewport viewport = {};
+		viewport.setHeight(static_cast<float>(get_graphics().get_height()));
+		viewport.setWidth(static_cast<float>(get_graphics().get_width()));
+		viewport.setMinDepth(0);
+		viewport.setMaxDepth(1);
+		command_buffer.setViewport(0, 1, &viewport);
+
+		// Set scissor
+		vk::Rect2D scissor = {};
+		scissor.setExtent(get_swapchain_manager().get_image_extent());
+		scissor.setOffset({ 0, 0 });
+		command_buffer.setScissor(0, 1, &scissor);
+
+		// Bind shader
+		command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline());
+
+		// Bind descriptor sets
+		command_buffer.bindDescriptorSets
+		(
+			vk::PipelineBindPoint::eGraphics,
+			m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline_layout(),
+			0,
+			static_cast<uint32_t>(descriptor_sets.size()),
+			descriptor_sets.data(),
+			0,
+			nullptr
+		);
+
+		// Draw mesh
+		const auto& mem_buffer = m_main_camera.sky_box->get_mesh()->get_vertex_buffer();
+		vk::DeviceSize offsets[] = { 0 };
+
+		command_buffer.bindVertexBuffers(0, 1, &mem_buffer.buffer, offsets);
+		command_buffer.bindIndexBuffer(m_main_camera.sky_box->get_mesh()->get_index_buffer().buffer, 0, vk::IndexType::eUint16);
+		command_buffer.drawIndexed(static_cast<uint32_t>(m_main_camera.sky_box->get_mesh()->get_index_count()), 1, 0, 0, 0);
+
+		// End command buffer
+		command_buffer.end();
 	}
 }

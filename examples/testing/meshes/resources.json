@@ -3,6 +3,7 @@
 	[
 		"bunny.mesh",
 		"cube.mesh",
-		"sphere.mesh"
+		"sphere.mesh",
+		"inv_cube.mesh"
 	]
 }

@@ -173,6 +173,13 @@ namespace dk
 		void generate_rendering_command_buffer(const vk::Framebuffer& framebuffer);
 
 		/**
+		 * @brief Draw the cameras skybox to a command buffer.
+		 * @param Command buffer.
+		 * @param Inheritence info.
+		 */
+		void draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inherit_info);
+
+		/**
 		 * @brief Clear the rendering queues.
 		 */
 		void flush_queues();

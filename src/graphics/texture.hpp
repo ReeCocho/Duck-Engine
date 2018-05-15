@@ -57,7 +57,7 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		~Texture() = default;
+		virtual ~Texture() = default;
 
 		/**
 		 * @brief Free texture resources.
@@ -118,7 +118,7 @@ namespace dk
 			return m_vk_image;
 		}
 
-	private:
+	protected:
 
 		/** Graphics context */
 		Graphics* m_graphics;
@@ -143,5 +143,63 @@ namespace dk
 
 		/** Texture height. */
 		uint32_t m_height = 0;
+	};
+
+	/**
+	 * @brief 3D texture.
+	 */
+	class CubeMap : public Texture
+	{
+	public:
+
+		/**
+		 * Default constructor.
+		 */
+		CubeMap() = default;
+
+		/**
+		 * @brief Constructor.
+		 * @param Graphics context.
+		 * @param Image.
+		 * @param Image view.
+		 * @param Sampler.
+		 * @param Image memory.
+		 * @param Width.
+		 * @param Height.
+		 */
+		CubeMap
+		(
+			Graphics* graphics, 
+			vk::Image image, 
+			vk::ImageView& imageView, 
+			vk::Sampler sampler, 
+			vk::DeviceMemory memory, 
+			vk::Filter filter,
+			uint32_t width, 
+			uint32_t height
+		);
+
+		/**
+		 * @brief Constructor.
+		 * @param Graphics context.
+		 * @param Path to file containing top image.
+		 * @param Path to file containing bottom image.
+		 * @param Path to file containing north image.
+		 * @param Path to file containing east image.
+		 * @param Path to file containing south image.
+		 * @param Path to file containing west image.
+		 * @param Texture filtering.
+		 */
+		CubeMap
+		(
+			Graphics* graphics, 
+			const std::string& top, 
+			const std::string& bottom,
+			const std::string& north,
+			const std::string& east,
+			const std::string& south,
+			const std::string& west,
+			vk::Filter filter
+		);
 	};
 }

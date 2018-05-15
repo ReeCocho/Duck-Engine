@@ -7,10 +7,22 @@
  */
 
 /** Includes. */
+#include <glm\glm.hpp>
 #include "graphics.hpp"
 
 namespace dk
 {
+	struct VertexShaderData
+	{
+		glm::mat4 model;
+		glm::mat4 mvp;
+	};
+
+	struct FragmentShaderData
+	{
+		int unused;
+	};
+
 	/**
 	 * @brief Shader object.
 	 */
@@ -31,6 +43,7 @@ namespace dk
 		 * @param Custom descriptor set layouts.
 		 * @param Vertex shader byte code.
 		 * @param Fragment shader byte code.
+		 * @param Is depth testing enabled?
 		 */
 		Shader
 		(
@@ -39,7 +52,8 @@ namespace dk
 			const vk::RenderPass& depth_pass,
 			const std::vector<vk::DescriptorSetLayout>& dsl,
 			const std::vector<char>& vert_byte_code, 
-			const std::vector<char>& frag_byte_code
+			const std::vector<char>& frag_byte_code,
+			bool depth_testing = true
 		);
 
 		/**

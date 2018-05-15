@@ -47,6 +47,11 @@ namespace dk
 	{
 		Handle<Camera> camera = get_component();
 		camera->m_transform = camera->get_entity().get_component<Transform>();
+		camera->m_command_buffers =
+		{
+			engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary),
+			engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary)
+		};
 	}
 
 	void CameraSystem::on_pre_render(float delta_time)
@@ -62,6 +67,8 @@ namespace dk
 				data.frustum = camera->m_view_frustum;
 				data.position = camera->m_transform->get_position();
 				data.vp_mat = camera->m_projection * camera->m_view;
+				data.sky_box = camera->m_sky_box;
+				data.command_buffers = camera->m_command_buffers;
 
 				engine::renderer.set_main_camera(data);
 			}
@@ -71,6 +78,8 @@ namespace dk
 	void CameraSystem::on_end()
 	{
 		Handle<Camera> camera = get_component();
+		for (auto& command_buffer : camera->m_command_buffers)
+			command_buffer.free();
 	}
 
 	void CameraSystem::set_main_camera(Handle<Camera> camera)

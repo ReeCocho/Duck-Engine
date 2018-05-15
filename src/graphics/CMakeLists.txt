@@ -29,6 +29,7 @@ set(DUCK_GRAPHICS_HDRS
 	material.hpp
 	lighting.hpp
 	forward_renderer.hpp
+	sky_box.hpp
 )
 
 # Sources
@@ -46,6 +47,7 @@ set(DUCK_GRAPHICS_SRCS
 	material.cpp
 	lighting.cpp
 	forward_renderer.cpp
+	sky_box.cpp
 )
 
 # Graphics lib

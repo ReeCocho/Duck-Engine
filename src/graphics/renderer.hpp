@@ -9,8 +9,9 @@
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
 #include "graphics.hpp"
-#include "shader.hpp"
+#include "material.hpp"
 #include "mesh.hpp"
+#include "sky_box.hpp"
 
 namespace dk
 {
@@ -27,6 +28,12 @@ namespace dk
 
 		/** View frustum. */
 		Frustum frustum = {};
+
+		/** Command buffers to use for rendering the skybox. */
+		std::vector<VkManagedCommandBuffer> command_buffers = {};
+
+		/** Sky box. */
+		Handle<SkyBox> sky_box = Handle<SkyBox>();
 	};
 
 	/**

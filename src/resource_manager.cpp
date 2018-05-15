@@ -23,13 +23,17 @@ namespace dk
 		m_mesh_map({}),
 		m_shader_map({}),
 		m_material_map({}),
-		m_texture_map({})
+		m_texture_map({}),
+		m_sky_box_map({}),
+		m_cube_map_map({})
 	{
 		// Create allocators
 		m_mesh_allocator = std::make_unique<ResourceAllocator<Mesh>>(32);
 		m_shader_allocator = std::make_unique<ResourceAllocator<Shader>>(4);
 		m_material_allocator = std::make_unique<ResourceAllocator<Material>>(8);
 		m_texture_allocator = std::make_unique<ResourceAllocator<Texture>>(8);
+		m_sky_box_allocator = std::make_unique<ResourceAllocator<SkyBox>>(1);
+		m_cube_map_allocator = std::make_unique<ResourceAllocator<CubeMap>>(1);
 	}
 
 	void ResourceManager::shutdown()
@@ -62,15 +66,33 @@ namespace dk
 				m_texture_allocator->deallocate(i);
 			}
 
+		for (size_t i = 0; i < m_sky_box_allocator->max_allocated(); ++i)
+			if (m_sky_box_allocator->is_allocated(i))
+			{
+				m_sky_box_allocator->get_resource_by_handle(i)->free();
+				m_sky_box_allocator->deallocate(i);
+			}
+
+		for (size_t i = 0; i < m_cube_map_allocator->max_allocated(); ++i)
+			if (m_cube_map_allocator->is_allocated(i))
+			{
+				m_cube_map_allocator->get_resource_by_handle(i)->free();
+				m_cube_map_allocator->deallocate(i);
+			}
+
 		m_mesh_map.clear();
 		m_shader_map.clear();
 		m_material_map.clear();
 		m_texture_map.clear();
+		m_sky_box_map.clear();
+		m_cube_map_map.clear();
 
 		m_mesh_allocator.reset();
 		m_shader_allocator.reset();
 		m_material_allocator.reset();
 		m_texture_allocator.reset();
+		m_sky_box_allocator.reset();
+		m_cube_map_allocator.reset();
 	}
 
 	void ResourceManager::load_resources
@@ -346,6 +368,53 @@ namespace dk
 		return texture;
 	}
 
+	Handle<SkyBox> ResourceManager::create_sky_box(const std::string& name)
+	{
+		dk_assert(m_sky_box_map.find(name) == m_sky_box_map.end());
+
+		if (m_sky_box_allocator->num_allocated() + 1 > m_sky_box_allocator->max_allocated())
+			m_sky_box_allocator->resize(m_sky_box_allocator->max_allocated() + 2);
+
+		auto sky_box = Handle<SkyBox>(m_sky_box_allocator->allocate(), m_sky_box_allocator.get());
+		::new(m_sky_box_allocator->get_resource_by_handle(sky_box.id))(SkyBox)(&m_renderer->get_graphics());
+
+		m_sky_box_map[name] = sky_box.id;
+
+		return sky_box;
+	}
+
+	Handle<CubeMap> ResourceManager::create_cube_map
+	(
+		const std::string& name,
+		const std::string& top,
+		const std::string& bottom,
+		const std::string& north,
+		const std::string& east,
+		const std::string& south,
+		const std::string& west,
+		vk::Filter filter
+	)
+	{
+		dk_assert(m_cube_map_map.find(name) == m_cube_map_map.end());
+
+		if (m_cube_map_allocator->num_allocated() + 1 > m_cube_map_allocator->max_allocated())
+			m_cube_map_allocator->resize(m_cube_map_allocator->max_allocated() + 2);
+
+		auto cube_map = Handle<CubeMap>(m_cube_map_allocator->allocate(), m_cube_map_allocator.get());
+		::new(m_cube_map_allocator->get_resource_by_handle(cube_map.id))(CubeMap)
+		(
+			&m_renderer->get_graphics(),
+			top, bottom,
+			north, east,
+			south, west,
+			filter
+		);
+
+		m_cube_map_map[name] = cube_map.id;
+
+		return cube_map;
+	}
+
 	void ResourceManager::destroy(Handle<Mesh> mesh)
 	{
 		dk_assert(m_mesh_allocator->is_allocated(mesh.id));
@@ -404,5 +473,35 @@ namespace dk
 
 		texture->free();
 		m_texture_allocator->deallocate(texture.id);
+	}
+
+	void ResourceManager::destroy(Handle<SkyBox> sky_box)
+	{
+		dk_assert(m_sky_box_allocator->is_allocated(sky_box.id));
+
+		for (auto sky_box_id : m_sky_box_map)
+			if (sky_box_id.second == sky_box.id)
+			{
+				m_sky_box_map.erase(sky_box_id.first);
+				break;
+			}
+
+		sky_box->free();
+		m_sky_box_allocator->deallocate(sky_box.id);
+	}
+
+	void ResourceManager::destroy(Handle<CubeMap> cube_map)
+	{
+		dk_assert(m_cube_map_allocator->is_allocated(cube_map.id));
+
+		for (auto cube_map_id : m_sky_box_map)
+			if (cube_map_id.second == cube_map.id)
+			{
+				m_cube_map_map.erase(cube_map_id.first);
+				break;
+			}
+
+		cube_map->free();
+		m_cube_map_allocator->deallocate(cube_map.id);
 	}
 }

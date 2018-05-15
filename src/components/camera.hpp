@@ -70,6 +70,15 @@ namespace dk
 		}
 
 		/**
+		 * Get sky box.
+		 * @return Sky box.
+		 */
+		Handle<SkyBox> get_sky_box() const
+		{
+			return m_sky_box;
+		}
+
+		/**
 		 * @brief Set field of view.
 		 * @param New field of view.
 		 * @return New field of view.
@@ -108,6 +117,17 @@ namespace dk
 			return m_far_clipping_plane;
 		}
 
+		/**
+		 * Set sky box.
+		 * @param New sky box.
+		 * @return New sky box.
+		 */
+		Handle<SkyBox> set_sky_box(Handle<SkyBox> sky_box)
+		{
+			m_sky_box = sky_box;
+			return m_sky_box;
+		}
+
 	private:
 
 		/**
@@ -133,6 +153,12 @@ namespace dk
 
 		/** View frustum. */
 		Frustum m_view_frustum = {};
+
+		/** Command buffers for rendering the skybox. */
+		std::vector<VkManagedCommandBuffer> m_command_buffers = {};
+
+		/** Skybox. */
+		Handle<SkyBox> m_sky_box = {};
 
 		/** Field of view. */
 		float m_field_of_view = 100.0f;

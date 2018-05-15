@@ -1,4 +1,5 @@
 {
 	"vertex" : "standard.vert.spv",
-	"fragment" : "standard.frag.spv"
+	"fragment" : "standard.frag.spv",
+	"depth" : true
 }
