@@ -34,6 +34,7 @@ namespace dk
 		 * @param Filtering.
 		 * @param Width.
 		 * @param Height.
+		 * @param Mip map levels.
 		 */
 		Texture
 		(
@@ -44,15 +45,17 @@ namespace dk
 			vk::DeviceMemory memory,
 			vk::Filter filter,
 			uint32_t width,
-			uint32_t height
+			uint32_t height,
+			uint32_t mip_map_levels = 1
 		);
 
 		/**
 		 * @brief Graphics context.
 		 * @param Path to file containing image.
 		 * @param Filtering.
+		 * @param Mip map levels.
 		 */
-		Texture(Graphics* graphics, const std::string& path, vk::Filter filtering);
+		Texture(Graphics* graphics, const std::string& path, vk::Filter filtering, uint32_t mip_map_levels = 1);
 
 		/**
 		 * @brief Destructor.
@@ -80,6 +83,15 @@ namespace dk
 		uint32_t get_height() const
 		{
 			return m_height;
+		}
+
+		/**
+		 * Get mip map levels.
+		 * @return Mip map levels.
+		 */
+		uint32_t get_mip_map_levels() const
+		{
+			return m_mip_map_levels;
 		}
 
 		/**
@@ -137,6 +149,9 @@ namespace dk
 
 		/** Filtering. */
 		vk::Filter m_vk_filtering = {};
+
+		/** Mip map levels. */
+		uint32_t m_mip_map_levels = 1;
 
 		/** Texture width. */
 		uint32_t m_width = 0;

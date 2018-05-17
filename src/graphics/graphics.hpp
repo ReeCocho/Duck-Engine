@@ -169,6 +169,7 @@ namespace dk
 		 * @param Image reference.
 		 * @param Image memory reference.
 		 * @param Number of images.
+		 * @param Mip map levels.
 		 */
 		void create_image
 		(
@@ -181,7 +182,8 @@ namespace dk
 			vk::Image& image,
 			vk::DeviceMemory& image_memory,
 			vk::ImageCreateFlags flags = static_cast<vk::ImageCreateFlagBits>(0),
-			uint32_t array_layers = 1
+			uint32_t array_layers = 1,
+			uint32_t mip_levels = 1
 		);
 
 		/**
@@ -190,6 +192,8 @@ namespace dk
 		 * @param Transition format.
 		 * @param Old image layout.
 		 * @param New image layout.
+		 * @param Number of images.
+		 * @param Mip map level.
 		 * @param Image count.
 		 */
 		void transition_image_layout
@@ -198,7 +202,8 @@ namespace dk
 			vk::Format format, 
 			vk::ImageLayout old_layout, 
 			vk::ImageLayout new_layout,
-			uint32_t image_count = 1
+			uint32_t image_count = 1,
+			uint32_t mip_levels = 1
 		);
 
 		/**
@@ -228,6 +233,7 @@ namespace dk
 		 * @param Image aspect flags.
 		 * @param Image view type.
 		 * @param Number of images.
+		 * @param Mip levels.
 		 * @return New image view.
 		 */
 		vk::ImageView create_image_view
@@ -236,7 +242,8 @@ namespace dk
 			vk::Format format, 
 			vk::ImageAspectFlags aspect_flags,
 			vk::ImageViewType view_type = vk::ImageViewType::e2D,
-			uint32_t image_count = 1
+			uint32_t image_count = 1,
+			uint32_t mip_levels = 1
 		);
 
 		/**
@@ -258,6 +265,15 @@ namespace dk
 		 * @return Framebuffer attachment.
 		 */
 		FrameBufferAttachment create_attachment(vk::Format format, vk::ImageUsageFlags usage);
+
+		/**
+		 * Generate mip maps for an image.
+		 * @param Image.
+		 * @param Width.
+		 * @param Height.
+		 * @param Mip map levels.
+		 */
+		void generate_mipmaps(const vk::Image& image, int32_t tex_width, int32_t tex_height, uint32_t mip_levels);
 
 	private:
 

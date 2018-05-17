@@ -20,7 +20,8 @@ namespace dk
 		vk::DeviceMemory memory,
 		vk::Filter filter,
 		uint32_t width,
-		uint32_t height
+		uint32_t height,
+		uint32_t mip_map_levels
 	) : 
 		m_graphics(graphics),
 		m_vk_image(image),
@@ -29,14 +30,16 @@ namespace dk
 		m_vk_memory(memory),
 		m_vk_filtering(filter),
 		m_width(width),
-		m_height(height)
+		m_height(height),
+		m_mip_map_levels(mip_map_levels)
 	{
 
 	}
 
-	Texture::Texture(Graphics* graphics, const std::string& path, vk::Filter filtering) : 
+	Texture::Texture(Graphics* graphics, const std::string& path, vk::Filter filtering, uint32_t mip_map_levels) :
 		m_graphics(graphics),
-		m_vk_filtering(filtering)
+		m_vk_filtering(filtering),
+		m_mip_map_levels(mip_map_levels)
 	{
 		auto logical_device = m_graphics->get_logical_device();
 
@@ -48,6 +51,10 @@ namespace dk
 		m_height = static_cast<uint32_t>(tex_height);
 
 		dk_assert(pixels);
+
+		// Calculate max mip map count
+		uint32_t max_mip = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height)))) + 1;
+		dk_assert(m_mip_map_levels <= max_mip);
 
 		auto image_size = static_cast<vk::DeviceSize>(m_width * m_height * 4);
 
@@ -75,23 +82,38 @@ namespace dk
 			m_height,
 			vk::Format::eR8G8B8A8Unorm,
 			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 			vk::MemoryPropertyFlagBits::eDeviceLocal,
 			m_vk_image,
-			m_vk_memory
+			m_vk_memory,
+			static_cast<vk::ImageCreateFlagBits>(0),
+			1,
+			m_mip_map_levels
 		);
 
 		// Prepare texture for shader access
-		m_graphics->transition_image_layout(m_vk_image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		m_graphics->transition_image_layout(m_vk_image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, m_mip_map_levels);
 		m_graphics->copy_buffer_to_image(staging_buffer.buffer, m_vk_image, static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height));
-		m_graphics->transition_image_layout(m_vk_image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+		
+		if (m_mip_map_levels == 1)
+			m_graphics->transition_image_layout(m_vk_image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+		else
+			m_graphics->generate_mipmaps(m_vk_image, m_width, m_height, m_mip_map_levels);
 
 		// Cleanup staging buffer
 		logical_device.destroyBuffer(staging_buffer.buffer);
 		logical_device.freeMemory(staging_buffer.memory);
 
 		// Create texture image view
-		m_vk_image_view = m_graphics->create_image_view(m_vk_image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
+		m_vk_image_view = m_graphics->create_image_view
+		(
+			m_vk_image, 
+			vk::Format::eR8G8B8A8Unorm, 
+			vk::ImageAspectFlagBits::eColor, 
+			vk::ImageViewType::e2D, 
+			1, 
+			m_mip_map_levels
+		);
 
 		// Sampler creation info
 		vk::SamplerCreateInfo samplerInfo = {};
@@ -109,7 +131,7 @@ namespace dk
 		samplerInfo.setMipmapMode(vk::SamplerMipmapMode::eLinear);
 		samplerInfo.setMipLodBias(0.0f);
 		samplerInfo.setMinLod(0.0f);
-		samplerInfo.setMaxLod(0.0f);
+		samplerInfo.setMaxLod(static_cast<float>(m_mip_map_levels));
 
 		// Create sampler
 		m_vk_sampler = logical_device.createSampler(samplerInfo);

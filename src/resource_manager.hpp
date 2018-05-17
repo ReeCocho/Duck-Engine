@@ -232,9 +232,10 @@ namespace dk
 		 * @param Name.
 		 * @param Path to texture.
 		 * @param Filtering mode.
+		 * @param Mip map level.
 		 * @return Texture handle.
 		 */
-		Handle<Texture> create_texture(const std::string& name, const std::string& path, vk::Filter filtering);
+		Handle<Texture> create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level = 1);
 
 		/**
 		 * Create a sky box.

@@ -190,7 +190,7 @@ namespace dk
 
 			// Create texture
 			std::string tex_path = j["path"];
-			create_texture(path, textures + tex_path, filter);
+			create_texture(path, textures + tex_path, filter, j["mip"]);
 		}
 
 		// Load cube maps
@@ -429,7 +429,7 @@ namespace dk
 		return material;
 	}
 
-	Handle<Texture> ResourceManager::create_texture(const std::string& name, const std::string& path, vk::Filter filtering)
+	Handle<Texture> ResourceManager::create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level)
 	{
 		dk_assert(m_texture_map.find(name) == m_texture_map.end());
 
@@ -437,7 +437,7 @@ namespace dk
 			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
 
 		auto texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator.get());
-		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)(&m_renderer->get_graphics(), path, filtering);
+		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)(&m_renderer->get_graphics(), path, filtering, mip_map_level);
 
 		m_texture_map[name] = texture.id;
 
