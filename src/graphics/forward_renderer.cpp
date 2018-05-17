@@ -52,7 +52,7 @@ namespace dk
 		dk_assert(m_semaphores.depth_prepass_finished);
 
 		// Create lighting manager
-		m_lighting_manager = std::make_unique<LightingManager>(&get_graphics(), 512, 8);
+		m_lighting_manager = std::make_unique<LightingManager>(&get_graphics(), 128, 8);
 
 		// Create depth prepass
 		{

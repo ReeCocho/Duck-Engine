@@ -18,7 +18,7 @@ using json = nlohmann::json;
 
 namespace dk
 {
-	ResourceManager::ResourceManager(ForwardRenderer* renderer) :
+	ResourceManager::ResourceManager(ForwardRendererBase* renderer) :
 		m_renderer(renderer),
 		m_mesh_map({}),
 		m_shader_map({}),

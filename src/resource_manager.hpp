@@ -34,7 +34,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Renderer.
 		 */
-		ResourceManager(ForwardRenderer* renderer);
+		ResourceManager(ForwardRendererBase* renderer);
 
 		/**
 		 * @brief Shutdown the resource manager.
@@ -305,7 +305,7 @@ namespace dk
 	private:
 		
 		/** Rendering engine. */
-		ForwardRenderer* m_renderer;
+		ForwardRendererBase* m_renderer;
 
 		/** Mesh allocator. */
 		std::unique_ptr<ResourceAllocator<Mesh>> m_mesh_allocator;
