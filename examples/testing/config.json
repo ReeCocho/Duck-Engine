@@ -7,5 +7,7 @@
 	"meshes" : "./meshes/",
 	"textures" : "./textures/",
 	"shaders" : "./shaders/",
-	"materials" : "./materials/"
+	"materials" : "./materials/",
+	"cubemaps" : "./cubemaps/",
+	"skys" : "./skys/"
 }

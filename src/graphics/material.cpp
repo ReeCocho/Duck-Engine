@@ -13,7 +13,9 @@ namespace dk
 
 	Material::Material(Graphics* graphics, Handle<Shader> shader) :
 		m_graphics(graphics),
-		m_shader(shader)
+		m_shader(shader),
+		m_textures({}),
+		m_cube_maps({})
 	{
 		// Create buffers
 		m_vertex_uniform_buffer = m_graphics->create_buffer
@@ -29,8 +31,6 @@ namespace dk
 			vk::BufferUsageFlagBits::eUniformBuffer,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 		);
-
-		m_textures.resize(m_shader->get_texture_count());
 
 		// Create descriptor pool and descriptor set
 		if (m_shader->get_texture_count() > 0)
@@ -52,28 +52,74 @@ namespace dk
 			alloc_info.pSetLayouts = &m_shader->get_texture_descriptor_set_layout();
 			m_vk_texture_descriptor_set = m_graphics->get_logical_device().allocateDescriptorSets(alloc_info)[0];
 		}
+
+		// Create maps
+		m_vertex_map = m_graphics->get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, m_shader->get_vertex_buffer_size());
+		m_fragment_map = m_graphics->get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, m_shader->get_fragment_buffer_size());
 	}
 
-	void Material::set_texture(size_t index, Handle<Texture> texture)
-	{
-		dk_assert(index < m_textures.size());
-		m_textures[index] = texture;
+	Material::~Material() {}
 
-		for (size_t i = 0; i < m_textures.size(); ++i)
-			if (m_textures[i] == Handle<Texture>(0, nullptr))
-				return;
+	void Material::set_texture(size_t index, Handle<Texture> texture) 
+	{
+		dk_assert(index < m_shader->get_texture_count());
+		m_cube_maps.erase(index);
+		m_textures[index] = texture;
+		update_texture_descriptor_set();
+	}
+
+	void Material::set_cube_map(size_t index, Handle<CubeMap> cube_map)
+	{
+		dk_assert(index < m_shader->get_texture_count());
+		m_textures.erase(index);
+		m_cube_maps[index] = cube_map;
+		update_texture_descriptor_set();
+	}
+
+	void Material::free()
+	{
+		m_textures.clear();
+		m_cube_maps.clear();
+		m_graphics->get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
+		m_graphics->get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
+		m_graphics->get_logical_device().destroyDescriptorPool(m_vk_descriptor_pool);
+		m_vertex_uniform_buffer.free(m_graphics->get_logical_device());
+		m_fragment_uniform_buffer.free(m_graphics->get_logical_device());
+	}
+
+	void Material::update_texture_descriptor_set()
+	{
+		if (m_textures.size() + m_cube_maps.size() < m_shader->get_texture_count())
+			return;
 
 		std::vector<vk::WriteDescriptorSet> write_sets(m_shader->get_texture_count());
 		std::vector<vk::DescriptorImageInfo> descriptor_image_info(m_shader->get_texture_count());
 
 		// Textures
-		for (size_t i = 0; i < m_shader->get_texture_count(); ++i)
+		for (auto texture : m_textures)
 		{
-			Handle<Texture> texture = m_textures[i];
+			size_t i = texture.first;
 
 			descriptor_image_info[i].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-			descriptor_image_info[i].imageView = m_textures[i]->get_image_view();
-			descriptor_image_info[i].sampler = m_textures[i]->get_sampler();
+			descriptor_image_info[i].imageView = texture.second->get_image_view();
+			descriptor_image_info[i].sampler = texture.second->get_sampler();
+
+			write_sets[i].dstSet = m_vk_texture_descriptor_set;
+			write_sets[i].dstBinding = static_cast<uint32_t>(i);
+			write_sets[i].dstArrayElement = 0;
+			write_sets[i].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			write_sets[i].descriptorCount = 1;
+			write_sets[i].pImageInfo = &descriptor_image_info[i];
+		}
+
+		// Cube maps
+		for (auto cube_map : m_cube_maps)
+		{
+			size_t i = cube_map.first;
+
+			descriptor_image_info[i].imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			descriptor_image_info[i].imageView = cube_map.second->get_image_view();
+			descriptor_image_info[i].sampler = cube_map.second->get_sampler();
 
 			write_sets[i].dstSet = m_vk_texture_descriptor_set;
 			write_sets[i].dstBinding = static_cast<uint32_t>(i);
@@ -85,12 +131,5 @@ namespace dk
 
 		// Update descriptor sets
 		m_graphics->get_logical_device().updateDescriptorSets(static_cast<uint32_t>(write_sets.size()), write_sets.data(), 0, nullptr);
-	}
-
-	void Material::free()
-	{
-		m_graphics->get_logical_device().destroyDescriptorPool(m_vk_descriptor_pool);
-		m_vertex_uniform_buffer.free(m_graphics->get_logical_device());
-		m_fragment_uniform_buffer.free(m_graphics->get_logical_device());
 	}
 }

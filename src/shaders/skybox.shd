@@ -1,0 +1,5 @@
+{
+	"vertex" : "skybox.vert.spv",
+	"fragment" : "skybox.frag.spv",
+	"depth" : false
+}

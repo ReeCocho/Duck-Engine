@@ -2,10 +2,11 @@
 	"shader" : "standard.shd",
 	"textures" : 
 	[  
-		"Metal_Albedo.tex",
-		"Metal_Normal.tex",
-		"Metal_Metallic.tex",
-		"Metal_Roughness.tex",
-		"Metal_AO.tex"
-	]
+		{ "path" : "Metal_Albedo.tex", "index" :  0 },
+		{ "path" : "Metal_Normal.tex", "index" : 1 },
+		{ "path" : "Metal_Metallic.tex", "index" : 2 },
+		{ "path" : "Metal_Roughness.tex", "index" : 3 },
+		{ "path" : "Metal_AO.tex", "index" : 4 }
+	],
+	"cubemaps" : []
 }

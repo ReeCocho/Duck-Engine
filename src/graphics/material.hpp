@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
+#include <map>
 #include "shader.hpp"
 #include "texture.hpp"
 
@@ -35,7 +36,7 @@ namespace dk
 		/**
 		 * @brief Destructor.
 		 */
-		~Material() = default;
+		~Material();
 
 		/**
 		 * @brief Free material resources.
@@ -48,6 +49,13 @@ namespace dk
 		 * @param Texture handle.
 		 */
 		void set_texture(size_t index, Handle<Texture> texture);
+
+		/**
+		 * @brief Set cube map.
+		 * @param Cube map index.
+		 * @param Cube map handle.
+		 */
+		void set_cube_map(size_t index, Handle<CubeMap> cube_map);
 
 		/**
 		 * @brief Get shader.
@@ -65,8 +73,29 @@ namespace dk
 		 */
 		Handle<Texture> get_texture(size_t index)
 		{
-			dk_assert(index < m_textures.size());
-			return m_textures[index];
+			try
+			{
+				Handle<Texture> handle = m_textures.at(index);
+				return handle;
+			}
+			catch (std::out_of_range e)
+			{ return Handle<Texture>(); }
+		}
+
+		/**
+		 * @brief Get cube map.
+		 * @param Index.
+		 * @return Cube map.
+		 */
+		Handle<CubeMap> get_cube_map(size_t index)
+		{
+			try
+			{
+				Handle<CubeMap> handle = m_cube_maps.at(index);
+				return handle;
+			}
+			catch (std::out_of_range e)
+			{ return Handle<CubeMap>(); }
 		}
 
 		/**
@@ -104,9 +133,8 @@ namespace dk
 		template<typename T>
 		void set_vertex_data(const T& vert_data)
 		{
-			void* data = m_graphics->get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(T));
-			memcpy(data, &vert_data, sizeof(T));
-			m_graphics->get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
+			dk_assert(sizeof(T) <= m_shader->get_vertex_buffer_size());
+			memcpy(m_vertex_map, &vert_data, sizeof(T));
 		}
 
 		/**
@@ -117,21 +145,24 @@ namespace dk
 		template<typename T>
 		void set_fragment_data(const T& frag_data)
 		{
-			void* data = m_graphics->get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(T));
-			memcpy(data, &frag_data, sizeof(T));
-			m_graphics->get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
+			dk_assert(sizeof(T) <= m_shader->get_fragment_buffer_size());
+			memcpy(m_fragment_map, &frag_data, sizeof(T));
 		}
 
 	private:
+
+		/**
+		 * Update texture descriptor set.
+		 */
+		void update_texture_descriptor_set();
+
+
 
 		/** Graphics context. */
 		Graphics* m_graphics;
 
 		/** Shader. */
 		Handle<Shader> m_shader;
-
-		/** Textures. */
-		std::vector<Handle<Texture>> m_textures = {};
 
 		/** Descriptor pool. */
 		vk::DescriptorPool m_vk_descriptor_pool = {};
@@ -144,5 +175,17 @@ namespace dk
 
 		/** Fragment uniform buffer. */
 		VkMemBuffer m_fragment_uniform_buffer;
+
+		/** Fragment mapping. */
+		void* m_fragment_map;
+
+		/** Vertex mapping. */
+		void* m_vertex_map;
+
+		/** Textures. */
+		std::map<size_t, Handle<Texture>> m_textures = {};
+
+		/** Cube maps. */
+		std::map<size_t, Handle<CubeMap>> m_cube_maps = {};
 	};
 }

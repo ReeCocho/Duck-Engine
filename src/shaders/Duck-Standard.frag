@@ -1,5 +1,32 @@
 #extension GL_ARB_separate_shader_objects : enable
 
+
+
+// Input to fragment shader macro
+#define FRAGMENT_IN(N) layout(location = N) in
+
+// Outs
+layout(location = 0) out vec4 OUT_COLOR;
+
+// Per instance data
+layout(set = 0, binding = 3) uniform FragmentData
+{
+	int UNUSED_VARIABLE;
+};
+
+// Material data macro
+#define MATERIAL_DATA layout(set = 0, binding = 3) uniform MaterialData
+
+// Texture macro
+#define TEXTURE_IN(N) layout(set = 2, binding = N) uniform sampler2D
+
+// Cube map macro
+#define CUBE_MAP_IN(N) layout(set = 2, binding = N) uniform samplerCube
+
+const float PI = 3.14159265359;
+
+
+
 struct PointLighData
 {
 	/** Position. */
@@ -36,18 +63,6 @@ struct CalculationData
 	vec3 view_direction;
 };
 
-// Input to fragment shader macro
-#define FRAGMENT_IN(N) layout(location = N) in
-
-// Outs
-layout(location = 0) out vec4 OUT_COLOR;
-
-// Per instance data
-layout(set = 0, binding = 3) uniform FragmentData
-{
-	int unused;
-};
-
 // Lighting data
 layout(std430, set = 1, binding = 0) buffer PointLights
 {
@@ -69,14 +84,6 @@ layout(set = 1, binding = 2) uniform LightingData
 	layout(offset = 16)
 	vec4 camera_position;
 } lighting_data;
-
-// Material data macro
-#define MATERIAL_DATA layout(set = 0, binding = 3) uniform MaterialData
-
-// Texture macro
-#define TEXTURE_IN(N) layout(set = 2, binding = N) uniform sampler2D
-
-const float PI = 3.14159265359;
 
 float distribution_GGX(vec3 N, vec3 H, float roughness)
 {

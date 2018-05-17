@@ -7,6 +7,8 @@ endif()
 set(GLSL_SOURCE_FILES
     ${CMAKE_SOURCE_DIR}/src/shaders/standard.frag
     ${CMAKE_SOURCE_DIR}/src/shaders/standard.vert
+	${CMAKE_SOURCE_DIR}/src/shaders/skybox.frag
+    ${CMAKE_SOURCE_DIR}/src/shaders/skybox.vert
 )
 
 set(GLSL_INCLUDE_FILES

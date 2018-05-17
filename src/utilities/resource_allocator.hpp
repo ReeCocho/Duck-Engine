@@ -123,20 +123,15 @@ namespace dk
 		 */
 		ResourceID allocate() override
 		{
-			size_t free_id = 0;
-			bool found_id = false;
-
 			for (size_t i = 0; i < m_allocation_table.size(); ++i)
 				if (!m_allocation_table[i])
 				{
-					free_id = i;
-					found_id = true;
-					break;
+					m_allocation_table[i] = true;
+					return i;
 				}
 
-			dk_assert(found_id);
-			m_allocation_table[free_id] = true;
-			return free_id;
+			dk_err("Unable to allocate a new resource.");
+			return 0;
 		}
 
 		/**
@@ -145,9 +140,8 @@ namespace dk
 		 */
 		void deallocate(ResourceID id) override
 		{
-			dk_assert(id < m_allocation_table.size() && m_allocation_table[id]);
+			dk_assert(id < m_allocation_table.size() && is_allocated(id));
 			m_allocation_table[id] = false;
-			m_resources[id].~T();
 		}
 
 		/**

@@ -176,8 +176,9 @@ namespace dk
 		 * @brief Draw the cameras skybox to a command buffer.
 		 * @param Command buffer.
 		 * @param Inheritence info.
+		 * @param Flag for depth prepass or no depth prepass.
 		 */
-		void draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inherit_info);
+		void draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inherit_info, bool depth_prepass);
 
 		/**
 		 * @brief Clear the rendering queues.

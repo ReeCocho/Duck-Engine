@@ -100,7 +100,9 @@ namespace dk
 		const std::string& meshes,
 		const std::string& textures,
 		const std::string& shaders,
-		const std::string& materials
+		const std::string& materials,
+		const std::string& cube_maps,
+		const std::string& sky_boxes
 	)
 	{
 		// Resource JSON
@@ -108,6 +110,8 @@ namespace dk
 		json shader_j;
 		json material_j;
 		json texture_j;
+		json cube_map_j;
+		json sky_box_j;
 
 		// Load resource files
 		{
@@ -133,6 +137,18 @@ namespace dk
 			stream.open(materials + "resources.json");
 			dk_assert(stream.is_open());
 			stream >> material_j;
+			stream.close();
+
+			// Cube maps
+			stream.open(cube_maps + "resources.json");
+			dk_assert(stream.is_open());
+			stream >> cube_map_j;
+			stream.close();
+
+			// Sky boxes
+			stream.open(sky_boxes + "resources.json");
+			dk_assert(stream.is_open());
+			stream >> sky_box_j;
 			stream.close();
 		}
 
@@ -177,6 +193,44 @@ namespace dk
 			create_texture(path, textures + tex_path, filter);
 		}
 
+		// Load cube maps
+		for (const std::string& path : cube_map_j["files"])
+		{
+			// Load cube map file
+			std::ifstream stream(cube_maps + path);
+			dk_assert(stream.is_open());
+			json j;
+			stream >> j;
+			stream.close();
+
+			// Find filtering mode
+			vk::Filter filter = vk::Filter::eLinear;
+
+			if (j["filter"] == "nearest")
+				filter = vk::Filter::eNearest;
+			else if (j["filter"] == "linear")
+				filter = vk::Filter::eLinear;
+
+			// Create cube map
+			std::string top_path = j["top"];
+			std::string bottom_path = j["bottom"];
+			std::string north_path = j["north"];
+			std::string east_path = j["east"];
+			std::string south_path = j["south"];
+			std::string west_path = j["west"];
+			create_cube_map
+			(
+				path,
+				cube_maps + top_path,
+				cube_maps + bottom_path,
+				cube_maps + north_path,
+				cube_maps + east_path,
+				cube_maps + south_path,
+				cube_maps + west_path,
+				filter
+			);
+		}
+
 		// Load shaders
 		for (const std::string& path : shader_j["files"])
 		{
@@ -194,7 +248,8 @@ namespace dk
 			(
 				path,
 				read_binary_file(shaders + vert_path),
-				read_binary_file(shaders + frag_path)
+				read_binary_file(shaders + frag_path),
+				j["depth"]
 			);
 		}
 
@@ -212,8 +267,28 @@ namespace dk
 			Handle<Material> material = create_material(path, get_shader(j["shader"]));
 
 			// Set textures
-			for (size_t i = 0; i < j["textures"].size(); ++i)
-				material->set_texture(i, get_texture(j["textures"][i]));
+			for (auto& texture : j["textures"])
+				material->set_texture(texture["index"], get_texture(texture["path"]));
+
+			// Set cube maps
+			for (auto& cube_map : j["cubemaps"])
+				material->set_cube_map(cube_map["index"], get_cube_map(cube_map["path"]));
+		}
+
+		// Load sky boxes
+		for (const std::string& path : sky_box_j["files"])
+		{
+			// Load sky box file
+			std::ifstream stream(sky_boxes + path);
+			dk_assert(stream.is_open());
+			json j;
+			stream >> j;
+			stream.close();
+
+			// Create sky box
+			Handle<SkyBox> sky_box = create_sky_box(path);
+			sky_box->set_material(get_material(j["material"]));
+			sky_box->set_mesh(get_mesh(j["mesh"]));
 		}
 	}
 
@@ -315,7 +390,7 @@ namespace dk
 		return mesh;
 	}
 
-	Handle<Shader> ResourceManager::create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code)
+	Handle<Shader> ResourceManager::create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth)
 	{
 		dk_assert(m_shader_map.find(name) == m_shader_map.end());
 
@@ -330,7 +405,8 @@ namespace dk
 			m_renderer->get_depth_prepass(),
 			{ m_renderer->get_descriptor_set_layout() },
 			vert_byte_code,
-			frag_byte_code
+			frag_byte_code,
+			depth
 		);
 
 		m_shader_map[name] = shader.id;
@@ -494,7 +570,7 @@ namespace dk
 	{
 		dk_assert(m_cube_map_allocator->is_allocated(cube_map.id));
 
-		for (auto cube_map_id : m_sky_box_map)
+		for (auto cube_map_id : m_cube_map_map)
 			if (cube_map_id.second == cube_map.id)
 			{
 				m_cube_map_map.erase(cube_map_id.first);

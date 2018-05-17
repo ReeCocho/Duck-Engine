@@ -51,6 +51,16 @@ add_custom_command(TARGET Testing POST_BUILD
 )
 
 add_custom_command(TARGET Testing POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${CMAKE_SOURCE_DIR}/examples/testing/cubemaps" "${CMAKE_CURRENT_BINARY_DIR}/cubemaps"
+)
+
+add_custom_command(TARGET Testing POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	"${CMAKE_SOURCE_DIR}/examples/testing/skys" "${CMAKE_CURRENT_BINARY_DIR}/skys"
+)
+
+add_custom_command(TARGET Testing POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${CMAKE_SOURCE_DIR}/examples/testing/config.json" "${CMAKE_CURRENT_BINARY_DIR}/config.json"
 )

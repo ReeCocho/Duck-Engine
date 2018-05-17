@@ -2,10 +2,11 @@
 	"shader" : "standard.shd",
 	"textures" : 
 	[  
-		"Mud_Albedo.tex",
-		"Mud_Normal.tex",
-		"black.tex",
-		"Mud_Roughness.tex",
-		"Mud_AO.tex"
-	]
+		{ "path" : "Mud_Albedo.tex", "index" : 0 },
+		{ "path" : "Mud_Normal.tex", "index" : 1 },
+		{ "path" : "black.tex", "index" : 2 },
+		{ "path" : "Mud_Roughness.tex", "index" : 3 },
+		{ "path" : "Mud_AO.tex", "index" : 4 }
+	],
+	"cubemaps" : []
 }

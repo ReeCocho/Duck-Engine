@@ -78,7 +78,9 @@ namespace dk
 				j["meshes"],
 				j["textures"],
 				j["shaders"],
-				j["materials"]
+				j["materials"],
+				j["cubemaps"],
+				j["skys"]
 			);
 
 			// Init input manager
@@ -138,8 +140,9 @@ namespace dk
 					physics_thread->start();
 			}
 
-			// Wait for presentation to finish
+			// Wait for threads to finish
 			rendering_thread->wait();
+			physics_thread->wait();
 			graphics.get_device_manager().get_present_queue().waitIdle();
 		}
 

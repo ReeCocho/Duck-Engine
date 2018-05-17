@@ -239,7 +239,7 @@ namespace dk
 		samplerInfo.setAddressModeU(vk::SamplerAddressMode::eRepeat);
 		samplerInfo.setAddressModeV(vk::SamplerAddressMode::eRepeat);
 		samplerInfo.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-		samplerInfo.setAnisotropyEnable(true);
+		samplerInfo.setAnisotropyEnable(false);
 		samplerInfo.setMaxAnisotropy(1);
 		samplerInfo.setBorderColor(vk::BorderColor::eFloatOpaqueBlack);
 		samplerInfo.setUnnormalizedCoordinates(false);

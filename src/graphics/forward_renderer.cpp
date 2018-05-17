@@ -7,6 +7,7 @@
 /** Includes. */
 #include <array>
 #include <utilities\file_io.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 #include "forward_renderer.hpp"
 
 namespace dk
@@ -540,7 +541,7 @@ namespace dk
 			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
 		{
 			command_buffers.push_back(m_main_camera.command_buffers[1].get_command_buffer());
-			draw_sky_box(m_main_camera.command_buffers[1], inheritance_info);
+			draw_sky_box(m_main_camera.command_buffers[1], inheritance_info, true);
 		}
 
 		// List of jobs.
@@ -670,7 +671,7 @@ namespace dk
 			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
 		{
 			command_buffers.push_back(m_main_camera.command_buffers[0].get_command_buffer());
-			draw_sky_box(m_main_camera.command_buffers[0], inheritance_info);
+			draw_sky_box(m_main_camera.command_buffers[0], inheritance_info, false);
 		}
 
 		// List of jobs.
@@ -762,14 +763,21 @@ namespace dk
 		m_vk_rendering_command_buffer.end();
 	}
 
-	void ForwardRenderer::draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inheritance_info)
+	void ForwardRenderer::draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inheritance_info, bool depth_prepass)
 	{
+		// Update sky box data
+		VertexShaderData data = {};
+		data.model = glm::translate({}, m_main_camera.position);
+		data.mvp = m_main_camera.vp_mat * data.model;
+		m_main_camera.sky_box->set_vertex_data(data);
+
 		auto& command_buffer = managed_command_buffer.get_command_buffer();
 
 		// Descriptor sets
 		std::vector<vk::DescriptorSet> descriptor_sets = 
 		{ 
 			m_main_camera.sky_box->get_descriptor_set(), 
+			m_descriptor.set,
 			m_main_camera.sky_box->get_material()->get_texture_descriptor_set() 
 		};
 
@@ -794,20 +802,35 @@ namespace dk
 		scissor.setOffset({ 0, 0 });
 		command_buffer.setScissor(0, 1, &scissor);
 
-		// Bind shader
-		command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline());
-
-		// Bind descriptor sets
-		command_buffer.bindDescriptorSets
-		(
-			vk::PipelineBindPoint::eGraphics,
-			m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline_layout(),
-			0,
-			static_cast<uint32_t>(descriptor_sets.size()),
-			descriptor_sets.data(),
-			0,
-			nullptr
-		);
+		// Bind shader and descriptor sets
+		if (depth_prepass)
+		{
+			command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline());
+			command_buffer.bindDescriptorSets
+			(
+				vk::PipelineBindPoint::eGraphics,
+				m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline_layout(),
+				0,
+				static_cast<uint32_t>(descriptor_sets.size()),
+				descriptor_sets.data(),
+				0,
+				nullptr
+			);
+		}
+		else
+		{
+			command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_graphics_pipeline());
+			command_buffer.bindDescriptorSets
+			(
+				vk::PipelineBindPoint::eGraphics,
+				m_main_camera.sky_box->get_material()->get_shader()->get_graphics_pipeline_layout(),
+				0,
+				static_cast<uint32_t>(descriptor_sets.size()),
+				descriptor_sets.data(),
+				0,
+				nullptr
+			);
+		}
 
 		// Draw mesh
 		const auto& mem_buffer = m_main_camera.sky_box->get_mesh()->get_vertex_buffer();

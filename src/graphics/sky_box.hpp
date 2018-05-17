@@ -83,6 +83,12 @@ namespace dk
 		 */
 		Handle<Material> set_material(Handle<Material> material);
 
+		/**
+		 * Set vertex data.
+		 * @param Vertex data.
+		 */
+		void set_vertex_data(const VertexShaderData& data);
+
 	private:
 
 		/**

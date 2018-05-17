@@ -1,0 +1,9 @@
+{
+	"top" : "Top.jpg",
+	"bottom" : "Bottom.jpg",
+	"north" : "North.jpg",
+	"east" : "East.jpg",
+	"south" : "South.jpg",
+	"west" : "West.jpg",
+	"filter" : "linear"
+}

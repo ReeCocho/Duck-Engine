@@ -202,6 +202,7 @@ int main()
 			dk::Entity entity2 = dk::Entity(&dk::engine::scene);
 
 			dk::Handle<dk::Camera> camera = entity2.add_component<dk::Camera>();
+			camera->set_sky_box(dk::engine::resource_manager.get_sky_box("sky.sky"));
 			dk::CameraSystem::set_main_camera(camera);
 
 			dk::Handle<dk::Transform> transform2 = entity2.get_component<dk::Transform>();
@@ -212,32 +213,30 @@ int main()
 		entity1.add_component<Player>();
 	}
 
-	// Test bunny 1
+	// Test sphere 1
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("bunny.mesh"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("sphere.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
-		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
 		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
 
 		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
 		rigid_body->set_sphere_shape(0.5f);
 	}
 
-	// Test bunny 2
+	// Test sphere 2
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 		mesh_renderer->set_material(dk::engine::resource_manager.get_material("mud.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("bunny.mesh"));
+		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("sphere.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0.1f, 4.0f, 0.2f));
-		transform->set_local_scale(glm::vec3(0.1f, 0.1f, 0.1f));
 		transform->set_euler_angles(glm::vec3(75.0f, 11.0f, 13.0f));
 
 		dk::Handle<dk::RigidBody> rigid_body = entity.add_component<dk::RigidBody>();
@@ -300,7 +299,7 @@ int main()
 	{
 		dk::Entity entity = dk::Entity(&dk::engine::scene);
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
-		transform->set_euler_angles(glm::vec3(45, 45, 0));
+		transform->set_euler_angles(glm::vec3(45, 145, 0));
 
 		dk::Handle<dk::DirectionalLight> light = entity.add_component<dk::DirectionalLight>();
 		light->set_color(glm::vec3(1, 1, 1));

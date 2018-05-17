@@ -2,6 +2,7 @@
 	"files" :
 	[
 		"metal.mat",
-		"mud.mat"
+		"mud.mat",
+		"skybox.mat"
 	]
 }

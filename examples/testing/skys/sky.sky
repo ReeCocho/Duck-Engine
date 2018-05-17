@@ -1,0 +1,4 @@
+{
+	"material" : "skybox.mat",
+	"mesh" : "inv_cube.mesh"
+}

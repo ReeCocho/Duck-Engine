@@ -47,13 +47,17 @@ namespace dk
 		 * @param Path to folder containing textures.
 		 * @param Path to folder containing shaders.
 		 * @param Path to folder containing materials.
+		 * @param Path to folder containing cube maps.
+		 * @param Path to folder containing sky boxes.
 		 */
 		void load_resources
 		(
 			const std::string& meshes,
 			const std::string& textures,
 			const std::string& shaders,
-			const std::string& materials
+			const std::string& materials,
+			const std::string& cube_maps,
+			const std::string& sky_boxes
 		);
 
 		/**
@@ -210,9 +214,10 @@ namespace dk
 		 * @param Name.
 		 * @param Vertex shader byte code.
 		 * @param Fragment shader byte code.
+		 * @param Should the shader perform depth testing?
 		 * @return Shader handle.
 		 */
-		Handle<Shader> create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code);
+		Handle<Shader> create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth = true);
 
 		/**
 		 * @brief Create a material.

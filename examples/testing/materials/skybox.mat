@@ -1,0 +1,8 @@
+{
+	"shader" : "skybox.shd",
+	"textures" : [],
+	"cubemaps" :
+	[
+		{ "path" : "sky.cbm", "index" : 0 }
+	]
+}

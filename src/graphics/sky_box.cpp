@@ -144,4 +144,9 @@ namespace dk
 		generate_resources();
 		return m_material;
 	}
+
+	void SkyBox::set_vertex_data(const VertexShaderData& data)
+	{
+		memcpy(m_vertex_map, &data, sizeof(VertexShaderData));
+	}
 }

@@ -64,7 +64,7 @@ namespace dk
 			}
 
 			// Get texture count
-			m_texture_count = resources.sampled_images.size()
+			m_texture_count = resources.sampled_images.size();
 		}
 
 		dk_assert
@@ -202,7 +202,7 @@ namespace dk
 
 			vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
 			depth_stencil.depthTestEnable = static_cast<vk::Bool32>(depth_testing);
-			depth_stencil.depthWriteEnable = VK_TRUE;
+			depth_stencil.depthWriteEnable = static_cast<vk::Bool32>(depth_testing);
 			depth_stencil.depthCompareOp = vk::CompareOp::eLess;
 			depth_stencil.depthBoundsTestEnable = VK_FALSE;
 			depth_stencil.minDepthBounds = 0.0f;

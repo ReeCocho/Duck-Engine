@@ -147,9 +147,9 @@ namespace dk
 				controller->m_manifold_array.resize(0);
 
 				// Get objects in contact
-				const btBroadphasePair* collisionPair = &controller->m_ghost->getOverlappingPairCache()->getOverlappingPairArray()[i];
-				const btCollisionObject* obj0 = static_cast<btCollisionObject*>(collisionPair->m_pProxy0->m_clientObject);
-				const btCollisionObject* obj1 = static_cast<btCollisionObject*>(collisionPair->m_pProxy1->m_clientObject);
+				const btBroadphasePair* collision_pair = &controller->m_ghost->getOverlappingPairCache()->getOverlappingPairArray()[i];
+				const btCollisionObject* obj0 = static_cast<btCollisionObject*>(collision_pair->m_pProxy0->m_clientObject);
+				const btCollisionObject* obj1 = static_cast<btCollisionObject*>(collision_pair->m_pProxy1->m_clientObject);
 
 				// Continue if we don't have contact or we
 				// see the contact with the rigid body
@@ -160,8 +160,8 @@ namespace dk
 					continue;
 
 				// Get manifolds
-				if (collisionPair->m_algorithm)
-					collisionPair->m_algorithm->getAllContactManifolds(controller->m_manifold_array);
+				if (collision_pair->m_algorithm)
+					collision_pair->m_algorithm->getAllContactManifolds(controller->m_manifold_array);
 
 				// Loop over every manifold
 				for (int j = 0; j < controller->m_manifold_array.size(); ++j)
