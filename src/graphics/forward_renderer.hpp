@@ -16,20 +16,16 @@
 namespace dk
 {
 	/**
-	 * @brief Forward+ renderer.
-	 * @note When drawing objects with this renderer, 
-	 *       the first command buffer will be used for
-	 *       renering, and the second will be used for
-	 *       a depth prepass.
+	 * Forward+ renderer base class.
 	 */
-	class ForwardRenderer : public Renderer
+	class ForwardRendererBase : public Renderer
 	{
 	public:
 
 		/**
 		 * @brief Default constructor.
 		 */
-		ForwardRenderer();
+		ForwardRendererBase();
 
 		/**
 		 * @brief Constructor.
@@ -37,26 +33,17 @@ namespace dk
 		 * @param Texture allocator.
 		 * @param Mesh allocator.
 		 */
-		ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
+		ForwardRendererBase(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
 
 		/**
 		 * @brief Destructor.
 		 */
-		~ForwardRenderer() = default;
+		~ForwardRendererBase() = default;
 
 		/**
 		 * @brief Shutdown the renderer.
 		 */
-		void shutdown() override;
-
-		/**
-		 * @brief Get swapchain manager.
-		 * @return Swapchain manager.
-		 */
-		VkSwapchainManager& get_swapchain_manager()
-		{
-			return *m_swapchain_manager.get();
-		}
+		virtual void shutdown() override;
 
 		/**
 		 * @brief Get render pass used by shaders.
@@ -106,7 +93,7 @@ namespace dk
 		/**
 		 * @brief Render everything to the screen.
 		 */
-		void render() override;
+		virtual void render() override;
 
 		/**
 		 * @brief Draw a renderable object.
@@ -141,20 +128,21 @@ namespace dk
 			m_main_camera = data;
 			m_lighting_manager->set_camera_position(data.position);
 		}
-	private:
+
+	protected:
 
 		/**
 		 * @brief Copy constructor.
 		 * @param Other rendering engine.
 		 */
-		ForwardRenderer(const ForwardRenderer& other) = default;
+		ForwardRendererBase(const ForwardRendererBase& other) = default;
 
 		/**
 		 * @brief Assignment operator.
 		 * @param Other rendering engine.
 		 * @return This.
 		 */
-		ForwardRenderer& operator=(const ForwardRenderer& other) { return *this; };
+		ForwardRendererBase& operator=(const ForwardRendererBase& other) { return *this; };
 
 		/**
 		 * @brief Update lighting data.
@@ -163,22 +151,25 @@ namespace dk
 
 		/**
 		 * @brief Perform the depth prepass.
+		 * @param Size of window to draw on.
 		 */
-		void generate_depth_prepass_command_buffer();
+		void generate_depth_prepass_command_buffer(vk::Extent2D extent);
 
 		/**
 		 * @brief Generate the rendering command buffer.
 		 * @param Frame buffer to render too.
+		 * @param Size of window to draw on.
 		 */
-		void generate_rendering_command_buffer(const vk::Framebuffer& framebuffer);
+		void generate_rendering_command_buffer(const vk::Framebuffer& framebuffer, vk::Extent2D extent);
 
 		/**
 		 * @brief Draw the cameras skybox to a command buffer.
 		 * @param Command buffer.
+		 * @param Size of window to draw on.
 		 * @param Inheritence info.
 		 * @param Flag for depth prepass or no depth prepass.
 		 */
-		void draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::CommandBufferInheritanceInfo inherit_info, bool depth_prepass);
+		void draw_sky_box(VkManagedCommandBuffer& managed_command_buffer, vk::Extent2D extent, vk::CommandBufferInheritanceInfo inherit_info, bool depth_prepass);
 
 		/**
 		 * @brief Clear the rendering queues.
@@ -186,9 +177,6 @@ namespace dk
 		void flush_queues();
 
 
-
-		/** Swapchain manager. */
-		std::unique_ptr<VkSwapchainManager> m_swapchain_manager;
 		
 		/** Lighting manager. */
 		std::unique_ptr<LightingManager> m_lighting_manager;
@@ -214,9 +202,6 @@ namespace dk
 		/** Rendering command buffer. */
 		vk::CommandBuffer m_vk_rendering_command_buffer;
 
-		/** Framebuffers. */
-		std::vector<vk::Framebuffer> m_vk_framebuffers;
-
 		/**
 		 * @brief Depth prepass image.
 		 */
@@ -240,6 +225,7 @@ namespace dk
 
 			/** Depth prepass used for shaders. */
 			vk::RenderPass depth_prepass;
+
 		} m_render_passes;
 
 		/**
@@ -252,9 +238,7 @@ namespace dk
 
 			/** Semaphore to indicate on screen rendering has finished. */
 			vk::Semaphore on_screen_rendering_finished;
-
-			/** Semaphore to indicate an image is available for rendering too. */
-			vk::Semaphore image_available;
+			
 		} m_semaphores;
 
 		/**
@@ -272,5 +256,80 @@ namespace dk
 			vk::DescriptorSet set = {};
 
 		} m_descriptor;
+	};
+
+	/**
+	 * @brief Forward+ renderer.
+	 * @note When drawing objects with this renderer, 
+	 *       the first command buffer will be used for
+	 *       renering, and the second will be used for
+	 *       a depth prepass.
+	 */
+	class ForwardRenderer : public ForwardRendererBase
+	{
+	public:
+
+		/**
+		 * @brief Default constructor.
+		 */
+		ForwardRenderer();
+
+		/**
+		 * @brief Constructor.
+		 * @param Graphics context.
+		 * @param Texture allocator.
+		 * @param Mesh allocator.
+		 */
+		ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
+
+		/**
+		 * @brief Destructor.
+		 */
+		~ForwardRenderer() = default;
+
+		/**
+		 * @brief Shutdown the renderer.
+		 */
+		void shutdown() override;
+
+		/**
+		 * @brief Get swapchain manager.
+		 * @return Swapchain manager.
+		 */
+		VkSwapchainManager& get_swapchain_manager()
+		{
+			return *m_swapchain_manager.get();
+		}
+
+		/**
+		 * @brief Render everything to the screen.
+		 */
+		void render() override;
+
+	private:
+
+		/**
+		 * @brief Copy constructor.
+		 * @param Other rendering engine.
+		 */
+		ForwardRenderer(const ForwardRenderer& other) = default;
+
+		/**
+		 * @brief Assignment operator.
+		 * @param Other rendering engine.
+		 * @return This.
+		 */
+		ForwardRenderer& operator=(const ForwardRenderer& other) { return *this; };
+
+
+
+		/** Swapchain manager. */
+		std::unique_ptr<VkSwapchainManager> m_swapchain_manager;
+
+		/** Framebuffers. */
+		std::vector<vk::Framebuffer> m_vk_framebuffers;
+
+		/** Semaphore to indicate an image is available for rendering too. */
+		vk::Semaphore m_vk_image_available;
 	};
 }
