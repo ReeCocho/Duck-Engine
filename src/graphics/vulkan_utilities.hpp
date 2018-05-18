@@ -21,6 +21,51 @@
 namespace dk
 {
 	/**
+	 * Shader pipeline and pipeline layout.
+	 */
+	struct ShaderPipeline
+	{
+		/** Pipeline layout */
+		vk::PipelineLayout layout;
+
+		/** Pipeline. */
+		vk::Pipeline pipeline;
+	};
+
+	/**
+	 * Shader pipeline create info.
+	 */
+	struct ShaderPipelineCreateInfo
+	{
+		/** Pipeline stages. */
+		std::vector<vk::PipelineShaderStageCreateInfo> pipeline_stages = {};
+
+		/** Screen width. */
+		uint32_t width = 1;
+
+		/** Screen height. */
+		uint32_t height = 1;
+
+		/** Dynamic states. */
+		std::vector<vk::DynamicState> dynamic_states = {};
+
+		/** Depth testing. */
+		bool depth_test = true;
+
+		/** Depth comparison operator. */
+		vk::CompareOp depth_compare = vk::CompareOp::eLess;
+
+		/** Depth write. */
+		bool depth_write = true;
+
+		/** Descriptor set layouts. */
+		std::vector<vk::DescriptorSetLayout> descriptor_set_layouts = {};
+
+		/** Render pass. */
+		vk::RenderPass render_pass = {};
+	};
+
+	/**
 	 * @brief Framebuffer for offscreen rendering.
 	 */
 	struct FrameBufferAttachment 
@@ -191,4 +236,12 @@ namespace dk
 	 * @return Best depth format.
 	 */
 	vk::Format find_best_depth_format(const vk::PhysicalDevice& physical_device);
+
+	/**
+	 * Create a shader pipeline.
+	 * @param Logical device.
+	 * @param Shader create info.
+	 * @return Shader pipeline.
+	 */
+	ShaderPipeline create_shader_pipeline(const vk::Device& logical_device, const ShaderPipelineCreateInfo& info);
 }

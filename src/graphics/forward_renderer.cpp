@@ -406,13 +406,13 @@ namespace dk
 				command_buffer.setScissor(0, 1, &scissor);
 
 				// Bind shader
-				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, obj.shader->get_depth_pipeline());
+				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, obj.shader->get_pipeline(0).pipeline);
 
 				// Bind descriptor sets
 				command_buffer.bindDescriptorSets
 				(
 					vk::PipelineBindPoint::eGraphics,
-					obj.shader->get_depth_pipeline_layout(),
+					obj.shader->get_pipeline(0).layout,
 					0,
 					static_cast<uint32_t>(obj.descriptor_sets.size()),
 					obj.descriptor_sets.data(),
@@ -536,13 +536,13 @@ namespace dk
 				command_buffer.setScissor(0, 1, &scissor);
 
 				// Bind shader
-				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, obj.shader->get_graphics_pipeline());
+				command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, obj.shader->get_pipeline(1).pipeline);
 
 				// Bind descriptor sets
 				command_buffer.bindDescriptorSets
 				(
 					vk::PipelineBindPoint::eGraphics,
-					obj.shader->get_graphics_pipeline_layout(),
+					obj.shader->get_pipeline(1).layout,
 					0,
 					static_cast<uint32_t>(obj.descriptor_sets.size()),
 					obj.descriptor_sets.data(),
@@ -621,11 +621,11 @@ namespace dk
 		// Bind shader and descriptor sets
 		if (depth_prepass)
 		{
-			command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline());
+			command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_pipeline(0).pipeline);
 			command_buffer.bindDescriptorSets
 			(
 				vk::PipelineBindPoint::eGraphics,
-				m_main_camera.sky_box->get_material()->get_shader()->get_depth_pipeline_layout(),
+				m_main_camera.sky_box->get_material()->get_shader()->get_pipeline(0).layout,
 				0,
 				static_cast<uint32_t>(descriptor_sets.size()),
 				descriptor_sets.data(),
@@ -635,11 +635,11 @@ namespace dk
 		}
 		else
 		{
-			command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_graphics_pipeline());
+			command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_main_camera.sky_box->get_material()->get_shader()->get_pipeline(1).pipeline);
 			command_buffer.bindDescriptorSets
 			(
 				vk::PipelineBindPoint::eGraphics,
-				m_main_camera.sky_box->get_material()->get_shader()->get_graphics_pipeline_layout(),
+				m_main_camera.sky_box->get_material()->get_shader()->get_pipeline(1).layout,
 				0,
 				static_cast<uint32_t>(descriptor_sets.size()),
 				descriptor_sets.data(),

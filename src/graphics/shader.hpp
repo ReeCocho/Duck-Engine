@@ -24,6 +24,30 @@ namespace dk
 	};
 
 	/**
+	 * Information for creating a shader.
+	 */
+	struct ShaderCreateInfo
+	{
+		/** Render pass. */
+		vk::RenderPass render_pass = {};
+
+		/** Descriptor set layouts. */
+		std::vector<vk::DescriptorSetLayout> descriptor_set_layouts = {};
+
+		/** Stage flags. */
+		vk::ShaderStageFlags stage_flags = vk::ShaderStageFlagBits(0);
+
+		/** Depth testing. */
+		bool depth_test = true;
+
+		/** Depth comparison operator. */
+		vk::CompareOp depth_compare = vk::CompareOp(0);
+
+		/** Depth write. */
+		bool depth_write = true;
+	};
+
+	/**
 	 * @brief Shader object.
 	 */
 	class Shader
@@ -38,22 +62,16 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context the shader is bound to.
-		 * @param Render pass used by the shader.
-		 * @param Render pass for depth only rendering.
-		 * @param Custom descriptor set layouts.
+		 * @param Shader create infos.
 		 * @param Vertex shader byte code.
 		 * @param Fragment shader byte code.
-		 * @param Is depth testing enabled?
 		 */
 		Shader
 		(
 			Graphics* graphics, 
-			const vk::RenderPass& render_pass,
-			const vk::RenderPass& depth_pass,
-			const std::vector<vk::DescriptorSetLayout>& dsl,
+			std::vector<ShaderCreateInfo>& create_info,
 			const std::vector<char>& vert_byte_code, 
-			const std::vector<char>& frag_byte_code,
-			bool depth_testing = true
+			const std::vector<char>& frag_byte_code
 		);
 
 		/**
@@ -68,39 +86,14 @@ namespace dk
 		void free();
 
 		/**
-		 * @brief Get graphics pipeline.
-		 * @return Graphics pipeline.
+		 * @brief Get pipeline.
+		 * @param Pipeline index.
+		 * @return Pipeline.
 		 */
-		vk::Pipeline& get_graphics_pipeline()
+		const ShaderPipeline& get_pipeline(size_t i) const
 		{
-			return m_vk_graphics_pipeline;
-		}
-
-		/**
-		 * @brief Get graphics pipeline layout.
-		 * @return Graphics pipeline layout.
-		 */
-		vk::PipelineLayout& get_graphics_pipeline_layout()
-		{
-			return m_vk_graphics_pipeline_layout;
-		}
-
-		/**
-		 * @brief Get depth pipeline.
-		 * @return Depth pipeline.
-		 */
-		vk::Pipeline& get_depth_pipeline()
-		{
-			return m_vk_depth_pipeline;
-		}
-
-		/**
-		 * @brief Get depth pipeline layout.
-		 * @return Depth pipeline layout.
-		 */
-		vk::PipelineLayout& get_depth_pipeline_layout()
-		{
-			return m_vk_depth_pipeline_layout;
+			dk_assert(i < m_pipelines.size());
+			return m_pipelines[i];
 		}
 
 		/**
@@ -183,17 +176,8 @@ namespace dk
 		/** Texture descriptor set layout. */
 		vk::DescriptorSetLayout m_vk_texture_descriptor_set_layout;
 
-		/** Graphics pipeline layout */
-		vk::PipelineLayout m_vk_graphics_pipeline_layout;
-
-		/** Graphics pipeline. */
-		vk::Pipeline m_vk_graphics_pipeline;
-
-		/** Depth pipeline layout */
-		vk::PipelineLayout m_vk_depth_pipeline_layout;
-
-		/** Depth pipeline. */
-		vk::Pipeline m_vk_depth_pipeline;
+		/** Shader pipelines. */
+		std::vector<ShaderPipeline> m_pipelines = {};
 
 		/** Number of textures. */
 		size_t m_texture_count;

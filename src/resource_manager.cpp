@@ -397,16 +397,28 @@ namespace dk
 		if (m_shader_allocator->num_allocated() + 1 > m_shader_allocator->max_allocated())
 			m_shader_allocator->resize(m_shader_allocator->max_allocated() + 16);
 
+		std::vector<ShaderCreateInfo> create_info(2);
+		create_info[0].depth_test = depth;
+		create_info[0].depth_write = depth;
+		create_info[0].depth_compare = vk::CompareOp::eLess;
+		create_info[0].descriptor_set_layouts = { m_renderer->get_descriptor_set_layout() };
+		create_info[0].render_pass = m_renderer->get_depth_prepass();
+		create_info[0].stage_flags = vk::ShaderStageFlagBits::eVertex;
+
+		create_info[1].depth_test = depth;
+		create_info[1].depth_write = false;
+		create_info[1].depth_compare = vk::CompareOp::eEqual;
+		create_info[1].descriptor_set_layouts = { m_renderer->get_descriptor_set_layout() };
+		create_info[1].render_pass = m_renderer->get_shader_render_pass();
+		create_info[1].stage_flags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+
 		auto shader = Handle<Shader>(m_shader_allocator->allocate(), m_shader_allocator.get());
 		::new(m_shader_allocator->get_resource_by_handle(shader.id))(Shader)
 		(
 			&m_renderer->get_graphics(),
-			m_renderer->get_shader_render_pass(),
-			m_renderer->get_depth_prepass(),
-			{ m_renderer->get_descriptor_set_layout() },
+			create_info,
 			vert_byte_code,
-			frag_byte_code,
-			depth
+			frag_byte_code
 		);
 
 		m_shader_map[name] = shader.id;

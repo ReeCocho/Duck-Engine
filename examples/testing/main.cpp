@@ -13,6 +13,8 @@
 #include <components\rigidbody.hpp>
 #include <components\character_controller.hpp>
 
+
+
 class Player : public dk::Component<Player>
 {
 	friend class PlayerSystem;
@@ -159,6 +161,8 @@ private:
 	const float m_head_return_rate = 3.0f;
 };
 
+
+
 struct MaterialData
 {
 	float metallic = 1.0f;
@@ -166,6 +170,8 @@ struct MaterialData
 
 	float roughness = 1.0f;
 } mat_data;
+
+
 
 int main()
 {
