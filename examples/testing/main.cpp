@@ -1,8 +1,14 @@
+#include <config.hpp>
+
+#if DK_EDITOR
+	#include <editor\editor.hpp>
+#else
+	#include <engine.hpp>
+#endif
+
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <utilities\common.hpp>
-#include <config.hpp>
-#include <engine.hpp>
 #include <graphics\shader.hpp>
 #include <graphics\mesh.hpp>
 #include <graphics\material.hpp>
@@ -175,6 +181,31 @@ struct MaterialData
 
 int main()
 {
+#if DK_EDITOR
+
+	// Initialize the editor
+	dk::editor::initialize("./config.json");
+
+	// Add systems
+
+	// Physics systems
+	dk::editor::scene.add_system<dk::TransformSystem>();
+	dk::editor::scene.add_system<dk::RigidBodySystem>();
+	dk::editor::scene.add_system<dk::CharacterControllerSystem>();
+
+	// Gameplay systems
+	dk::editor::scene.add_system<PlayerSystem>();
+
+	// Rendering system
+	dk::editor::scene.add_system<dk::CameraSystem>();
+	dk::editor::scene.add_system<dk::DirectionalLightSystem>();
+	dk::editor::scene.add_system<dk::PointLightSystem>();
+	dk::editor::scene.add_system<dk::MeshRendererSystem>();
+
+	dk::editor::simulate();
+	dk::editor::shutdown();
+
+#else
 	// Initialize the engine
 	dk::engine::initialize("./config.json");
 
@@ -314,6 +345,7 @@ int main()
 
 	dk::engine::simulate();
 	dk::engine::shutdown();
+#endif
 
 	std::cin.get();
 	return 0;

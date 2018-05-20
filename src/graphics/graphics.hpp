@@ -52,7 +52,7 @@ namespace dk
 		 * @brief Get the SDL window.
 		 * @return The SDL window.
 		 */
-		const SDL_Window* get_window() const
+		SDL_Window* get_window() const
 		{
 			return m_window;
 		}

@@ -170,7 +170,13 @@ namespace dk
 		/**
 		 * @brief Default constructor.
 		 */
-		Input();
+		Input() = default;
+
+		/**
+		 * @brief Default constructor.
+		 * @param Dummy variable
+		 */
+		Input(char dummy);
 
 		/**
 		 * @brief Default destructor.

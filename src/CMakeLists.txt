@@ -2,6 +2,7 @@ add_subdirectory(utilities)
 add_subdirectory(graphics)
 add_subdirectory(physics)
 add_subdirectory(ecs)
+add_subdirectory(editor)
 
 # Headers
 set(DUCK_ENGINE_HDRS

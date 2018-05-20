@@ -15,6 +15,7 @@ target_link_libraries(
 	Duck-ECS
 	Duck-Physics
 	Duck-Engine
+	Duck-Editor
 )
 
 set_target_properties(Testing PROPERTIES 

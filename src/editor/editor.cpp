@@ -1,6 +1,6 @@
 /**
- * @file engine.cpp
- * @brief Engine source file.
+ * @file editor.cpp
+ * @brief Editor source file.
  * @author Connor J. Bramham (ReeCocho)
  */
 
@@ -11,7 +11,8 @@
 #include <config.hpp>
 #include <json.hpp>
 #include <fstream>
-#include "engine.hpp"
+#include "imgui\imgui.h"
+#include "editor.hpp"
 
 /** For convenience */
 using json = nlohmann::json;
@@ -36,11 +37,13 @@ namespace
 
 namespace dk
 {
-	namespace engine
+	namespace editor
 	{
 		Graphics graphics;
 
-		ForwardRenderer renderer;
+		OffScreenForwardRenderer scene_renderer;
+
+		EditorRenderer editor_renderer;
 
 		ResourceManager resource_manager;
 
@@ -54,6 +57,11 @@ namespace dk
 
 		void initialize(const std::string& path)
 		{
+			// Setup Dear ImGui binding
+			IMGUI_CHECKVERSION();
+			ImGui::CreateContext();
+			ImGuiIO& io = ImGui::GetIO(); (void)io;
+
 			// Read config file
 			std::ifstream stream(path);
 			dk_assert(stream.is_open());
@@ -64,13 +72,14 @@ namespace dk
 			::new(&graphics)(Graphics)(j["thread_count"], j["title"], j["width"], j["height"]);
 
 			// Init resource manager
-			::new(&resource_manager)(ResourceManager)(&renderer);
+			::new(&resource_manager)(ResourceManager)(&scene_renderer);
 
 			// Create physics engine
 			::new(&physics)(Physics)(glm::vec3(j["gravity"][0], j["gravity"][1], j["gravity"][2]));
 
-			// Init renderer
-			::new(&renderer)(ForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+			// Init renderers
+			::new(&scene_renderer)(OffScreenForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+			::new(&editor_renderer)(EditorRenderer)(&graphics);
 
 			// Load resources
 			resource_manager.load_resources
@@ -90,7 +99,12 @@ namespace dk
 			scene = {};
 
 			// Create threads
-			rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });
+			rendering_thread = std::make_unique<SimulationThread>([]() 
+			{ 
+				scene_renderer.render(); 
+				editor_renderer.render();
+			});
+
 			physics_thread = std::make_unique<SimulationThread>([]() { physics.step(physics_timer); physics_timer = 0.0f; });
 		}
 
@@ -103,6 +117,8 @@ namespace dk
 			// FPS timer data
 			uint64_t frames_per_sec = 0;
 			float fps_timer = 0.0f;
+
+			ImGuiIO& io = ImGui::GetIO();
 
 			while (!input.is_closing())
 			{
@@ -129,6 +145,9 @@ namespace dk
 				// Perform a game tick
 				scene.tick(dt);
 
+				// Update delta time fo imgui
+				io.DeltaTime = dt;
+
 				// Start rendering thread
 				rendering_thread->start();
 
@@ -136,7 +155,7 @@ namespace dk
 				physics_timer += physics_clock.get_delta_time();
 
 				// Run physics
-				if(physics_timer >= DK_PHYSICS_STEP_RATE)
+				if (physics_timer >= DK_PHYSICS_STEP_RATE)
 					physics_thread->start();
 			}
 
@@ -154,7 +173,8 @@ namespace dk
 
 			// Shutdown systems
 			scene.shutdown();
-			renderer.shutdown();
+			editor_renderer.shutdown();
+			scene_renderer.shutdown();
 			physics.shutdown();
 			resource_manager.shutdown();
 			graphics.shutdown();
