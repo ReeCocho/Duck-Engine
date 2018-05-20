@@ -46,9 +46,9 @@ namespace dk
 
 		// Create semaphores
 		vk::SemaphoreCreateInfo semaphore_info = {};
-		m_semaphores.on_screen_rendering_finished = get_graphics().get_logical_device().createSemaphore(semaphore_info);
+		m_semaphores.color_rendering_finished = get_graphics().get_logical_device().createSemaphore(semaphore_info);
 		m_semaphores.depth_prepass_finished = get_graphics().get_logical_device().createSemaphore(semaphore_info);
-		dk_assert(m_semaphores.on_screen_rendering_finished);
+		dk_assert(m_semaphores.color_rendering_finished);
 		dk_assert(m_semaphores.depth_prepass_finished);
 
 		// Create lighting manager
@@ -158,9 +158,9 @@ namespace dk
 
 			get_graphics().transition_image_layout
 			(
-				m_depth_prepass_image.depth_texture->get_image(), 
-				depth_format, 
-				vk::ImageLayout::eUndefined, 
+				m_depth_prepass_image.depth_texture->get_image(),
+				depth_format,
+				vk::ImageLayout::eUndefined,
 				vk::ImageLayout::eDepthStencilAttachmentOptimal
 			);
 		}
@@ -257,7 +257,7 @@ namespace dk
 		m_lighting_manager.reset();
 
 		// Destroy semaphores
-		get_graphics().get_logical_device().destroySemaphore(m_semaphores.on_screen_rendering_finished);
+		get_graphics().get_logical_device().destroySemaphore(m_semaphores.color_rendering_finished);
 		get_graphics().get_logical_device().destroySemaphore(m_semaphores.depth_prepass_finished);
 
 		// Depth depth image
@@ -271,11 +271,6 @@ namespace dk
 		// Destroy render passes
 		get_graphics().get_logical_device().destroyRenderPass(m_render_passes.shader_pass);
 		get_graphics().get_logical_device().destroyRenderPass(m_render_passes.depth_prepass);
-	}
-
-	void ForwardRendererBase::render()
-	{
-
 	}
 
 	void ForwardRendererBase::draw(const RenderableObject& obj) { m_renderable_objects.push_back(obj); }
@@ -352,8 +347,8 @@ namespace dk
 		std::vector<vk::CommandBuffer> command_buffers = {};
 
 		// Draw skybox if allowed
-		if (m_main_camera.sky_box.allocator && 
-			m_main_camera.sky_box->get_material() != Handle<Material>() && 
+		if (m_main_camera.sky_box.allocator &&
+			m_main_camera.sky_box->get_material() != Handle<Material>() &&
 			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
 		{
 			command_buffers.push_back(m_main_camera.command_buffers[1].get_command_buffer());
@@ -590,11 +585,11 @@ namespace dk
 		auto& command_buffer = managed_command_buffer.get_command_buffer();
 
 		// Descriptor sets
-		std::vector<vk::DescriptorSet> descriptor_sets = 
-		{ 
-			m_main_camera.sky_box->get_descriptor_set(), 
+		std::vector<vk::DescriptorSet> descriptor_sets =
+		{
+			m_main_camera.sky_box->get_descriptor_set(),
 			m_descriptor.set,
-			m_main_camera.sky_box->get_material()->get_texture_descriptor_set() 
+			m_main_camera.sky_box->get_material()->get_texture_descriptor_set()
 		};
 
 		// Begin command buffer
@@ -673,11 +668,11 @@ namespace dk
 	{
 		m_swapchain_manager = std::make_unique<VkSwapchainManager>
 		(
-			get_graphics().get_physical_device(),
-			get_graphics().get_logical_device(),
-			get_graphics().get_surface(),
-			get_graphics().get_width(),
-			get_graphics().get_height()
+				get_graphics().get_physical_device(),
+				get_graphics().get_logical_device(),
+				get_graphics().get_surface(),
+				get_graphics().get_width(),
+				get_graphics().get_height()
 		);
 
 		// Create semaphore
@@ -852,7 +847,7 @@ namespace dk
 			submit_info.commandBufferCount = 1;
 			submit_info.pCommandBuffers = &m_vk_rendering_command_buffer;
 			submit_info.signalSemaphoreCount = 1;
-			submit_info.pSignalSemaphores = &m_semaphores.on_screen_rendering_finished;
+			submit_info.pSignalSemaphores = &m_semaphores.color_rendering_finished;
 
 			// Submit to queue
 			get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
@@ -865,13 +860,240 @@ namespace dk
 		{
 			vk::PresentInfoKHR present_info = {};
 			present_info.waitSemaphoreCount = 1;
-			present_info.pWaitSemaphores = &m_semaphores.on_screen_rendering_finished;
+			present_info.pWaitSemaphores = &m_semaphores.color_rendering_finished;
 			present_info.swapchainCount = 1;
 			present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
 			present_info.pImageIndices = &image_index;
 
 			get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
 		}
+
+		// Clear rendering queues
+		flush_queues();
+	}
+
+
+
+	OffScreenForwardRenderer::OffScreenForwardRenderer()
+	{
+
+	}
+
+	OffScreenForwardRenderer::OffScreenForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) :
+		ForwardRendererBase(graphics, texture_allocator, mesh_allocator)
+	{
+		// Get swapchain details
+		SwapChainSupportDetails swap_chain_support = query_swap_chain_support
+		(
+			graphics->get_physical_device(), 
+			graphics->get_surface()
+		);
+		vk::SurfaceFormatKHR surface_format = choose_swap_surface_format(swap_chain_support.formats);
+		vk::PresentModeKHR present_mode = choose_swap_present_mode(swap_chain_support.present_modes);
+		vk::Extent2D extent = choose_swap_extent
+		(
+			swap_chain_support.capabilities,
+			static_cast<uint32_t>(graphics->get_width()), 
+			static_cast<uint32_t>(graphics->get_height())
+		);
+
+		// Create shader pass
+		{
+			std::array<vk::AttachmentDescription, 2> attachment_descs = {};
+
+			attachment_descs[0].format = surface_format.format;
+			attachment_descs[0].samples = vk::SampleCountFlagBits::e1;
+			attachment_descs[0].loadOp = vk::AttachmentLoadOp::eClear;
+			attachment_descs[0].storeOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[0].stencilLoadOp = vk::AttachmentLoadOp::eClear;
+			attachment_descs[0].stencilStoreOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[0].initialLayout = vk::ImageLayout::eUndefined;
+			attachment_descs[0].finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+
+			attachment_descs[1].format = find_best_depth_format(get_graphics().get_physical_device());
+			attachment_descs[1].samples = vk::SampleCountFlagBits::e1;
+			attachment_descs[1].loadOp = vk::AttachmentLoadOp::eLoad;
+			attachment_descs[1].storeOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[1].stencilLoadOp = vk::AttachmentLoadOp::eLoad;
+			attachment_descs[1].stencilStoreOp = vk::AttachmentStoreOp::eStore;
+			attachment_descs[1].initialLayout = vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal;
+			attachment_descs[1].finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+			std::array<vk::AttachmentReference, 2> attachment_refs = {};
+			attachment_refs[0].attachment = 0;
+			attachment_refs[0].layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+			attachment_refs[1].attachment = 1;
+			attachment_refs[1].layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+			vk::SubpassDescription subpass = {};
+			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &attachment_refs[0];
+			subpass.pDepthStencilAttachment = &attachment_refs[1];
+
+			// Use subpass dependencies for attachment layput transitions
+			std::array<vk::SubpassDependency, 2> dependencies =
+			{
+				vk::SubpassDependency
+				(
+					VK_SUBPASS_EXTERNAL,
+					0,
+					vk::PipelineStageFlagBits::eBottomOfPipe,
+					vk::PipelineStageFlagBits::eColorAttachmentOutput,
+					vk::AccessFlagBits::eMemoryRead,
+					vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+					vk::DependencyFlagBits::eByRegion
+				),
+				vk::SubpassDependency
+				(
+					0,
+					VK_SUBPASS_EXTERNAL,
+					vk::PipelineStageFlagBits::eColorAttachmentOutput,
+					vk::PipelineStageFlagBits::eBottomOfPipe,
+					vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+					vk::AccessFlagBits::eMemoryRead,
+					vk::DependencyFlagBits::eByRegion
+				)
+			};
+
+			// Create render pass
+			vk::RenderPassCreateInfo render_pass_info = {};
+			render_pass_info.attachmentCount = static_cast<uint32_t>(attachment_descs.size());
+			render_pass_info.pAttachments = attachment_descs.data();
+			render_pass_info.subpassCount = 1;
+			render_pass_info.pSubpasses = &subpass;
+			render_pass_info.dependencyCount = static_cast<uint32_t>(dependencies.size());
+			render_pass_info.pDependencies = dependencies.data();
+
+			m_render_passes.shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
+		}
+
+		// Create framebuffer attachments
+		FrameBufferAttachment color = get_graphics().create_attachment
+		(
+			surface_format.format,
+			vk::ImageUsageFlagBits::eColorAttachment
+		);
+
+		// Create sampler to sample from the attachments
+		vk::SamplerCreateInfo sampler = {};
+		sampler.magFilter = vk::Filter::eLinear;
+		sampler.minFilter = vk::Filter::eLinear;
+		sampler.mipmapMode = vk::SamplerMipmapMode::eLinear;
+		sampler.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+		sampler.addressModeV = sampler.addressModeU;
+		sampler.addressModeW = sampler.addressModeU;
+		sampler.mipLodBias = 0.0f;
+		sampler.maxAnisotropy = 1.0f;
+		sampler.minLod = 0.0f;
+		sampler.maxLod = 1.0f;
+		sampler.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+
+		// Create samplers
+		vk::Sampler color_sampler = get_graphics().get_logical_device().createSampler(sampler);
+
+		// Resize allocator if needed
+		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
+			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
+
+		// Create attachments
+		m_color_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
+
+		::new(m_color_texture.allocator->get_resource_by_handle(m_color_texture.id))(Texture)
+		(
+			&get_graphics(), 
+			color.image, 
+			color.view, 
+			color_sampler, 
+			color.memory,
+			vk::Filter::eLinear,
+			extent.width, 
+			extent.height
+		);
+
+		// Create color frame buffer
+		{
+			std::array<vk::ImageView, 2> attachments;
+			attachments[0] = m_color_texture->get_image_view();
+			attachments[1] = m_depth_prepass_image.depth_texture->get_image_view();
+
+			vk::FramebufferCreateInfo fbuf_create_info = {};
+			fbuf_create_info.pNext = nullptr;
+			fbuf_create_info.renderPass = m_render_passes.shader_pass;
+			fbuf_create_info.pAttachments = attachments.data();
+			fbuf_create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+			fbuf_create_info.width = extent.width;
+			fbuf_create_info.height = extent.height;
+			fbuf_create_info.layers = 1;
+
+			m_color_frame_buffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
+		}
+	}
+
+	void OffScreenForwardRenderer::shutdown()
+	{
+		// Wait for presentation to finish
+		get_graphics().get_device_manager().get_present_queue().waitIdle();
+
+		ForwardRendererBase::shutdown();
+
+		// Destroy framebuffer
+		get_graphics().get_logical_device().destroyFramebuffer(m_color_frame_buffer);
+
+		// Destroy texture
+		m_color_texture->free();
+		m_texture_allocator->deallocate(m_color_texture.id);
+	}
+
+	void OffScreenForwardRenderer::render()
+	{
+		// Update lights
+		upate_lighting_data();
+
+		// Window extent
+		vk::Extent2D extent = {};
+		extent.width = static_cast<uint32_t>(m_color_texture->get_width());
+		extent.height = static_cast<uint32_t>(m_color_texture->get_height());
+
+		// Perform depth prepass
+		generate_depth_prepass_command_buffer(extent);
+		{
+			vk::PipelineStageFlags wait_stage = vk::PipelineStageFlagBits::eAllGraphics;
+
+			vk::SubmitInfo submit_info = {};
+			submit_info.commandBufferCount = 1;
+			submit_info.pCommandBuffers = &m_vk_depth_prepass_command_buffer;
+			submit_info.signalSemaphoreCount = 1;
+			submit_info.pSignalSemaphores = &m_semaphores.depth_prepass_finished;
+			submit_info.pWaitDstStageMask = &wait_stage;
+			submit_info.pWaitSemaphores = nullptr;
+			submit_info.waitSemaphoreCount = 0;
+
+			// Submit draw command
+			get_graphics().get_device_manager().get_graphics_queue().submit(1, &submit_info, { nullptr });
+		}
+
+		// Prepare rendering command buffer
+		generate_rendering_command_buffer(m_color_frame_buffer, extent);
+		{
+			vk::PipelineStageFlags wait_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+			vk::SubmitInfo submit_info = {};
+			submit_info.waitSemaphoreCount = 1;
+			submit_info.pWaitSemaphores = &m_semaphores.depth_prepass_finished;
+			submit_info.pWaitDstStageMask = &wait_stage;
+			submit_info.commandBufferCount = 1;
+			submit_info.pCommandBuffers = &m_vk_rendering_command_buffer;
+			submit_info.signalSemaphoreCount = 0;
+			submit_info.pSignalSemaphores = nullptr;
+
+			// Submit to queue
+			get_graphics().get_device_manager().get_graphics_queue().submit(submit_info, vk::Fence());
+		}
+
+		// Wait for graphics queue to finish rendering
+		get_graphics().get_device_manager().get_graphics_queue().waitIdle();
 
 		// Clear rendering queues
 		flush_queues();

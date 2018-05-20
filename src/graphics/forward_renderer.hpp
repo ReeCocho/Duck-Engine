@@ -93,7 +93,7 @@ namespace dk
 		/**
 		 * @brief Render everything to the screen.
 		 */
-		virtual void render() override;
+		virtual void render() override = 0;
 
 		/**
 		 * @brief Draw a renderable object.
@@ -236,8 +236,8 @@ namespace dk
 			/** Semaphore to indicate depth prepass has finished. */
 			vk::Semaphore depth_prepass_finished;
 
-			/** Semaphore to indicate on screen rendering has finished. */
-			vk::Semaphore on_screen_rendering_finished;
+			/** Semaphore to indicate color rendering has finished. */
+			vk::Semaphore color_rendering_finished;
 			
 		} m_semaphores;
 
@@ -259,7 +259,7 @@ namespace dk
 	};
 
 	/**
-	 * @brief Forward+ renderer.
+	 * Forward+ renderer.
 	 * @note When drawing objects with this renderer, 
 	 *       the first command buffer will be used for
 	 *       renering, and the second will be used for
@@ -331,5 +331,79 @@ namespace dk
 
 		/** Semaphore to indicate an image is available for rendering too. */
 		vk::Semaphore m_vk_image_available;
+	};
+
+
+
+	/**
+	 * Off screen Forward+ renderer.
+	 * @note When drawing objects with this renderer, 
+	 *       the first command buffer will be used for
+	 *       renering, and the second will be used for
+	 *       a depth prepass.
+	 */
+	class OffScreenForwardRenderer : public ForwardRendererBase
+	{
+	public:
+
+		/**
+		 * @brief Default constructor.
+		 */
+		OffScreenForwardRenderer();
+
+		/**
+		 * @brief Constructor.
+		 * @param Graphics context.
+		 * @param Texture allocator.
+		 * @param Mesh allocator.
+		 */
+		OffScreenForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
+
+		/**
+		 * @brief Destructor.
+		 */
+		~OffScreenForwardRenderer() = default;
+
+		/**
+		 * @brief Shutdown the renderer.
+		 */
+		void shutdown() override;
+
+		/**
+		 * @brief Render everything to the screen.
+		 */
+		void render() override;
+
+		/**
+		 * Get color texture.
+		 * @return Color texture.
+		 */
+		Handle<Texture> get_color_texture() const
+		{
+			return m_color_texture;
+		}
+
+	private:
+
+		/**
+		 * @brief Copy constructor.
+		 * @param Other rendering engine.
+		 */
+		OffScreenForwardRenderer(const OffScreenForwardRenderer& other) = default;
+
+		/**
+		 * @brief Assignment operator.
+		 * @param Other rendering engine.
+		 * @return This.
+		 */
+		OffScreenForwardRenderer& operator=(const OffScreenForwardRenderer& other) { return *this; };
+
+
+
+		/** Color frame buffer. */
+		vk::Framebuffer m_color_frame_buffer = {};
+
+		/** Color exture to render to. */
+		Handle<Texture> m_color_texture = {};
 	};
 }

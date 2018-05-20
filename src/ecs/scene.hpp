@@ -104,6 +104,19 @@ namespace dk
 		}
 
 		/**
+		 * Get a system
+		 * @tparam Type of component the system manages.
+		 * @return System.
+		 */
+		template<class T>
+		System<T>* get_system()
+		{
+			SystemBase* system = find_system(TypeID<T>::id());
+			dk_assert(system);
+			return static_cast<System<T>*>(system);
+		}
+
+		/**
 		 * @brief Remove a component from an entity.
 		 * @tparam Type of component.
 		 * @param entity the component belongs to.
