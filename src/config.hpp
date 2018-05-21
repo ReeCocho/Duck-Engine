@@ -7,7 +7,7 @@
  */
 
 /** Should the editor be enabled? */
-#define DK_EDITOR 0
+#define DK_EDITOR 1
 
 /** Path to editor vertex shader. */
 #define DK_EDITOR_VERTEX_SHADER ("shaders/editor-shader.vert.spv")

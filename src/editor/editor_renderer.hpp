@@ -82,8 +82,17 @@ namespace dk
 		/** Semaphore to indicate an image is available for rendering too. */
 		vk::Semaphore m_vk_image_available;
 
+		/** Semaphore to indicate rendering has finished. */
+		vk::Semaphore m_vk_rendering_finished;
+
 		/** Render pass. */
-		vk::RenderPass m_render_pass;
+		vk::RenderPass m_vk_render_pass;
+
+		/** Command pool. */
+		vk::CommandPool m_vk_command_pool;
+
+		/** Primary graphics command buffer. */
+		vk::CommandBuffer m_vk_primary_command_buffer;
 
 		/**
 		 * Editor shader.
