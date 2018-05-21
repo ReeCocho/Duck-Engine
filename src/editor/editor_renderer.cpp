@@ -164,6 +164,4 @@ namespace dk
 		ImGuiIO& io = ImGui::GetIO();
 		ImGui::NewFrame();
 	}
-
-	void EditorRenderer::draw(const RenderableObject& obj) {}
 }

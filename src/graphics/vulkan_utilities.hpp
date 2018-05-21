@@ -37,32 +37,41 @@ namespace dk
 	 */
 	struct ShaderPipelineCreateInfo
 	{
-		/** Pipeline stages. */
-		std::vector<vk::PipelineShaderStageCreateInfo> pipeline_stages = {};
-
-		/** Screen width. */
-		uint32_t width = 1;
-
-		/** Screen height. */
-		uint32_t height = 1;
-
-		/** Dynamic states. */
-		std::vector<vk::DynamicState> dynamic_states = {};
-
-		/** Depth testing. */
-		bool depth_test = true;
-
-		/** Depth comparison operator. */
-		vk::CompareOp depth_compare = vk::CompareOp::eLess;
-
-		/** Depth write. */
-		bool depth_write = true;
+		/** Render pass. */
+		vk::RenderPass render_pass = {};
 
 		/** Descriptor set layouts. */
 		std::vector<vk::DescriptorSetLayout> descriptor_set_layouts = {};
 
-		/** Render pass. */
-		vk::RenderPass render_pass = {};
+		/** Push constants. */
+		std::vector<vk::PushConstantRange> push_constant_ranges = {};
+
+		/** Pipeline stages. */
+		std::vector<vk::PipelineShaderStageCreateInfo> pipeline_stages = {};
+
+		/** Vertex input information. */
+		vk::PipelineVertexInputStateCreateInfo vertex_input_info = {};
+
+		/** How to assemble the vertex input. */
+		vk::PipelineInputAssemblyStateCreateInfo input_assembly = {};
+
+		/** Viewport description. */
+		vk::PipelineViewportStateCreateInfo viewport_state = {};
+
+		/** How to rasterize pixels. */
+		vk::PipelineRasterizationStateCreateInfo rasterizer = {};
+
+		/** Multisampling. */
+		vk::PipelineMultisampleStateCreateInfo multisampling = {};
+
+		/** How to blend colors. */
+		vk::PipelineColorBlendStateCreateInfo color_blending = {};
+
+		/** Dynamic state. */
+		vk::PipelineDynamicStateCreateInfo dynamic_state = {};
+
+		/** Depth stenciling. */
+		vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
 	};
 
 	/**

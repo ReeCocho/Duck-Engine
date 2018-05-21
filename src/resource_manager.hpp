@@ -11,7 +11,7 @@
 #include <utilities\resource_allocator.hpp>
 #include <graphics\forward_renderer.hpp>
 #include <graphics\material.hpp>
-#include <graphics\shader.hpp>
+#include <graphics\material_shader.hpp>
 #include <graphics\mesh.hpp>
 #include <graphics\texture.hpp>
 #include <graphics\sky_box.hpp>
@@ -73,7 +73,7 @@ namespace dk
 		 * @brief Get shader allocator.
 		 * @return Shader allocator.
 		 */
-		ResourceAllocator<Shader>& get_shader_allocator()
+		ResourceAllocator<MaterialShader>& get_shader_allocator()
 		{
 			return *m_shader_allocator.get();
 		}
@@ -132,12 +132,12 @@ namespace dk
 		 * @param Name.
 		 * @param Shader handle.
 		 */
-		Handle<Shader> get_shader(const std::string& name)
+		Handle<MaterialShader> get_shader(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_shader_map.at(name); }
-			catch (std::out_of_range e) { return Handle<Shader>(0, nullptr); }
-			return Handle<Shader>(id, m_shader_allocator.get());
+			catch (std::out_of_range e) { return Handle<MaterialShader>(0, nullptr); }
+			return Handle<MaterialShader>(id, m_shader_allocator.get());
 		}
 
 		/**
@@ -217,7 +217,7 @@ namespace dk
 		 * @param Should the shader perform depth testing?
 		 * @return Shader handle.
 		 */
-		Handle<Shader> create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth = true);
+		Handle<MaterialShader> create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth = true);
 
 		/**
 		 * @brief Create a material.
@@ -225,7 +225,7 @@ namespace dk
 		 * @param Shader handle.
 		 * @return Material handle.
 		 */
-		Handle<Material> create_material(const std::string& name, Handle<Shader> shader);
+		Handle<Material> create_material(const std::string& name, Handle<MaterialShader> shader);
 
 		/**
 		 * @brief Create a texture.
@@ -276,7 +276,7 @@ namespace dk
 		 * @brief Destroy a shader.
 		 * @param Shader handle.
 		 */
-		void destroy(Handle<Shader> shader);
+		void destroy(Handle<MaterialShader> shader);
 
 		/**
 		 * @brief Destroy a material.
@@ -314,7 +314,7 @@ namespace dk
 		std::unordered_map<std::string, ResourceID> m_mesh_map;
 
 		/** Shader allocator. */
-		std::unique_ptr<ResourceAllocator<Shader>> m_shader_allocator;
+		std::unique_ptr<ResourceAllocator<MaterialShader>> m_shader_allocator;
 
 		/** Shader map. */
 		std::unordered_map<std::string, ResourceID> m_shader_map;

@@ -16,6 +16,50 @@
 namespace dk
 {
 	/**
+	 * @brief Camera data structure.
+	 */
+	struct CameraData
+	{
+		/** View-projection matrix. */
+		glm::mat4 vp_mat = {};
+
+		/** Position in space. */
+		glm::vec3 position = {};
+
+		/** View frustum. */
+		Frustum frustum = {};
+
+		/** Command buffers to use for rendering the skybox. */
+		std::vector<VkManagedCommandBuffer> command_buffers = {};
+
+		/** Sky box. */
+		Handle<SkyBox> sky_box = Handle<SkyBox>();
+	};
+
+	/**
+	 * @brief An object that can be rendered onto the screen.
+	 */
+	struct RenderableObject
+	{
+		/** Command buffer to record to. */
+		std::vector<VkManagedCommandBuffer> command_buffers = {};
+
+		/** Shader. */
+		Handle<MaterialShader> shader = {};
+
+		/** Mesh. */
+		Handle<Mesh> mesh = {};
+
+		/** Descriptor sets. */
+		std::vector<vk::DescriptorSet> descriptor_sets = {};
+
+		/** Model matrix. */
+		glm::mat4 model = {};
+	};
+
+
+
+	/**
 	 * Forward+ renderer base class.
 	 */
 	class ForwardRendererBase : public Renderer
@@ -99,7 +143,7 @@ namespace dk
 		 * @brief Draw a renderable object.
 		 * @param Renderable object.
 		 */
-		void draw(const RenderableObject& obj) override;
+		void draw(const RenderableObject& obj);
 
 		/**
 		 * @brief Draw a point light.
@@ -123,10 +167,19 @@ namespace dk
 		 * @brief Set main camera.
 		 * @param Camera data.
 		 */
-		void set_main_camera(const CameraData& data) override
+		void set_main_camera(const CameraData& data)
 		{
 			m_main_camera = data;
 			m_lighting_manager->set_camera_position(data.position);
+		}
+
+		/**
+		 * @brief Get main camera.
+		 * @return Main camera
+		 */
+		const CameraData& get_main_camera() const
+		{
+			return m_main_camera;
 		}
 
 	protected:
@@ -201,6 +254,12 @@ namespace dk
 
 		/** Rendering command buffer. */
 		vk::CommandBuffer m_vk_rendering_command_buffer;
+
+		/** Main camera data. */
+		CameraData m_main_camera;
+
+		/** List of renderable objects. */
+		std::vector<RenderableObject> m_renderable_objects;
 
 		/**
 		 * @brief Depth prepass image.

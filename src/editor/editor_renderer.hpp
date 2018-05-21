@@ -48,21 +48,6 @@ namespace dk
 		void render() override;
 
 		/**
-		 * @brief Draw a renderable object.
-		 * @param Renderable object.
-		 */
-		void draw(const RenderableObject& obj) override;
-
-		/**
-		 * @brief Set main camera.
-		 * @param Camera data.
-		 */
-		void set_main_camera(const CameraData& data) override
-		{
-			m_main_camera = data;
-		}
-
-		/**
 		 * @brief Get swapchain manager.
 		 * @return Swapchain manager.
 		 */

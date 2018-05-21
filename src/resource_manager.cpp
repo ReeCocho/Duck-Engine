@@ -29,7 +29,7 @@ namespace dk
 	{
 		// Create allocators
 		m_mesh_allocator = std::make_unique<ResourceAllocator<Mesh>>(32);
-		m_shader_allocator = std::make_unique<ResourceAllocator<Shader>>(4);
+		m_shader_allocator = std::make_unique<ResourceAllocator<MaterialShader>>(4);
 		m_material_allocator = std::make_unique<ResourceAllocator<Material>>(8);
 		m_texture_allocator = std::make_unique<ResourceAllocator<Texture>>(8);
 		m_sky_box_allocator = std::make_unique<ResourceAllocator<SkyBox>>(1);
@@ -390,14 +390,14 @@ namespace dk
 		return mesh;
 	}
 
-	Handle<Shader> ResourceManager::create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth)
+	Handle<MaterialShader> ResourceManager::create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth)
 	{
 		dk_assert(m_shader_map.find(name) == m_shader_map.end());
 
 		if (m_shader_allocator->num_allocated() + 1 > m_shader_allocator->max_allocated())
 			m_shader_allocator->resize(m_shader_allocator->max_allocated() + 16);
 
-		std::vector<ShaderCreateInfo> create_info(2);
+		std::vector<MaterialShaderCreateInfo> create_info(2);
 		create_info[0].depth_test = depth;
 		create_info[0].depth_write = depth;
 		create_info[0].depth_compare = vk::CompareOp::eLess;
@@ -412,8 +412,8 @@ namespace dk
 		create_info[1].render_pass = m_renderer->get_shader_render_pass();
 		create_info[1].stage_flags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
 
-		auto shader = Handle<Shader>(m_shader_allocator->allocate(), m_shader_allocator.get());
-		::new(m_shader_allocator->get_resource_by_handle(shader.id))(Shader)
+		auto shader = Handle<MaterialShader>(m_shader_allocator->allocate(), m_shader_allocator.get());
+		::new(m_shader_allocator->get_resource_by_handle(shader.id))(MaterialShader)
 		(
 			&m_renderer->get_graphics(),
 			create_info,
@@ -426,7 +426,7 @@ namespace dk
 		return shader;
 	}
 
-	Handle<Material> ResourceManager::create_material(const std::string& name, Handle<Shader> shader)
+	Handle<Material> ResourceManager::create_material(const std::string& name, Handle<MaterialShader> shader)
 	{
 		dk_assert(m_material_map.find(name) == m_material_map.end());
 
@@ -518,7 +518,7 @@ namespace dk
 		m_mesh_allocator->deallocate(mesh.id);
 	}
 
-	void ResourceManager::destroy(Handle<Shader> shader)
+	void ResourceManager::destroy(Handle<MaterialShader> shader)
 	{
 		dk_assert(m_shader_allocator->is_allocated(shader.id));
 

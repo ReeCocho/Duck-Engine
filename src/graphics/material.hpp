@@ -9,7 +9,7 @@
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
 #include <map>
-#include "shader.hpp"
+#include "material_shader.hpp"
 #include "texture.hpp"
 
 namespace dk
@@ -31,7 +31,7 @@ namespace dk
 		 * @param Graphics context.
 		 * @param Shader.
 		 */
-		Material(Graphics* graphics, Handle<Shader> shader);
+		Material(Graphics* graphics, Handle<MaterialShader> shader);
 
 		/**
 		 * @brief Destructor.
@@ -61,7 +61,7 @@ namespace dk
 		 * @brief Get shader.
 		 * @return Shader.
 		 */
-		Handle<Shader> get_shader()
+		Handle<MaterialShader> get_shader()
 		{
 			return m_shader;
 		}
@@ -162,7 +162,7 @@ namespace dk
 		Graphics* m_graphics;
 
 		/** Shader. */
-		Handle<Shader> m_shader;
+		Handle<MaterialShader> m_shader;
 
 		/** Descriptor pool. */
 		vk::DescriptorPool m_vk_descriptor_pool = {};

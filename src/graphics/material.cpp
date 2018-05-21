@@ -11,7 +11,7 @@ namespace dk
 {
 	Material::Material() {}
 
-	Material::Material(Graphics* graphics, Handle<Shader> shader) :
+	Material::Material(Graphics* graphics, Handle<MaterialShader> shader) :
 		m_graphics(graphics),
 		m_shader(shader),
 		m_textures({}),
