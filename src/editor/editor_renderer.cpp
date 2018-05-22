@@ -51,26 +51,6 @@ namespace dk
 		dk_assert(m_vk_image_available);
 		dk_assert(m_vk_rendering_finished);
 
-		// Tell IMGUI about the window
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-#ifdef _WIN32
-		SDL_SysWMinfo wmInfo;
-		SDL_VERSION(&wmInfo.version);
-		SDL_GetWindowWMInfo(graphics->get_window(), &wmInfo);
-		io.ImeWindowHandle = wmInfo.info.win.window;
-#else
-		(void)window;
-#endif
-
-		// Setup style
-		ImGui::StyleColorsDark();
-
-		// Setup display size (every frame to accommodate for window resizing)
-		int w = graphics->get_width();
-		int h = graphics->get_height();
-		io.DisplaySize = ImVec2(static_cast<float>(w), static_cast<float>(h));
-		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-
 		// Create the render pass
 		{
 			vk::AttachmentDescription attachment = {};
@@ -126,76 +106,6 @@ namespace dk
 
 			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
 			dk_assert(m_vk_framebuffers[i]);
-		}
-
-		// Create font textures
-		{
-			ImGuiIO& io = ImGui::GetIO();
-
-			// Get texture data
-			unsigned char* pixels;
-			int width, height;
-			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-			size_t upload_size = width * height * 4 * sizeof(char);
-
-			// Create image
-			vk::ImageCreateInfo info = {};
-			info.imageType = vk::ImageType::e2D;
-			info.format = vk::Format::eR8G8B8A8Unorm;
-			info.extent.width = static_cast<uint32_t>(width);
-			info.extent.height = static_cast<uint32_t>(height);
-			info.extent.depth = 1;
-			info.mipLevels = 1;
-			info.arrayLayers = 1;
-			info.samples = vk::SampleCountFlagBits::e1;
-			info.tiling = vk::ImageTiling::eOptimal;
-			info.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
-			info.sharingMode = vk::SharingMode::eExclusive;
-			info.initialLayout = vk::ImageLayout::eUndefined;
-
-			// Create image
-			vk::Image image;
-			vk::DeviceMemory memory;
-			get_graphics().create_image
-			(
-				static_cast<uint32_t>(width),
-				static_cast<uint32_t>(height),
-				vk::Format::eR8G8B8A8Unorm,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-				vk::MemoryPropertyFlagBits::eDeviceLocal,
-				image, 
-				memory
-			);
-			dk_assert(image);
-			dk_assert(memory);
-
-			// Create image view
-			vk::ImageView view = get_graphics().create_image_view(image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
-			dk_assert(view);
-
-			// Create staging buffer
-			VkMemBuffer staging_buffer = get_graphics().create_buffer
-			(
-				static_cast<vk::DeviceSize>(upload_size), 
-				vk::BufferUsageFlagBits::eTransferSrc, 
-				vk::MemoryPropertyFlagBits::eHostVisible
-			);
-
-			// Upload to buffer
-			void* map = get_graphics().get_logical_device().mapMemory(staging_buffer.memory, 0, upload_size);
-			memcpy(map, pixels, upload_size);
-			vk::MappedMemoryRange range[1] = {};
-			range[0].memory = staging_buffer.memory;
-			range[0].size = upload_size;
-			get_graphics().get_logical_device().flushMappedMemoryRanges(1, range);
-			get_graphics().get_logical_device().unmapMemory(staging_buffer.memory);
-
-			// Copy image data
-			get_graphics().copy_buffer_to_image(staging_buffer.buffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-
-			// Store our identifier
-			io.Fonts->TexID = (void*)(intptr_t)(VkImage)image;
 		}
 	}
 

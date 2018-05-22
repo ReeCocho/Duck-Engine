@@ -238,6 +238,31 @@ namespace dk
 		Handle<Texture> create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level = 1);
 
 		/**
+		 * @brief Create a texture
+		 * @param Name.
+		 * @param Image
+		 * @param Image view.
+		 * @param Sampler.
+		 * @param Image memory.
+		 * @param Filtering.
+		 * @param Width.
+		 * @param Height.
+		 * @param Mip map levels.
+		 */
+		Handle<Texture> create_texture
+		(
+			const std::string& name,
+			vk::Image image,
+			vk::ImageView image_view,
+			vk::Sampler sampler,
+			vk::DeviceMemory memory,
+			vk::Filter filter,
+			uint32_t width,
+			uint32_t height,
+			uint32_t mip_map_levels = 1
+		);
+
+		/**
 		 * Create a sky box.
 		 * @param Name.
 		 */

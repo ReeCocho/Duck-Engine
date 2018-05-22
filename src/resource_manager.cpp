@@ -456,6 +456,42 @@ namespace dk
 		return texture;
 	}
 
+	Handle<Texture> ResourceManager::create_texture
+	(
+		const std::string& name,
+		vk::Image image,
+		vk::ImageView image_view,
+		vk::Sampler sampler,
+		vk::DeviceMemory memory,
+		vk::Filter filter,
+		uint32_t width,
+		uint32_t height,
+		uint32_t mip_map_levels
+	)
+	{
+		dk_assert(m_texture_map.find(name) == m_texture_map.end());
+
+		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
+			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
+
+		auto texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator.get());
+		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)
+		(
+			&m_renderer->get_graphics(), 
+			image,
+			image_view,
+			sampler,
+			memory,
+			filter,
+			width, height,
+			mip_map_levels
+		);
+
+		m_texture_map[name] = texture.id;
+
+		return texture;
+	}
+
 	Handle<SkyBox> ResourceManager::create_sky_box(const std::string& name)
 	{
 		dk_assert(m_sky_box_map.find(name) == m_sky_box_map.end());
