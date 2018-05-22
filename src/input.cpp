@@ -18,6 +18,9 @@ namespace dk
 
 	void Input::poll_events()
 	{
+		// Reset text input
+		m_text_input = "";
+
 		// Set last key presses
 		m_last_keys = m_current_keys;
 
@@ -70,6 +73,18 @@ namespace dk
 
 				else if (evt.button.button == SDL_BUTTON_MIDDLE)
 					m_middle_mouse_button = std::make_tuple(false, std::get<1>(m_middle_mouse_button));
+			}
+
+			// Text input
+			else if(evt.type == SDL_TEXTINPUT)
+			{
+				m_text_input = evt.text.text;
+			}
+
+			// Mouse wheel
+			else if (evt.type == SDL_MOUSEWHEEL)
+			{
+				m_mouse_wheel = { static_cast<float>(evt.wheel.x), static_cast<float>(evt.wheel.y) };
 			}
 		}
 	}

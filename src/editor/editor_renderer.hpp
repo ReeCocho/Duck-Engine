@@ -29,8 +29,9 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Texture allocator.
 		 */
-		EditorRenderer(Graphics* graphics);
+		EditorRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_alloc);
 
 		/**
 		 * @brief Destructor.
@@ -94,23 +95,48 @@ namespace dk
 		/** Primary graphics command buffer. */
 		vk::CommandBuffer m_vk_primary_command_buffer;
 
+		/** Texture allocator. */
+		ResourceAllocator<Texture>* m_texture_allocator;
+
+		/** Font texture. */
+		Handle<Texture> m_font_texture;
+
+		/** UI shader. */
+		std::unique_ptr<Shader> m_ui_shader;
+
 		/**
-		 * Editor shader.
+		 * Font descriptor info.
 		 */
 		struct
 		{
-			/** Vertex shader module. */
-			vk::ShaderModule vertex_shader_module;
+			/** Descriptor pool. */
+			vk::DescriptorPool pool;
 
-			/** Fragment shader module. */
-			vk::ShaderModule fragment_shader_module;
+			/** Descriptor set layout. */
+			vk::DescriptorSetLayout layout;
 
-			/** Pipeline layout */
-			vk::PipelineLayout layout;
+			/** Descriptor set. */
+			vk::DescriptorSet set;
 
-			/** Pipeline. */
-			vk::Pipeline pipeline;
+		} m_font_descriptor;
 
-		} m_shader;
+		/**
+		 * Draw data.
+		 */
+		struct
+		{
+			/** Vertex buffer. */
+			VkMemBuffer vertex_buffer;
+
+			/** Size of data last sent to the vertex buffer. */
+			size_t vertex_buffer_size = 0;
+
+			/** Index buffer. */
+			VkMemBuffer index_buffer;
+
+			/** Size of data last sent to the index buffer. */
+			size_t index_buffer_size = 0;
+
+		} m_draw_data;
 	};
 }

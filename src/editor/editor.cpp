@@ -101,120 +101,7 @@ namespace dk
 
 			// Init renderers
 			::new(&scene_renderer)(OffScreenForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
-			::new(&editor_renderer)(EditorRenderer)(&graphics);
-
-			// Create font textures
-			{
-				ImGuiIO& io = ImGui::GetIO();
-
-				// Get texture data
-				unsigned char* pixels;
-				int width, height;
-				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-				size_t upload_size = width * height * 4 * sizeof(char);
-
-				// Create image
-				vk::ImageCreateInfo info = {};
-				info.imageType = vk::ImageType::e2D;
-				info.format = vk::Format::eR8G8B8A8Unorm;
-				info.extent.width = static_cast<uint32_t>(width);
-				info.extent.height = static_cast<uint32_t>(height);
-				info.extent.depth = 1;
-				info.mipLevels = 1;
-				info.arrayLayers = 1;
-				info.samples = vk::SampleCountFlagBits::e1;
-				info.tiling = vk::ImageTiling::eOptimal;
-				info.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
-				info.sharingMode = vk::SharingMode::eExclusive;
-				info.initialLayout = vk::ImageLayout::eUndefined;
-
-				// Create image
-				vk::Image image;
-				vk::DeviceMemory memory;
-				graphics.create_image
-				(
-					static_cast<uint32_t>(width),
-					static_cast<uint32_t>(height),
-					vk::Format::eR8G8B8A8Unorm,
-					vk::ImageTiling::eOptimal,
-					vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-					vk::MemoryPropertyFlagBits::eDeviceLocal,
-					image,
-					memory
-				);
-				dk_assert(image);
-				dk_assert(memory);
-
-				// Create image view
-				vk::ImageView view = graphics.create_image_view(image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
-				dk_assert(view);
-
-				// Create staging buffer
-				VkMemBuffer staging_buffer = graphics.create_buffer
-				(
-					static_cast<vk::DeviceSize>(upload_size),
-					vk::BufferUsageFlagBits::eTransferSrc,
-					vk::MemoryPropertyFlagBits::eHostVisible
-				);
-
-				// Transition to transfer mode
-				graphics.transition_image_layout(image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-
-				// Upload to buffer
-				void* map = graphics.get_logical_device().mapMemory(staging_buffer.memory, 0, upload_size);
-				memcpy(map, pixels, upload_size);
-				vk::MappedMemoryRange range[1] = {};
-				range[0].memory = staging_buffer.memory;
-				range[0].size = upload_size;
-				graphics.get_logical_device().flushMappedMemoryRanges(1, range);
-				graphics.get_logical_device().unmapMemory(staging_buffer.memory);
-
-				// Copy image data
-				graphics.copy_buffer_to_image(staging_buffer.buffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-				
-				// Transition back to sampling
-				graphics.transition_image_layout(image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-
-				// Destroy staging buffer
-				staging_buffer.free(graphics.get_logical_device());
-
-				// Sampler creation info
-				vk::SamplerCreateInfo sampler_info = {};
-				sampler_info.setMagFilter(vk::Filter::eLinear);
-				sampler_info.setMinFilter(vk::Filter::eLinear);
-				sampler_info.setAddressModeU(vk::SamplerAddressMode::eRepeat);
-				sampler_info.setAddressModeV(vk::SamplerAddressMode::eRepeat);
-				sampler_info.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-				sampler_info.setAnisotropyEnable(false);
-				sampler_info.setMaxAnisotropy(1);
-				sampler_info.setBorderColor(vk::BorderColor::eFloatOpaqueBlack);
-				sampler_info.setUnnormalizedCoordinates(false);
-				sampler_info.setCompareEnable(false);
-				sampler_info.setCompareOp(vk::CompareOp::eAlways);
-				sampler_info.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-				sampler_info.setMipLodBias(0.0f);
-				sampler_info.setMinLod(0.0f);
-				sampler_info.setMaxLod(1);
-
-				// Create sampler
-				vk::Sampler sampler = graphics.get_logical_device().createSampler(sampler_info);
-
-				// Create texture
-				font_texture = resource_manager.create_texture
-				(
-					"font_texture",
-					image,
-					view,
-					sampler,
-					memory,
-					vk::Filter::eLinear,
-					static_cast<uint32_t>(width),
-					static_cast<uint32_t>(height)
-				);
-
-				// Store our identifier
-				io.Fonts->TexID = (void*)(intptr_t)(VkImage)image;
-			}
+			::new(&editor_renderer)(EditorRenderer)(&graphics, &resource_manager.get_texture_allocator());
 
 			// Load resources
 			resource_manager.load_resources
@@ -230,15 +117,34 @@ namespace dk
 			// Init input manager
 			::new(&input)(Input)(0);
 
+			// Key mappings
+			io.KeyMap[ImGuiKey_Tab] = SDL_SCANCODE_TAB;
+			io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
+			io.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
+			io.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
+			io.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
+			io.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
+			io.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
+			io.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
+			io.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
+			io.KeyMap[ImGuiKey_Insert] = SDL_SCANCODE_INSERT;
+			io.KeyMap[ImGuiKey_Delete] = SDL_SCANCODE_DELETE;
+			io.KeyMap[ImGuiKey_Backspace] = SDL_SCANCODE_BACKSPACE;
+			io.KeyMap[ImGuiKey_Space] = SDL_SCANCODE_SPACE;
+			io.KeyMap[ImGuiKey_Enter] = SDL_SCANCODE_RETURN;
+			io.KeyMap[ImGuiKey_Escape] = SDL_SCANCODE_ESCAPE;
+			io.KeyMap[ImGuiKey_A] = SDL_SCANCODE_A;
+			io.KeyMap[ImGuiKey_C] = SDL_SCANCODE_C;
+			io.KeyMap[ImGuiKey_V] = SDL_SCANCODE_V;
+			io.KeyMap[ImGuiKey_X] = SDL_SCANCODE_X;
+			io.KeyMap[ImGuiKey_Y] = SDL_SCANCODE_Y;
+			io.KeyMap[ImGuiKey_Z] = SDL_SCANCODE_Z;
+
 			// Init scene
 			scene = {};
 
 			// Create threads
-			rendering_thread = std::make_unique<SimulationThread>([]() 
-			{ 
-				scene_renderer.render(); 
-				editor_renderer.render();
-			});
+			rendering_thread = std::make_unique<SimulationThread>([]() { scene_renderer.render(); });
 
 			physics_thread = std::make_unique<SimulationThread>([]() { physics.step(physics_timer); physics_timer = 0.0f; });
 		}
@@ -255,14 +161,56 @@ namespace dk
 
 			ImGuiIO& io = ImGui::GetIO();
 
+			float f = 0.0f;
+
 			while (!input.is_closing())
 			{
 				// Gather input
 				input.poll_events();
 
-				// Wait for threads to finish
-				rendering_thread->wait();
-				physics_thread->wait();
+				// Update mouse events
+				io.MouseDown[0] = input.get_mouse_button_held(dk::MouseButton::Left);
+				io.MouseDown[1] = input.get_mouse_button_held(dk::MouseButton::Right);
+				io.MouseDown[2] = input.get_mouse_button_held(dk::MouseButton::Middle);
+
+				glm::vec2 mouse_pos = input.get_mouse_position();
+				io.MousePos = ImVec2(mouse_pos.x, mouse_pos.y);
+
+				glm::vec2 mouse_wheel = input.get_mouse_wheel();
+				if (mouse_wheel.x > 0) io.MouseWheelH += 1;
+				if (mouse_wheel.x < 0) io.MouseWheelH -= 1;
+				if (mouse_wheel.y > 0) io.MouseWheel += 1;
+				if (mouse_wheel.y < 0) io.MouseWheel -= 1;
+
+				// Update text input
+				io.AddInputCharactersUTF8(input.get_text_input().data());
+
+				// Update keyboard
+				io.KeysDown[SDL_SCANCODE_TAB] = input.get_key_held(dk::KeyCode::Tab);
+				io.KeysDown[SDL_SCANCODE_LEFT] = input.get_key_held(dk::KeyCode::Left);
+				io.KeysDown[SDL_SCANCODE_RIGHT] = input.get_key_held(dk::KeyCode::Right);
+				io.KeysDown[SDL_SCANCODE_UP] = input.get_key_held(dk::KeyCode::Up);
+				io.KeysDown[SDL_SCANCODE_DOWN] = input.get_key_held(dk::KeyCode::Down);
+				io.KeysDown[SDL_SCANCODE_PAGEUP] = input.get_key_held(dk::KeyCode::PageUp);
+				io.KeysDown[SDL_SCANCODE_PAGEDOWN] = input.get_key_held(dk::KeyCode::PageDown);
+				io.KeysDown[SDL_SCANCODE_HOME] = input.get_key_held(dk::KeyCode::Home);
+				io.KeysDown[SDL_SCANCODE_END] = input.get_key_held(dk::KeyCode::End);
+				io.KeysDown[SDL_SCANCODE_INSERT] = input.get_key_held(dk::KeyCode::Insert);
+				io.KeysDown[SDL_SCANCODE_DELETE] = input.get_key_held(dk::KeyCode::Delete);
+				io.KeysDown[SDL_SCANCODE_BACKSPACE] = input.get_key_held(dk::KeyCode::Backspace);
+				io.KeysDown[SDL_SCANCODE_SPACE] = input.get_key_held(dk::KeyCode::Space);
+				io.KeysDown[SDL_SCANCODE_RETURN] = input.get_key_held(dk::KeyCode::Return);
+				io.KeysDown[SDL_SCANCODE_ESCAPE] = input.get_key_held(dk::KeyCode::Escape);
+				io.KeysDown[SDL_SCANCODE_A] = input.get_key_held(dk::KeyCode::A);
+				io.KeysDown[SDL_SCANCODE_C] = input.get_key_held(dk::KeyCode::C);
+				io.KeysDown[SDL_SCANCODE_V] = input.get_key_held(dk::KeyCode::V);
+				io.KeysDown[SDL_SCANCODE_X] = input.get_key_held(dk::KeyCode::X);
+				io.KeysDown[SDL_SCANCODE_Y] = input.get_key_held(dk::KeyCode::Y);
+				io.KeysDown[SDL_SCANCODE_Z] = input.get_key_held(dk::KeyCode::Z);
+				io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+				io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+				io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+				io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
 
 				// Get delta time
 				float dt = game_clock.get_delta_time();
@@ -292,6 +240,26 @@ namespace dk
 				// Run physics
 				if (physics_timer >= DK_PHYSICS_STEP_RATE)
 					physics_thread->start();
+
+				// Wait for threads to finish
+				rendering_thread->wait();
+				physics_thread->wait();
+
+				// Begin the new frame
+				ImGui::NewFrame();
+
+				ImGui::InputFloat("Test Float", &f);
+
+				ImGui::Text("Hello, world!");
+
+				// Tell IMGUI to render
+				ImGui::Render();
+
+				// Draw to window
+				editor_renderer.render();
+
+				// End the frame
+				ImGui::EndFrame();
 			}
 
 			// Wait for threads to finish

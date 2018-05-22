@@ -432,6 +432,24 @@ namespace dk
 			return m_closing;
 		}
 
+		/**
+		 * Get text input.
+		 * @return Text input.
+		 */
+		const std::string& get_text_input() const
+		{
+			return m_text_input;
+		}
+
+		/**
+		 * Get mouse wheel vector.
+		 * @return Mouse wheel vector.
+		 */
+		glm::vec2 get_mouse_wheel()
+		{
+			return m_mouse_wheel;
+		}
+
 	private:
 
 		/** Window quit flag. */
@@ -463,5 +481,11 @@ namespace dk
 
 		/** Mouse position delta. */
 		glm::vec2 m_mouse_delta = {};
+
+		/** Mouse wheel vector. */
+		glm::vec2 m_mouse_wheel = {};
+
+		/** Text input. */
+		std::string m_text_input = "";
 	};
 }
