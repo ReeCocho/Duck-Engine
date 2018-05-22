@@ -155,10 +155,6 @@ namespace dk
 			game_clock.get_delta_time();
 			physics_clock.get_delta_time();
 
-			// FPS timer data
-			uint64_t frames_per_sec = 0;
-			float fps_timer = 0.0f;
-
 			ImGuiIO& io = ImGui::GetIO();
 
 			float f = 0.0f;
@@ -214,16 +210,6 @@ namespace dk
 
 				// Get delta time
 				float dt = game_clock.get_delta_time();
-				fps_timer += dt;
-
-				// Check if we need to print and reset FPS
-				if (fps_timer >= 1.0f)
-				{
-					dk_log("FPS : " << frames_per_sec);
-					fps_timer = 0;
-					frames_per_sec = 0;
-				}
-				++frames_per_sec;
 
 				// Perform a game tick
 				scene.tick(dt);
@@ -245,21 +231,47 @@ namespace dk
 				rendering_thread->wait();
 				physics_thread->wait();
 
-				// Begin the new frame
+				// Begin primary frame
 				ImGui::NewFrame();
+				
+				// Create container window
+				bool t = true;
+				ImGui::SetNextWindowPos(ImVec2(0, 0));
+				ImGui::SetNextWindowSize(ImVec2(graphics.get_width(), graphics.get_height()));
+				ImGui::Begin("container_window", &t,	ImGuiWindowFlags_NoMove | 
+														ImGuiWindowFlags_NoResize | 
+														ImGuiWindowFlags_NoCollapse | 
+														ImGuiWindowFlags_NoTitleBar);
 
-				ImGui::InputFloat("Test Float", &f);
+				ImVec2 wmin = ImGui::GetWindowContentRegionMin();
+				ImVec2 wmax = ImGui::GetWindowContentRegionMax();
 
-				ImGui::Text("Hello, world!");
+				ImGui::SetCursorPos(ImVec2(0, 0));
+
+				ImGui::BeginChildFrame(1, ImVec2(wmax.x / 4, wmax.y), ImGuiWindowFlags_MenuBar);
+				ImGui::Text("Hierarchy");
+				ImGui::EndChildFrame();
+
+				ImGui::SetCursorPos(ImVec2(wmax.x / 4, 0));
+
+				ImGui::BeginChildFrame(2, ImVec2(wmax.x / 2, wmax.y), ImGuiWindowFlags_MenuBar);
+				ImGui::Text("Scene");
+				ImGui::EndChildFrame();
+
+				ImGui::SetCursorPos(ImVec2((wmax.x / 4) + (wmax.x / 2), 0));
+
+				ImGui::BeginChildFrame(3, ImVec2(wmax.x / 4, wmax.y), ImGuiWindowFlags_MenuBar);
+				ImGui::Text("Inspector");
+				ImGui::EndChildFrame();
+
+				// End container window
+				ImGui::End();
 
 				// Tell IMGUI to render
 				ImGui::Render();
 
 				// Draw to window
 				editor_renderer.render();
-
-				// End the frame
-				ImGui::EndFrame();
 			}
 
 			// Wait for threads to finish
