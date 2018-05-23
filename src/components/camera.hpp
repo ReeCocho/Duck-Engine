@@ -181,7 +181,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 */
-		CameraSystem(Scene* scene) : System<Camera>(scene, 4) {}
+		CameraSystem(Scene* scene) : System<Camera>(scene, false, 4) {}
 
 		/**
 		 * @brief Destructor.

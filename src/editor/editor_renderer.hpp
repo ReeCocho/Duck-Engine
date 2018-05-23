@@ -57,6 +57,24 @@ namespace dk
 			return *m_swapchain_manager.get();
 		}
 
+		/**
+		 * Get font descriptor set.
+		 * @return Font descriptor set.
+		 */
+		vk::DescriptorSet& get_font_descriptor_set()
+		{
+			return m_descriptor.font_set;
+		}
+
+		/**
+		 * Get descriptor set layout.
+		 * @return Descriptor set layout.
+		 */
+		vk::DescriptorSetLayout& get_descriptor_set_layout()
+		{
+			return m_descriptor.layout;
+		}
+
 	private:
 
 		/**
@@ -105,7 +123,7 @@ namespace dk
 		std::unique_ptr<Shader> m_ui_shader;
 
 		/**
-		 * Font descriptor info.
+		 * Descriptor info.
 		 */
 		struct
 		{
@@ -115,10 +133,10 @@ namespace dk
 			/** Descriptor set layout. */
 			vk::DescriptorSetLayout layout;
 
-			/** Descriptor set. */
-			vk::DescriptorSet set;
+			/** Font descriptor set. */
+			vk::DescriptorSet font_set;
 
-		} m_font_descriptor;
+		} m_descriptor;
 
 		/**
 		 * Draw data.

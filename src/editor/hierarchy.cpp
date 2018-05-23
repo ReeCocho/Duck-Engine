@@ -9,9 +9,10 @@
 
 namespace dk
 {
-	EditorHierarchy::EditorHierarchy(Graphics* graphics, Scene* scene) : 
+	EditorHierarchy::EditorHierarchy(Graphics* graphics, Scene* scene, Inspector* inspector) : 
 		m_scene(scene),
-		m_graphics(graphics)
+		m_graphics(graphics),
+		m_inspector(inspector)
 	{
 		m_transform_system = m_scene->get_system<Transform>();
 		dk_assert(m_transform_system);
@@ -41,8 +42,14 @@ namespace dk
 
 	void EditorHierarchy::draw_transform_tree(Handle<Transform> transform)
 	{
-		// Create new tree element (Use transform ID since, it's unique)
+		// Create new tree element (Use transform ID since it's unique)
 		ImGui::TreePush((void*)transform.id);
+
+		// Inspect the entity
+		if (ImGui::Button("Entity"))
+		{
+			m_inspector->inspect_entity(transform->get_entity());
+		}
 
 		// Draw every childs tree
 		for (size_t i = 0; i < transform->child_count(); ++i)

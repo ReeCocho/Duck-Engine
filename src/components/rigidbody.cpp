@@ -226,12 +226,15 @@ namespace dk
 		rigid_body->m_rigid_body = std::make_unique<btRigidBody>(info);
 
 		// Register body with dynamics world
+#if !DK_EDITOR
 		dk::engine::physics.register_rigid_body(rigid_body->m_rigid_body.get());
+#endif
 		rigid_body->m_rigid_body->setSleepingThresholds(DK_PHYSICS_LINEAR_SLEEP_THRESHOLD, DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD);
     }
 
     void RigidBodySystem::on_late_tick(float delta_time)
     {
+#if !DK_EDITOR
         for(Handle<RigidBody> rigid_body : *this)
         {
 			// Get current transform
@@ -252,12 +255,15 @@ namespace dk
 			rigid_body->m_transform->set_position(cur_pos);
 			rigid_body->m_transform->set_rotation(cur_rot);
         }
+#endif
     }
 
     void RigidBodySystem::on_end()
     {
         Handle<RigidBody> rigid_body = get_component();
+#if !DK_EDITOR
         dk::engine::physics.unregister_rigid_body(rigid_body->m_rigid_body.get());
+#endif
 		rigid_body->m_motion_state.reset();
 		rigid_body->m_shape.reset();
 		rigid_body->m_rigid_body.reset();

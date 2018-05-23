@@ -9,7 +9,10 @@
 
 namespace dk
 {
-	SystemBase::SystemBase(Scene* scene, size_t id) : m_scene(scene), m_component_id(id)
+	SystemBase::SystemBase(Scene* scene, size_t id, bool rie) : 
+		m_scene(scene), 
+		m_component_id(id),
+		m_run_in_editor(rie)
 	{
 
 	}

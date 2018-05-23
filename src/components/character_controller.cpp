@@ -91,13 +91,16 @@ namespace dk
 		controller->m_ghost->setRestitution(0.0f);
 
 		// Register bodies with dynamics world
+#if !DK_EDITOR
 		dk::engine::physics.register_rigid_body(controller->m_rigid_body.get());
 		dk::engine::physics.register_collision_object(controller->m_ghost.get());
+#endif
 		controller->m_rigid_body->setSleepingThresholds(DK_PHYSICS_LINEAR_SLEEP_THRESHOLD, DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD);
     }
 
     void CharacterControllerSystem::on_late_tick(float delta_time)
     {
+#if !DK_EDITOR
 		// Physics dynamics world
 		auto& dynamics_word = dk::engine::physics.get_dynamics_world();
 
@@ -216,13 +219,16 @@ namespace dk
 			// Set rotation
 			controller->m_transform->set_euler_angles(glm::vec3(0, controller->m_transform->get_euler_angles().y, 0));
         }
+#endif
     }
 
     void CharacterControllerSystem::on_end()
     {
         Handle<CharacterController> controller = get_component();
+#if !DK_EDITOR
 		dk::engine::physics.unregister_rigid_body(controller->m_rigid_body.get());
 		dk::engine::physics.unregister_collision_object(controller->m_ghost.get());
+#endif
 		controller->m_shape.reset();
 		controller->m_rigid_body.reset();
     }

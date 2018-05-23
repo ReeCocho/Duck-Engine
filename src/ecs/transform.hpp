@@ -346,7 +346,7 @@ namespace dk
 		std::vector<Handle<Transform>> m_children = {};
 
 		/** Parent. */
-		Handle<Transform> m_parent = Handle<Transform>(0, nullptr);
+		Handle<Transform> m_parent = Handle<Transform>();
 	};
 
 
@@ -363,7 +363,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system is in.
 		 */
-		TransformSystem(Scene* scene) : System<Transform>(scene, 32) {}
+		TransformSystem(Scene* scene) : System<Transform>(scene, true, 32) {}
 
 		/**
 		 * @brief Destructor.

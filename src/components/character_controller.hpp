@@ -142,7 +142,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 */
-		CharacterControllerSystem(Scene* scene) : System<CharacterController>(scene, 16) {}
+		CharacterControllerSystem(Scene* scene) : System<CharacterController>(scene, true, 16) {}
 
 		/**
 		 * @brief Destructor.

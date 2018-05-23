@@ -5,6 +5,7 @@
  */
 
 /** Includes. */
+#include <config.hpp>
 #include "scene.hpp"
 #include "transform.hpp"
 
@@ -68,12 +69,27 @@ namespace dk
 		destroy_components();
 
 		for (auto& system : m_systems)
+		{
+#if DK_EDITOR
+			if(system->get_runs_in_editor())
+#endif
 			system->on_tick(delta_time);
+		}
 
 		for (auto& system : m_systems)
+		{
+#if DK_EDITOR
+			if (system->get_runs_in_editor())
+#endif
 			system->on_late_tick(delta_time);
+		}
 
 		for (auto& system : m_systems)
+		{
+#if DK_EDITOR
+			if (system->get_runs_in_editor())
+#endif
 			system->on_pre_render(delta_time);
+		}
 	}
 }

@@ -17,6 +17,9 @@ set(DUCK_EDITOR_HDRS
 	editor.hpp
 	editor_renderer.hpp
 	hierarchy.hpp
+	inspector.hpp
+	scene_view.hpp
+	file_explorer.hpp
 )
 
 # Sources
@@ -24,6 +27,9 @@ set(DUCK_EDITOR_SRCS
 	editor.cpp
 	editor_renderer.cpp
 	hierarchy.cpp
+	inspector.cpp
+	scene_view.cpp
+	file_explorer.cpp
 )
 
 # ECS lib

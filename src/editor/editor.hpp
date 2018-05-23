@@ -23,7 +23,7 @@ namespace dk
 		extern Graphics graphics;
 
 		/** Scene rendering engine. */
-		extern OffScreenForwardRenderer scene_renderer;
+		extern OffScreenForwardRenderer renderer;
 
 		/** Editor rendering engine. */
 		extern EditorRenderer editor_renderer;

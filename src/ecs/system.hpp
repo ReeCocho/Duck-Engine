@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
+#include <config.hpp>
 #include "component.hpp"
 
 namespace dk
@@ -23,8 +24,9 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 * @param ID of the component the system works with.
+		 * @param If the system runs in the editor.
 		 */
-		SystemBase(Scene* scene, size_t id);
+		SystemBase(Scene* scene, size_t id, bool rie = false);
 
 		/**
 		 * @brief Destructor.
@@ -47,6 +49,15 @@ namespace dk
 		size_t get_id() const
 		{
 			return m_component_id;
+		}
+
+		/**
+		 * Get if the system runs in the editor.
+		 * @return If the system runs in the editor.
+		 */
+		bool get_runs_in_editor() const
+		{
+			return m_run_in_editor;
 		}
 
 		/**
@@ -95,6 +106,9 @@ namespace dk
 
 		/** ID of the component the system works with. */
 		size_t m_component_id;
+
+		/** If the system runs while in the editor. */
+		bool m_run_in_editor;
 	};
 
 	/**
@@ -180,9 +194,10 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
+		 * @param If the systems runs in the editor.
 		 * @param Number of components preallocated.
 		 */
-		System(Scene* scene, size_t pre_alloc = 32) : SystemBase(scene, TypeID<T>::id()), m_components(pre_alloc) {}
+		System(Scene* scene, bool rie = false, size_t pre_alloc = 32) : SystemBase(scene, TypeID<T>::id(), rie), m_components(pre_alloc) {}
 
 		/**
 		 * @brief Destructor.
@@ -206,8 +221,13 @@ namespace dk
 			::new(component)(T)(Handle<T>(id, &m_components), entity);
 
 			// Call on_begin() on the system
-			m_active_component = id;
-			on_begin();
+#if DK_EDITOR
+			if (get_runs_in_editor())
+#endif
+			{
+				m_active_component = id;
+				on_begin();
+			}
 
 			return Handle<T>(id, &m_components);
 		}
@@ -242,8 +262,13 @@ namespace dk
 			if (!component.allocator) return;
 
 			// Call on_end() on the system
-			m_active_component = component.id;
-			on_end();
+#if DK_EDITOR
+			if (get_runs_in_editor())
+#endif
+			{
+				m_active_component = component.id;
+				on_end();
+			}
 
 			// Deallocate the component
 			m_components.deallocate(component.id);
@@ -257,8 +282,13 @@ namespace dk
 			for (size_t i = 0; i < m_components.max_allocated(); ++i)
 				if (m_components.is_allocated(i))
 				{
-					m_active_component = static_cast<ResourceID>(i);
-					on_end();
+#if DK_EDITOR
+					if (get_runs_in_editor())
+#endif
+					{
+						m_active_component = static_cast<ResourceID>(i);
+						on_end();
+					}
 					m_components.deallocate(i);
 				}
 		}

@@ -238,29 +238,29 @@ namespace dk
 			pool_info.maxSets = 1;
 			pool_info.poolSizeCount = 1;
 			pool_info.pPoolSizes = &pool_size;
-			m_font_descriptor.pool = get_graphics().get_logical_device().createDescriptorPool(pool_info);
-			dk_assert(m_font_descriptor.pool);
+			m_descriptor.pool = get_graphics().get_logical_device().createDescriptorPool(pool_info);
+			dk_assert(m_descriptor.pool);
 
 			// Create descriptor set layout
 			vk::DescriptorSetLayoutBinding binding = {};
 			binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 			binding.descriptorCount = 1;
 			binding.stageFlags = vk::ShaderStageFlagBits::eFragment;
-			binding.pImmutableSamplers = &m_font_texture->get_sampler();
+			binding.binding = 0;
 
 			vk::DescriptorSetLayoutCreateInfo info = {};
 			info.bindingCount = 1;
 			info.pBindings = &binding;
-			m_font_descriptor.layout = get_graphics().get_logical_device().createDescriptorSetLayout(info);
-			dk_assert(m_font_descriptor.layout);
+			m_descriptor.layout = get_graphics().get_logical_device().createDescriptorSetLayout(info);
+			dk_assert(m_descriptor.layout);
 
-			// Create descriptor set
+			// Create font descriptor set
 			vk::DescriptorSetAllocateInfo alloc_info = {};
-			alloc_info.descriptorPool = m_font_descriptor.pool;
+			alloc_info.descriptorPool = m_descriptor.pool;
 			alloc_info.descriptorSetCount = 1;
-			alloc_info.pSetLayouts = &m_font_descriptor.layout;
-			m_font_descriptor.set = get_graphics().get_logical_device().allocateDescriptorSets(alloc_info)[0];
-			dk_assert(m_font_descriptor.set);
+			alloc_info.pSetLayouts = &m_descriptor.layout;
+			m_descriptor.font_set = get_graphics().get_logical_device().allocateDescriptorSets(alloc_info)[0];
+			dk_assert(m_descriptor.font_set);
 		}
 
 		// Create UI shader
@@ -278,7 +278,7 @@ namespace dk
 			info.pipeline_create_info.push_constant_ranges[0].size = sizeof(float) * 4;
 
 			// Descriptor set layout
-			info.pipeline_create_info.descriptor_set_layouts.push_back(m_font_descriptor.layout);
+			info.pipeline_create_info.descriptor_set_layouts.push_back(m_descriptor.layout);
 
 			// Vertex input
 			vk::VertexInputBindingDescription binding_desc = {};
@@ -352,18 +352,19 @@ namespace dk
 			);
 		}
 
-		// Update the Descriptor Set:
+		// Update the descriptor sets
 		{
-			vk::DescriptorImageInfo desc_image = {};
-			desc_image.sampler = m_font_texture->get_sampler();
-			desc_image.imageView = m_font_texture->get_image_view();
-			desc_image.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			vk::DescriptorImageInfo image = {};
+			image.sampler = m_font_texture->get_sampler();
+			image.imageView = m_font_texture->get_image_view();
+			image.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
 			vk::WriteDescriptorSet write_desc = {};
-			write_desc.dstSet = m_font_descriptor.set;
+			write_desc.dstSet = m_descriptor.font_set;
 			write_desc.descriptorCount = 1;
 			write_desc.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-			write_desc.pImageInfo = &desc_image;
+			write_desc.pImageInfo = &image;
+			write_desc.dstBinding = 0;
 
 			get_graphics().get_logical_device().updateDescriptorSets(write_desc, {});
 		}
@@ -383,8 +384,8 @@ namespace dk
 		m_draw_data.vertex_buffer.free(get_graphics().get_logical_device());
 
 		// Destroy descriptor
-		get_graphics().get_logical_device().destroyDescriptorSetLayout(m_font_descriptor.layout);
-		get_graphics().get_logical_device().destroyDescriptorPool(m_font_descriptor.pool);
+		get_graphics().get_logical_device().destroyDescriptorSetLayout(m_descriptor.layout);
+		get_graphics().get_logical_device().destroyDescriptorPool(m_descriptor.pool);
 
 		// Destroy render pass
 		get_graphics().get_logical_device().destroyRenderPass(m_vk_render_pass);
@@ -551,17 +552,10 @@ namespace dk
 
 			m_vk_primary_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eInline);
 
-			// Bind pipeline and descriptor sets:
+			// Bind pipeline
 			{
 				m_vk_primary_command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ui_shader->get_pipeline(0).pipeline);
-				m_vk_primary_command_buffer.bindDescriptorSets
-				(
-					vk::PipelineBindPoint::eGraphics,
-					m_ui_shader->get_pipeline(0).layout, 
-					0,
-					m_font_descriptor.set,
-					{}
-				);
+
 			}
 
 			// Bind Vertex And Index Buffer:
@@ -588,10 +582,10 @@ namespace dk
 			// Render the command lists:
 			int vtx_offset = 0;
 			int idx_offset = 0;
-			for (int n = 0; n < draw_data->CmdListsCount; n++)
+			for (int n = 0; n < draw_data->CmdListsCount; ++n)
 			{
 				const ImDrawList* cmd_list = draw_data->CmdLists[n];
-				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i)
 				{
 					const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
 					if (pcmd->UserCallback)
@@ -600,6 +594,16 @@ namespace dk
 					}
 					else
 					{
+						vk::DescriptorSet desc_set = (VkDescriptorSet)pcmd->TextureId;
+						m_vk_primary_command_buffer.bindDescriptorSets
+						(
+							vk::PipelineBindPoint::eGraphics,
+							m_ui_shader->get_pipeline(0).layout,
+							0,
+							desc_set,
+							{}
+						);
+
 						vk::Rect2D scissor;
 						scissor.offset.x = (int32_t)(pcmd->ClipRect.x) > 0 ? (int32_t)(pcmd->ClipRect.x) : 0;
 						scissor.offset.y = (int32_t)(pcmd->ClipRect.y) > 0 ? (int32_t)(pcmd->ClipRect.y) : 0;

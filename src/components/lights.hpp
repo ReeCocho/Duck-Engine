@@ -120,7 +120,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 */
-		DirectionalLightSystem(Scene* scene) : System<DirectionalLight>(scene, 16) {}
+		DirectionalLightSystem(Scene* scene) : System<DirectionalLight>(scene, true, 16) {}
 
 		/**
 		 * @brief Destructor.
@@ -150,7 +150,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 */
-		PointLightSystem(Scene* scene) : System<PointLight>(scene, 16) {}
+		PointLightSystem(Scene* scene) : System<PointLight>(scene, true, 16) {}
 
 		/**
 		 * @brief Destructor.

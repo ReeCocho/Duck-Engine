@@ -6,7 +6,12 @@
 
 /** Includes. */
 #include <ecs\transform.hpp>
+#include <config.hpp>
 #include "lights.hpp"
+
+#if DK_EDITOR
+#include <editor\editor.hpp>
+#endif
 
 namespace dk
 {
@@ -21,7 +26,11 @@ namespace dk
 		for (Handle<DirectionalLight> light : *this)
 		{
 			light->m_light_data.direction = glm::vec4(light->m_transform->get_forward(), 1.0f);
+#if DK_EDITOR
+			dk::editor::renderer.draw(light->m_light_data);
+#else
 			dk::engine::renderer.draw(light->m_light_data);
+#endif
 		}
 	}
 
@@ -36,7 +45,12 @@ namespace dk
 		for (Handle<PointLight> light : *this)
 		{
 			light->m_light_data.position = glm::vec4(light->m_transform->get_position(), light->m_light_data.position.w);
+
+#if DK_EDITOR
+			dk::editor::renderer.draw(light->m_light_data);
+#else
 			dk::engine::renderer.draw(light->m_light_data);
+#endif
 		}
 	}
 }

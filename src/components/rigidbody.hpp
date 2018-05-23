@@ -275,7 +275,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 */
-		RigidBodySystem(Scene* scene) : System<RigidBody>(scene, 16) {}
+		RigidBodySystem(Scene* scene) : System<RigidBody>(scene, true, 16) {}
 
 		/**
 		 * @brief Destructor.

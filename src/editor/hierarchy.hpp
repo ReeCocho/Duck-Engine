@@ -11,6 +11,7 @@
 #include <ecs\transform.hpp>
 #include <ecs\scene.hpp>
 #include "imgui\imgui.h"
+#include "inspector.hpp"
 
 namespace dk
 {
@@ -25,8 +26,9 @@ namespace dk
 		 * Constructor.
 		 * @param Graphics context.
 		 * @param Scene to inspect.
+		 * @param Inspector to update.
 		 */
-		EditorHierarchy(Graphics* graphics, Scene* scene);
+		EditorHierarchy(Graphics* graphics, Scene* scene, Inspector* inspector);
 
 		/**
 		 * Destructor.
@@ -53,6 +55,9 @@ namespace dk
 
 		/** Scene. */
 		Scene* m_scene;
+
+		/** Inspector. */
+		Inspector* m_inspector;
 
 		/** Transform system. */
 		System<Transform>* m_transform_system;

@@ -178,56 +178,36 @@ struct MaterialData
 } mat_data;
 
 
+#if DK_EDITOR
+namespace ative_system = dk::editor;
+#else
+namespace ative_system = dk::engine;
+#endif
 
 int main()
 {
-#if DK_EDITOR
-
-	// Initialize the editor
-	dk::editor::initialize("./config.json");
-
-	// Add systems
-
-	// Physics systems
-	dk::editor::scene.add_system<dk::TransformSystem>();
-	dk::editor::scene.add_system<dk::RigidBodySystem>();
-	dk::editor::scene.add_system<dk::CharacterControllerSystem>();
-
-	// Gameplay systems
-	dk::editor::scene.add_system<PlayerSystem>();
-
-	// Rendering system
-	dk::editor::scene.add_system<dk::CameraSystem>();
-	dk::editor::scene.add_system<dk::DirectionalLightSystem>();
-	dk::editor::scene.add_system<dk::PointLightSystem>();
-	dk::editor::scene.add_system<dk::MeshRendererSystem>();
-
-	dk::editor::simulate();
-	dk::editor::shutdown();
-
-#else
 	// Initialize the engine
-	dk::engine::initialize("./config.json");
+	ative_system::initialize("./config.json");
 
 	// Add systems
 
 	// Physics systems
-	dk::engine::scene.add_system<dk::TransformSystem>();
-	dk::engine::scene.add_system<dk::RigidBodySystem>();
-	dk::engine::scene.add_system<dk::CharacterControllerSystem>();
+	ative_system::scene.add_system<dk::TransformSystem>();
+	ative_system::scene.add_system<dk::RigidBodySystem>();
+	ative_system::scene.add_system<dk::CharacterControllerSystem>();
 
 	// Gameplay systems
-	dk::engine::scene.add_system<PlayerSystem>();
+	ative_system::scene.add_system<PlayerSystem>();
 
 	// Rendering system
-	dk::engine::scene.add_system<dk::CameraSystem>();
-	dk::engine::scene.add_system<dk::DirectionalLightSystem>();
-	dk::engine::scene.add_system<dk::PointLightSystem>();
-	dk::engine::scene.add_system<dk::MeshRendererSystem>();
+	ative_system::scene.add_system<dk::CameraSystem>();
+	ative_system::scene.add_system<dk::DirectionalLightSystem>();
+	ative_system::scene.add_system<dk::PointLightSystem>();
+	ative_system::scene.add_system<dk::MeshRendererSystem>();
 
 	// Player
 	{
-		dk::Entity entity1 = dk::Entity(&dk::engine::scene);
+		dk::Entity entity1 = dk::Entity(&ative_system::scene);
 
 		dk::Handle<dk::Transform> transform1 = entity1.get_component<dk::Transform>();
 		transform1->set_position(glm::vec3(0, 16, 1));
@@ -236,7 +216,7 @@ int main()
 
 		// Camera
 		{
-			dk::Entity entity2 = dk::Entity(&dk::engine::scene);
+			dk::Entity entity2 = dk::Entity(&ative_system::scene);
 
 			dk::Handle<dk::Camera> camera = entity2.add_component<dk::Camera>();
 			camera->set_sky_box(dk::engine::resource_manager.get_sky_box("sky.sky"));
@@ -252,10 +232,10 @@ int main()
 
 	// Test sphere 1
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity = dk::Entity(&ative_system::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("sphere.mesh"));
+		mesh_renderer->set_material(ative_system::resource_manager.get_material("metal.mat"));
+		mesh_renderer->set_mesh(ative_system::resource_manager.get_mesh("sphere.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
@@ -267,10 +247,10 @@ int main()
 
 	// Test sphere 2
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity = dk::Entity(&ative_system::scene);
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("mud.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("sphere.mesh"));
+		mesh_renderer->set_material(ative_system::resource_manager.get_material("mud.mat"));
+		mesh_renderer->set_mesh(ative_system::resource_manager.get_mesh("sphere.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0.1f, 4.0f, 0.2f));
@@ -282,11 +262,11 @@ int main()
 
 	// Floor
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity = dk::Entity(&ative_system::scene);
 
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("mud.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
+		mesh_renderer->set_material(ative_system::resource_manager.get_material("mud.mat"));
+		mesh_renderer->set_mesh(ative_system::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0, -1, 0));
@@ -299,11 +279,11 @@ int main()
 
 	// Sloped floor
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity = dk::Entity(&ative_system::scene);
 
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
+		mesh_renderer->set_material(ative_system::resource_manager.get_material("metal.mat"));
+		mesh_renderer->set_mesh(ative_system::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0, 2.5f, 14));
@@ -317,11 +297,11 @@ int main()
 
 	// Wall
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity = dk::Entity(&ative_system::scene);
 
 		dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
-		mesh_renderer->set_material(dk::engine::resource_manager.get_material("metal.mat"));
-		mesh_renderer->set_mesh(dk::engine::resource_manager.get_mesh("cube.mesh"));
+		mesh_renderer->set_material(ative_system::resource_manager.get_material("metal.mat"));
+		mesh_renderer->set_mesh(ative_system::resource_manager.get_mesh("cube.mesh"));
 
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_position(glm::vec3(0, 1, 0));
@@ -334,7 +314,7 @@ int main()
 
 	// Directional light
 	{
-		dk::Entity entity = dk::Entity(&dk::engine::scene);
+		dk::Entity entity = dk::Entity(&ative_system::scene);
 		dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 		transform->set_euler_angles(glm::vec3(45, 145, 0));
 
@@ -343,9 +323,8 @@ int main()
 		light->set_intensity(4.0f);
 	}
 
-	dk::engine::simulate();
-	dk::engine::shutdown();
-#endif
+	ative_system::simulate();
+	ative_system::shutdown();
 
 	std::cin.get();
 	return 0;

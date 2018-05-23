@@ -14,6 +14,9 @@
 #include "imgui\imgui.h"
 #include "editor.hpp"
 #include "hierarchy.hpp"
+#include "inspector.hpp"
+#include "scene_view.hpp"
+#include "file_explorer.hpp"
 
 /** For convenience */
 using json = nlohmann::json;
@@ -47,7 +50,7 @@ namespace dk
 	{
 		Graphics graphics;
 
-		OffScreenForwardRenderer scene_renderer;
+		OffScreenForwardRenderer renderer;
 
 		EditorRenderer editor_renderer;
 
@@ -95,14 +98,17 @@ namespace dk
 			io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 
 			// Init resource manager
-			::new(&resource_manager)(ResourceManager)(&scene_renderer);
+			::new(&resource_manager)(ResourceManager)(&renderer);
 
 			// Create physics engine
 			::new(&physics)(Physics)(glm::vec3(j["gravity"][0], j["gravity"][1], j["gravity"][2]));
 
 			// Init renderers
-			::new(&scene_renderer)(OffScreenForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
+			::new(&renderer)(OffScreenForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
 			::new(&editor_renderer)(EditorRenderer)(&graphics, &resource_manager.get_texture_allocator());
+
+			// Set font descriptor set
+			io.Fonts->TexID = editor_renderer.get_font_descriptor_set();
 
 			// Load resources
 			resource_manager.load_resources
@@ -145,7 +151,7 @@ namespace dk
 			scene = {};
 
 			// Create threads
-			rendering_thread = std::make_unique<SimulationThread>([]() { scene_renderer.render(); });
+			rendering_thread = std::make_unique<SimulationThread>([]() { renderer.render(); });
 
 			physics_thread = std::make_unique<SimulationThread>([]() { physics.step(physics_timer); physics_timer = 0.0f; });
 		}
@@ -160,7 +166,9 @@ namespace dk
 			ImGuiIO& io = ImGui::GetIO();
 
 			// Widgets
-			EditorHierarchy hierarchy(&graphics, &scene);
+			Inspector inspector(&graphics, &scene);
+			EditorHierarchy hierarchy(&graphics, &scene, &inspector);
+			SceneView scene_view(&renderer, &editor_renderer, &input);
 
 			while (!input.is_closing())
 			{
@@ -217,7 +225,7 @@ namespace dk
 				// Perform a game tick
 				scene.tick(dt);
 
-				// Update delta time fo imgui
+				// Update delta time for imgui
 				io.DeltaTime = dt;
 
 				// Start rendering thread
@@ -239,6 +247,8 @@ namespace dk
 
 				// Draw widgets
 				hierarchy.draw();
+				inspector.draw();
+				scene_view.draw(dt);
 
 				// End master frame
 				ImGui::EndFrame();
@@ -265,7 +275,7 @@ namespace dk
 			// Shutdown systems
 			scene.shutdown();
 			editor_renderer.shutdown();
-			scene_renderer.shutdown();
+			renderer.shutdown();
 			physics.shutdown();
 			resource_manager.shutdown();
 			graphics.shutdown();

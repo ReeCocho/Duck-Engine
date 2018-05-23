@@ -125,7 +125,7 @@ namespace dk
 		 * @brief Constructor.
 		 * @param Scene the system exists in.
 		 */
-		MeshRendererSystem(Scene* scene) : System<MeshRenderer>(scene, 32) {}
+		MeshRendererSystem(Scene* scene) : System<MeshRenderer>(scene, true, 32) {}
 
 		/**
 		 * @brief Destructor.
