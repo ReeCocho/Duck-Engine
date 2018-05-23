@@ -16,12 +16,14 @@ set(IMGUI_FILES
 set(DUCK_EDITOR_HDRS
 	editor.hpp
 	editor_renderer.hpp
+	hierarchy.hpp
 )
 
 # Sources
 set(DUCK_EDITOR_SRCS
 	editor.cpp
 	editor_renderer.cpp
+	hierarchy.cpp
 )
 
 # ECS lib

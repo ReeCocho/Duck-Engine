@@ -13,6 +13,7 @@
 #include <fstream>
 #include "imgui\imgui.h"
 #include "editor.hpp"
+#include "hierarchy.hpp"
 
 /** For convenience */
 using json = nlohmann::json;
@@ -65,7 +66,7 @@ namespace dk
 			// Setup Dear ImGui binding
 			IMGUI_CHECKVERSION();
 			ImGui::CreateContext();
-			ImGuiIO& io = ImGui::GetIO(); (void)io;
+			ImGuiIO& io = ImGui::GetIO();
 
 			// Read config file
 			std::ifstream stream(path);
@@ -155,9 +156,11 @@ namespace dk
 			game_clock.get_delta_time();
 			physics_clock.get_delta_time();
 
+			// Get IMGUI IO 
 			ImGuiIO& io = ImGui::GetIO();
 
-			float f = 0.0f;
+			// Widgets
+			EditorHierarchy hierarchy(&graphics, &scene);
 
 			while (!input.is_closing())
 			{
@@ -231,41 +234,14 @@ namespace dk
 				rendering_thread->wait();
 				physics_thread->wait();
 
-				// Begin primary frame
+				// Master frame
 				ImGui::NewFrame();
-				
-				// Create container window
-				bool t = true;
-				ImGui::SetNextWindowPos(ImVec2(0, 0));
-				ImGui::SetNextWindowSize(ImVec2(graphics.get_width(), graphics.get_height()));
-				ImGui::Begin("container_window", &t,	ImGuiWindowFlags_NoMove | 
-														ImGuiWindowFlags_NoResize | 
-														ImGuiWindowFlags_NoCollapse | 
-														ImGuiWindowFlags_NoTitleBar);
 
-				ImVec2 wmin = ImGui::GetWindowContentRegionMin();
-				ImVec2 wmax = ImGui::GetWindowContentRegionMax();
+				// Draw widgets
+				hierarchy.draw();
 
-				ImGui::SetCursorPos(ImVec2(0, 0));
-
-				ImGui::BeginChildFrame(1, ImVec2(wmax.x / 4, wmax.y), ImGuiWindowFlags_MenuBar);
-				ImGui::Text("Hierarchy");
-				ImGui::EndChildFrame();
-
-				ImGui::SetCursorPos(ImVec2(wmax.x / 4, 0));
-
-				ImGui::BeginChildFrame(2, ImVec2(wmax.x / 2, wmax.y), ImGuiWindowFlags_MenuBar);
-				ImGui::Text("Scene");
-				ImGui::EndChildFrame();
-
-				ImGui::SetCursorPos(ImVec2((wmax.x / 4) + (wmax.x / 2), 0));
-
-				ImGui::BeginChildFrame(3, ImVec2(wmax.x / 4, wmax.y), ImGuiWindowFlags_MenuBar);
-				ImGui::Text("Inspector");
-				ImGui::EndChildFrame();
-
-				// End container window
-				ImGui::End();
+				// End master frame
+				ImGui::EndFrame();
 
 				// Tell IMGUI to render
 				ImGui::Render();
