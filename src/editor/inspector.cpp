@@ -22,16 +22,12 @@ namespace dk
 		float height = static_cast<float>(m_graphics->get_height());
 		float width = static_cast<float>(m_graphics->get_width());
 
-		// Begin window
-		ImGui::SetNextWindowPos(ImVec2(width * 0.75f, 0));
-		ImGui::SetNextWindowSize(ImVec2(width / 4.0f, height));
-		ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+		ImGui::Text("Inspector");
 
+		// Begin window
 		if (m_inspected_entity != Entity(nullptr, 0))
 		{
-
+			
 		}
-
-		ImGui::End();
 	}
 }

@@ -17,9 +17,8 @@ namespace dk
 
 	}
 
-	EditorRenderer::EditorRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_alloc) :
+	EditorRenderer::EditorRenderer(Graphics* graphics) :
 		Renderer(graphics),
-		m_texture_allocator(texture_alloc),
 		m_vk_framebuffers({})
 	{
 		// Create command pool
@@ -111,137 +110,8 @@ namespace dk
 			dk_assert(m_vk_framebuffers[i]);
 		}
 
-		// Create font textures
+		// Create texture descriptor set layout
 		{
-			ImGuiIO& io = ImGui::GetIO();
-
-			// Get texture data
-			unsigned char* pixels;
-			int width, height;
-			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-			size_t upload_size = width * height * 4 * sizeof(char);
-
-			// Create image
-			vk::ImageCreateInfo info = {};
-			info.imageType = vk::ImageType::e2D;
-			info.format = vk::Format::eR8G8B8A8Unorm;
-			info.extent.width = static_cast<uint32_t>(width);
-			info.extent.height = static_cast<uint32_t>(height);
-			info.extent.depth = 1;
-			info.mipLevels = 1;
-			info.arrayLayers = 1;
-			info.samples = vk::SampleCountFlagBits::e1;
-			info.tiling = vk::ImageTiling::eOptimal;
-			info.usage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst;
-			info.sharingMode = vk::SharingMode::eExclusive;
-			info.initialLayout = vk::ImageLayout::eUndefined;
-
-			// Create image
-			vk::Image image;
-			vk::DeviceMemory memory;
-			get_graphics().create_image
-			(
-				static_cast<uint32_t>(width),
-				static_cast<uint32_t>(height),
-				vk::Format::eR8G8B8A8Unorm,
-				vk::ImageTiling::eOptimal,
-				vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst,
-				vk::MemoryPropertyFlagBits::eDeviceLocal,
-				image,
-				memory
-			);
-			dk_assert(image);
-			dk_assert(memory);
-
-			// Create image view
-			vk::ImageView view = get_graphics().create_image_view(image, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
-			dk_assert(view);
-
-			// Create staging buffer
-			VkMemBuffer staging_buffer = get_graphics().create_buffer
-			(
-				static_cast<vk::DeviceSize>(upload_size),
-				vk::BufferUsageFlagBits::eTransferSrc,
-				vk::MemoryPropertyFlagBits::eHostVisible
-			);
-
-			// Transition to transfer mode
-			get_graphics().transition_image_layout(image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-
-			// Upload to buffer
-			void* map = get_graphics().get_logical_device().mapMemory(staging_buffer.memory, 0, upload_size);
-			memcpy(map, pixels, upload_size);
-			vk::MappedMemoryRange range[1] = {};
-			range[0].memory = staging_buffer.memory;
-			range[0].size = upload_size;
-			get_graphics().get_logical_device().flushMappedMemoryRanges(1, range);
-			get_graphics().get_logical_device().unmapMemory(staging_buffer.memory);
-
-			// Copy image data
-			get_graphics().copy_buffer_to_image(staging_buffer.buffer, image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-
-			// Transition back to sampling
-			get_graphics().transition_image_layout(image, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-
-			// Destroy staging buffer
-			staging_buffer.free(get_graphics().get_logical_device());
-
-			// Sampler creation info
-			vk::SamplerCreateInfo sampler_info = {};
-			sampler_info.setMagFilter(vk::Filter::eLinear);
-			sampler_info.setMinFilter(vk::Filter::eLinear);
-			sampler_info.setAddressModeU(vk::SamplerAddressMode::eRepeat);
-			sampler_info.setAddressModeV(vk::SamplerAddressMode::eRepeat);
-			sampler_info.setAddressModeW(vk::SamplerAddressMode::eRepeat);
-			sampler_info.setAnisotropyEnable(false);
-			sampler_info.setMaxAnisotropy(1);
-			sampler_info.setBorderColor(vk::BorderColor::eFloatOpaqueBlack);
-			sampler_info.setUnnormalizedCoordinates(false);
-			sampler_info.setCompareEnable(false);
-			sampler_info.setCompareOp(vk::CompareOp::eAlways);
-			sampler_info.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-			sampler_info.setMipLodBias(0.0f);
-			sampler_info.setMinLod(-1000.0f);
-			sampler_info.setMaxLod(1000.0f);
-
-			// Create sampler
-			vk::Sampler sampler = get_graphics().get_logical_device().createSampler(sampler_info);
-
-			// Create texture
-			if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
-				m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
-
-			m_font_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
-			::new(m_texture_allocator->get_resource_by_handle(m_font_texture.id))(Texture)
-			(
-				&get_graphics(),
-				image,
-				view,
-				sampler,
-				memory,
-				vk::Filter::eLinear,
-				static_cast<uint32_t>(width),
-				static_cast<uint32_t>(height)
-			);
-
-			// Store our identifier
-			io.Fonts->TexID = (void*)(intptr_t)(VkImage)image;
-		}
-
-		// Create font descriptor
-		{
-			// Create descriptor pool
-			vk::DescriptorPoolSize pool_size = { vk::DescriptorType::eCombinedImageSampler, 1 };
-
-			vk::DescriptorPoolCreateInfo pool_info = {};
-			pool_info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-			pool_info.maxSets = 1;
-			pool_info.poolSizeCount = 1;
-			pool_info.pPoolSizes = &pool_size;
-			m_descriptor.pool = get_graphics().get_logical_device().createDescriptorPool(pool_info);
-			dk_assert(m_descriptor.pool);
-
-			// Create descriptor set layout
 			vk::DescriptorSetLayoutBinding binding = {};
 			binding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 			binding.descriptorCount = 1;
@@ -251,16 +121,8 @@ namespace dk
 			vk::DescriptorSetLayoutCreateInfo info = {};
 			info.bindingCount = 1;
 			info.pBindings = &binding;
-			m_descriptor.layout = get_graphics().get_logical_device().createDescriptorSetLayout(info);
-			dk_assert(m_descriptor.layout);
-
-			// Create font descriptor set
-			vk::DescriptorSetAllocateInfo alloc_info = {};
-			alloc_info.descriptorPool = m_descriptor.pool;
-			alloc_info.descriptorSetCount = 1;
-			alloc_info.pSetLayouts = &m_descriptor.layout;
-			m_descriptor.font_set = get_graphics().get_logical_device().allocateDescriptorSets(alloc_info)[0];
-			dk_assert(m_descriptor.font_set);
+			m_vk_font_descriptor_set_layout = get_graphics().get_logical_device().createDescriptorSetLayout(info);
+			dk_assert(m_vk_font_descriptor_set_layout);
 		}
 
 		// Create UI shader
@@ -278,7 +140,7 @@ namespace dk
 			info.pipeline_create_info.push_constant_ranges[0].size = sizeof(float) * 4;
 
 			// Descriptor set layout
-			info.pipeline_create_info.descriptor_set_layouts.push_back(m_descriptor.layout);
+			info.pipeline_create_info.descriptor_set_layouts.push_back(m_vk_font_descriptor_set_layout);
 
 			// Vertex input
 			vk::VertexInputBindingDescription binding_desc = {};
@@ -351,23 +213,6 @@ namespace dk
 				read_binary_file(DK_EDITOR_FRAGMENT_SHADER)
 			);
 		}
-
-		// Update the descriptor sets
-		{
-			vk::DescriptorImageInfo image = {};
-			image.sampler = m_font_texture->get_sampler();
-			image.imageView = m_font_texture->get_image_view();
-			image.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-			vk::WriteDescriptorSet write_desc = {};
-			write_desc.dstSet = m_descriptor.font_set;
-			write_desc.descriptorCount = 1;
-			write_desc.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-			write_desc.pImageInfo = &image;
-			write_desc.dstBinding = 0;
-
-			get_graphics().get_logical_device().updateDescriptorSets(write_desc, {});
-		}
 	}
 
 	void EditorRenderer::shutdown()
@@ -383,9 +228,8 @@ namespace dk
 		m_draw_data.index_buffer.free(get_graphics().get_logical_device());
 		m_draw_data.vertex_buffer.free(get_graphics().get_logical_device());
 
-		// Destroy descriptor
-		get_graphics().get_logical_device().destroyDescriptorSetLayout(m_descriptor.layout);
-		get_graphics().get_logical_device().destroyDescriptorPool(m_descriptor.pool);
+		// Destroy descriptor set layout
+		get_graphics().get_logical_device().destroyDescriptorSetLayout(m_vk_font_descriptor_set_layout);
 
 		// Destroy render pass
 		get_graphics().get_logical_device().destroyRenderPass(m_vk_render_pass);

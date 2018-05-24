@@ -29,9 +29,8 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
-		 * @param Texture allocator.
 		 */
-		EditorRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_alloc);
+		EditorRenderer(Graphics* graphics);
 
 		/**
 		 * @brief Destructor.
@@ -58,21 +57,12 @@ namespace dk
 		}
 
 		/**
-		 * Get font descriptor set.
-		 * @return Font descriptor set.
-		 */
-		vk::DescriptorSet& get_font_descriptor_set()
-		{
-			return m_descriptor.font_set;
-		}
-
-		/**
 		 * Get descriptor set layout.
 		 * @return Descriptor set layout.
 		 */
 		vk::DescriptorSetLayout& get_descriptor_set_layout()
 		{
-			return m_descriptor.layout;
+			return m_vk_font_descriptor_set_layout;
 		}
 
 	private:
@@ -113,30 +103,11 @@ namespace dk
 		/** Primary graphics command buffer. */
 		vk::CommandBuffer m_vk_primary_command_buffer;
 
-		/** Texture allocator. */
-		ResourceAllocator<Texture>* m_texture_allocator;
-
-		/** Font texture. */
-		Handle<Texture> m_font_texture;
-
 		/** UI shader. */
 		std::unique_ptr<Shader> m_ui_shader;
 
-		/**
-		 * Descriptor info.
-		 */
-		struct
-		{
-			/** Descriptor pool. */
-			vk::DescriptorPool pool;
-
-			/** Descriptor set layout. */
-			vk::DescriptorSetLayout layout;
-
-			/** Font descriptor set. */
-			vk::DescriptorSet font_set;
-
-		} m_descriptor;
+		/** Font descriptor set layout. */
+		vk::DescriptorSetLayout m_vk_font_descriptor_set_layout;
 
 		/**
 		 * Draw data.

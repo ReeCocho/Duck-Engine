@@ -83,8 +83,7 @@ namespace dk
 	void SceneView::draw(float delta_time)
 	{
 		// Get window dimensions
-		const float win_height = static_cast<float>(m_renderer->get_graphics().get_height());
-		const float win_width = static_cast<float>(m_renderer->get_graphics().get_width());
+		const ImVec2 win_dim = ImGui::GetWindowSize();
 
 		// Get viewport dimensions
 		const float view_height = static_cast<float>(m_renderer->get_color_texture()->get_height());
@@ -128,14 +127,7 @@ namespace dk
 		}
 
 		// Begin window
-		ImGui::SetNextWindowPos(ImVec2(win_width / 4.0f, 0));
-		ImGui::SetNextWindowSize(ImVec2(win_width / 2.0f, win_height));
-		ImGui::Begin("Scene View", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
-
-		ImGui::Image(m_vk_descriptor_set, ImVec2(win_width / 2.0f, (win_width/2.0f) * view_aspect), ImVec2(1, 1), ImVec2(0, 0));
-
-		// End window
-		ImGui::End();
+		ImGui::Image(m_vk_descriptor_set, ImVec2(win_dim.x, win_dim.x * view_aspect), ImVec2(1, 1), ImVec2(0, 0));
 	}
 
 	glm::mat4 SceneView::generate_vp_matrix(float aspect_ratio, glm::vec3 forward, glm::vec3 up)

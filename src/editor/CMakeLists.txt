@@ -6,10 +6,12 @@ set(IMGUI_FILES
 	imgui/stb_rect_pack.h
 	imgui/stb_textedit.h
 	imgui/stb_truetype.h
+	imgui/imguidock.h
 	
 	imgui/imgui.cpp
 	imgui/imgui_demo.cpp
 	imgui/imgui_draw.cpp
+	imgui/imguidock.cpp
 )
 
 # Headers
@@ -20,6 +22,8 @@ set(DUCK_EDITOR_HDRS
 	inspector.hpp
 	scene_view.hpp
 	file_explorer.hpp
+	toolbar.hpp
+	editor_window.hpp
 )
 
 # Sources
@@ -30,6 +34,8 @@ set(DUCK_EDITOR_SRCS
 	inspector.cpp
 	scene_view.cpp
 	file_explorer.cpp
+	toolbar.cpp
+	editor_window.cpp
 )
 
 # ECS lib
