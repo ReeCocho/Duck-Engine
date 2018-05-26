@@ -71,7 +71,7 @@ namespace dk
 			stream >> j;
 
 			// Init graphics
-			::new(&graphics)(Graphics)(j["thread_count"], j["title"], j["width"], j["height"]);
+			::new(&graphics)(Graphics)(j["thread_count"], j["title"], j["width"], j["height"], SDL_WINDOW_RESIZABLE);
 
 			// Init resource manager
 			::new(&resource_manager)(ResourceManager)(&renderer);
@@ -80,8 +80,16 @@ namespace dk
 			::new(&physics)(Physics)(glm::vec3(j["gravity"][0], j["gravity"][1], j["gravity"][2]));
 
 			// Init renderers
-			::new(&renderer)(OffScreenForwardRenderer)(&graphics, &resource_manager.get_texture_allocator(), &resource_manager.get_mesh_allocator());
-			::new(&editor_renderer)(EditorRenderer)(&graphics);
+			::new(&renderer)(OffScreenForwardRenderer)
+			(
+				&graphics, 
+				graphics.get_width(), 
+				graphics.get_height(), 
+				&resource_manager.get_texture_allocator(), 
+				&resource_manager.get_mesh_allocator()
+			);
+			
+			::new(&editor_renderer)(EditorRenderer)(&graphics, graphics.get_width(), graphics.get_height());
 
 			// Load resources
 			resource_manager.load_resources
@@ -128,6 +136,17 @@ namespace dk
 			{
 				// Gather input
 				input.poll_events();
+
+				// Resize window if needed
+				if (input.is_resizing())
+				{
+					rendering_thread->wait();
+					ImGuiIO& io = ImGui::GetIO();
+					int w, h;
+					SDL_GetWindowSize(graphics.get_window(), &w, &h);
+					renderer.resize(w, h);
+					io.DisplaySize = ImVec2(static_cast<float>(w), static_cast<float>(h));
+				}
 
 				// Get delta time
 				delta_time = game_clock.get_delta_time();

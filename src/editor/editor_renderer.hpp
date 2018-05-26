@@ -29,8 +29,10 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Width.
+		 * @param Height.
 		 */
-		EditorRenderer(Graphics* graphics);
+		EditorRenderer(Graphics* graphics, int width, int height);
 
 		/**
 		 * @brief Destructor.
@@ -46,6 +48,13 @@ namespace dk
 		 * @brief Render everything to the screen.
 		 */
 		void render() override;
+
+		/**
+		 * Resize the window.
+		 * @param New width.
+		 * @param New height.
+		 */
+		void resize(int width, int height);
 
 		/**
 		 * @brief Get swapchain manager.
@@ -79,6 +88,11 @@ namespace dk
 		 * @return This.
 		 */
 		EditorRenderer& operator=(const EditorRenderer& other) { return *this; };
+
+		/**
+		 * Rebuild the swapchain.
+		 */
+		void rebuild_swapchain();
 
 
 

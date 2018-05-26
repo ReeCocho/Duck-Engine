@@ -74,10 +74,19 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Width.
+		 * @param Height.
 		 * @param Texture allocator.
 		 * @param Mesh allocator.
 		 */
-		ForwardRendererBase(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
+		ForwardRendererBase
+		(
+			Graphics* graphics, 
+			int width, 
+			int height,
+			ResourceAllocator<Texture>* texture_allocator, 
+			ResourceAllocator<Mesh>* mesh_allocator
+		);
 
 		/**
 		 * @brief Destructor.
@@ -229,6 +238,16 @@ namespace dk
 		 */
 		void flush_queues();
 
+		/**
+		 * Create the depth image and framebuffer.
+		 */
+		void create_depth_data();
+
+		/**
+		 * Destroy the depth image and framebuffer.
+		 */
+		void destroy_depth_data();
+
 
 		
 		/** Lighting manager. */
@@ -365,6 +384,13 @@ namespace dk
 		 */
 		void render() override;
 
+		/**
+		 * Resize the window.
+		 * @param New width.
+		 * @param New height.
+		 */
+		void resize(int width, int height) override;
+
 	private:
 
 		/**
@@ -379,6 +405,16 @@ namespace dk
 		 * @return This.
 		 */
 		ForwardRenderer& operator=(const ForwardRenderer& other) { return *this; };
+
+		/**
+		 * Create swapchain and framebuffers.
+		 */
+		void create_swapchain_data();
+
+		/**
+		 * Destroy swapchain and framebuffers.
+		 */
+		void destroy_swapchain_data();
 
 
 
@@ -413,10 +449,19 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Width.
+		 * @param Height.
 		 * @param Texture allocator.
 		 * @param Mesh allocator.
 		 */
-		OffScreenForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator);
+		OffScreenForwardRenderer
+		(
+			Graphics* graphics, 
+			int width, 
+			int height, 
+			ResourceAllocator<Texture>* texture_allocator, 
+			ResourceAllocator<Mesh>* mesh_allocator
+		);
 
 		/**
 		 * @brief Destructor.
@@ -427,6 +472,13 @@ namespace dk
 		 * @brief Shutdown the renderer.
 		 */
 		void shutdown() override;
+
+		/**
+		 * Resize the window.
+		 * @param New width.
+		 * @param New height.
+		 */
+		void resize(int width, int height) override;
 
 		/**
 		 * @brief Render everything to the screen.
@@ -457,6 +509,15 @@ namespace dk
 		 */
 		OffScreenForwardRenderer& operator=(const OffScreenForwardRenderer& other) { return *this; };
 
+		/**
+		 * Create color texture and framebuffer.
+		 */
+		void create_color_data();
+
+		/**
+		 * Destroy color texture and framebuffer.
+		 */
+		void destroy_color_data();
 
 
 		/** Color frame buffer. */

@@ -1208,8 +1208,8 @@ struct DockContext
                 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus |
                 extra_flags;
 	char tmp[256];
-	strcpy(tmp, label);
-	strcat(tmp, "_docked"); // to avoid https://github.com/ocornut/imgui/issues/713
+	strcpy_s(tmp, label);
+	strcat_s(tmp, "_docked"); // to avoid https://github.com/ocornut/imgui/issues/713
 	bool ret = BeginChild(tmp, size, true, flags);
 	PopStyleColor(2);
 

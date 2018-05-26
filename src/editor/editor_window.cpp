@@ -325,8 +325,9 @@ namespace dk
 		m_toolbar->draw();
 
 		// Docking
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+		const ImVec2 display_size = ImGui::GetIO().DisplaySize;
+		ImGui::SetNextWindowPos(ImVec2(0, 16));
+		ImGui::SetNextWindowSize(ImVec2(display_size.x, display_size.y - 16));
 		const ImGuiWindowFlags flags = (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
 		const float oldWindowRounding = ImGui::GetStyle().WindowRounding; ImGui::GetStyle().WindowRounding = 0;
 		const bool visible = ImGui::Begin("imguidock window (= lumix engine's dock system)", NULL, ImVec2(0, 0), 1.0f, flags);
@@ -336,18 +337,18 @@ namespace dk
 			ImGui::BeginDockspace();
 
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
-			ImGui::BeginDock("Inspector");
-			m_inspector->draw();
+			if(ImGui::BeginDock("Inspector"))
+				m_inspector->draw();
 			ImGui::EndDock();
 
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
-			ImGui::BeginDock("Scene View");
-			m_scene_view->draw(dt);
+			if(ImGui::BeginDock("Scene View"))
+				m_scene_view->draw(dt);
 			ImGui::EndDock();
 
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
-			ImGui::BeginDock("Hierarchy");
-			m_hierarchy->draw();
+			if(ImGui::BeginDock("Hierarchy"))
+				m_hierarchy->draw();
 			ImGui::EndDock();
 
 			ImGui::EndDockspace();

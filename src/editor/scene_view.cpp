@@ -82,8 +82,27 @@ namespace dk
 
 	void SceneView::draw(float delta_time)
 	{
-		// Get window dimensions
+		// Update the descriptor set if needed
+		if (m_input->is_resizing())
+		{
+			vk::DescriptorImageInfo image = {};
+			image.sampler = m_renderer->get_color_texture()->get_sampler();
+			image.imageView = m_renderer->get_color_texture()->get_image_view();
+			image.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+			vk::WriteDescriptorSet write_desc = {};
+			write_desc.dstSet = m_vk_descriptor_set;
+			write_desc.descriptorCount = 1;
+			write_desc.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			write_desc.pImageInfo = &image;
+			write_desc.dstBinding = 0;
+
+			m_renderer->get_graphics().get_logical_device().updateDescriptorSets(write_desc, {});
+		}
+
+		// Get window dimensions and position
 		const ImVec2 win_dim = ImGui::GetWindowSize();
+		const ImVec2 win_pos = ImGui::GetWindowPos();
 
 		// Get viewport dimensions
 		const float view_height = static_cast<float>(m_renderer->get_color_texture()->get_height());
@@ -98,7 +117,17 @@ namespace dk
 		const glm::vec2 mouse_del = m_input->get_mouse_delta();
 		const glm::vec2 mouse_pos = m_input->get_mouse_position();
 
-		if (m_input->get_mouse_button_held(MouseButton::Right))
+		// Compute viewport size
+		const ImVec2 viewport_size = ImVec2(win_dim.x, win_dim.x * view_aspect);
+
+		if 
+		(
+			m_input->get_mouse_button_held(MouseButton::Right) && 
+			mouse_pos.x > win_pos.x && 
+			mouse_pos.x < win_pos.x + viewport_size.x &&
+			mouse_pos.y > win_pos.y &&
+			mouse_pos.y < win_pos.y + viewport_size.y
+		)
 		{
 			// Rotate camera
 			m_camera.rotation.y += mouse_del.x * 0.08f;

@@ -174,7 +174,7 @@ namespace dk
 
 		/**
 		 * @brief Default constructor.
-		 * @param Dummy variable
+		 * @param Dummy variable.
 		 */
 		Input(char dummy);
 
@@ -433,6 +433,15 @@ namespace dk
 		}
 
 		/**
+		 * If the window is resizing.
+		 * @return If the window is resizing.
+		 */
+		bool is_resizing() const
+		{
+			return m_resizing;
+		}
+
+		/**
 		 * Get text input.
 		 * @return Text input.
 		 */
@@ -454,6 +463,9 @@ namespace dk
 
 		/** Window quit flag. */
 		bool m_closing = false;
+		
+		/** Window resizing flag. */
+		bool m_resizing = false;
 
 		/** LMB State. */
 		std::tuple<bool, bool> m_left_mouse_button = {};

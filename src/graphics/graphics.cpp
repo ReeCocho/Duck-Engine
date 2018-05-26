@@ -10,7 +10,7 @@
 
 namespace dk
 {
-	Graphics::Graphics(size_t thread_count, const std::string& name, int width, int height) :
+	Graphics::Graphics(size_t thread_count, const std::string& name, int width, int height, uint32_t flags) :
 		m_name(name)
 	{
 		// Bounds checking
@@ -30,7 +30,7 @@ namespace dk
 			SDL_WINDOWPOS_CENTERED,
 			width,
 			height,
-			SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN
+			SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | flags
 		);
 
 		// Check window creation

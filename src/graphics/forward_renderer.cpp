@@ -17,8 +17,15 @@ namespace dk
 
 	}
 
-	ForwardRendererBase::ForwardRendererBase(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) :
-		Renderer(graphics),
+	ForwardRendererBase::ForwardRendererBase
+	(
+		Graphics* graphics,
+		int width,
+		int height,
+		ResourceAllocator<Texture>* texture_allocator,
+		ResourceAllocator<Mesh>* mesh_allocator
+	) :
+		Renderer(graphics, width, height),
 		m_texture_allocator(texture_allocator),
 		m_mesh_allocator(mesh_allocator)
 	{
@@ -97,73 +104,8 @@ namespace dk
 			m_render_passes.depth_prepass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
 		}
 
-		// Create depth image
-		{
-			auto depth_format = find_best_depth_format(get_graphics().get_physical_device());
-
-			// Depth attachment
-			FrameBufferAttachment depth = get_graphics().create_attachment
-			(
-				depth_format,
-				vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
-			);
-
-			// Create sampler to sample from the attachments
-			vk::SamplerCreateInfo sampler = {};
-			sampler.setMagFilter(vk::Filter::eNearest);
-			sampler.setMinFilter(vk::Filter::eNearest);
-			sampler.setMipmapMode(vk::SamplerMipmapMode::eLinear);
-			sampler.setAddressModeU(vk::SamplerAddressMode::eClampToEdge);
-			sampler.setAddressModeV(sampler.addressModeU);
-			sampler.setAddressModeW(sampler.addressModeU);
-			sampler.setMipLodBias(0.0f);
-			sampler.setMaxAnisotropy(1.0f);
-			sampler.setMinLod(0.0f);
-			sampler.setMaxLod(1.0f);
-			sampler.setBorderColor(vk::BorderColor::eFloatOpaqueWhite);
-
-			// Create sampler
-			vk::Sampler depth_sampler = get_graphics().get_logical_device().createSampler(sampler);
-
-			// Resize allocator if needed
-			if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
-				m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
-
-			// Create attachments
-			m_depth_prepass_image.depth_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
-
-			::new(m_texture_allocator->get_resource_by_handle(m_depth_prepass_image.depth_texture.id))(Texture)
-			(
-				&get_graphics(),
-				depth.image,
-				depth.view,
-				depth_sampler,
-				depth.memory,
-				vk::Filter::eNearest,
-				get_graphics().get_width(),
-				get_graphics().get_height()
-			);
-
-			vk::FramebufferCreateInfo fbuf_create_info = {};
-			fbuf_create_info.pNext = nullptr;
-			fbuf_create_info.renderPass = m_render_passes.depth_prepass;
-			fbuf_create_info.pAttachments = &m_depth_prepass_image.depth_texture->get_image_view();
-			fbuf_create_info.attachmentCount = 1;
-			fbuf_create_info.width = get_graphics().get_width();
-			fbuf_create_info.height = get_graphics().get_height();
-			fbuf_create_info.layers = 1;
-
-			// Create framebuffer
-			m_depth_prepass_image.framebuffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
-
-			get_graphics().transition_image_layout
-			(
-				m_depth_prepass_image.depth_texture->get_image(),
-				depth_format,
-				vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eDepthStencilAttachmentOptimal
-			);
-		}
+		// Create depth data
+		create_depth_data();
 
 		// Create descriptor set
 		{
@@ -261,9 +203,7 @@ namespace dk
 		get_graphics().get_logical_device().destroySemaphore(m_semaphores.depth_prepass_finished);
 
 		// Depth depth image
-		get_graphics().get_logical_device().destroyFramebuffer(m_depth_prepass_image.framebuffer);
-		m_depth_prepass_image.depth_texture->free();
-		m_texture_allocator->deallocate(m_depth_prepass_image.depth_texture.id);
+		destroy_depth_data();
 
 		// Destroy command pool
 		get_graphics().get_logical_device().destroyCommandPool(m_vk_command_pool);
@@ -655,6 +595,84 @@ namespace dk
 		command_buffer.end();
 	}
 
+	void ForwardRendererBase::create_depth_data()
+	{
+		auto depth_format = find_best_depth_format(get_graphics().get_physical_device());
+
+		// Depth attachment
+		FrameBufferAttachment depth = get_graphics().create_attachment
+		(
+			depth_format,
+			vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled
+		);
+
+		// Create sampler to sample from the attachments
+		vk::SamplerCreateInfo sampler = {};
+		sampler.setMagFilter(vk::Filter::eNearest);
+		sampler.setMinFilter(vk::Filter::eNearest);
+		sampler.setMipmapMode(vk::SamplerMipmapMode::eLinear);
+		sampler.setAddressModeU(vk::SamplerAddressMode::eClampToEdge);
+		sampler.setAddressModeV(sampler.addressModeU);
+		sampler.setAddressModeW(sampler.addressModeU);
+		sampler.setMipLodBias(0.0f);
+		sampler.setMaxAnisotropy(1.0f);
+		sampler.setMinLod(0.0f);
+		sampler.setMaxLod(1.0f);
+		sampler.setBorderColor(vk::BorderColor::eFloatOpaqueWhite);
+
+		// Create sampler
+		vk::Sampler depth_sampler = get_graphics().get_logical_device().createSampler(sampler);
+
+		// Resize allocator if needed
+		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
+			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
+
+		// Create attachments
+		m_depth_prepass_image.depth_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
+
+		::new(m_texture_allocator->get_resource_by_handle(m_depth_prepass_image.depth_texture.id))(Texture)
+		(
+			&get_graphics(),
+			depth.image,
+			depth.view,
+			depth_sampler,
+			depth.memory,
+			vk::Filter::eNearest,
+			get_width(),
+			get_height()
+		);
+
+		vk::FramebufferCreateInfo fbuf_create_info = {};
+		fbuf_create_info.pNext = nullptr;
+		fbuf_create_info.renderPass = m_render_passes.depth_prepass;
+		fbuf_create_info.pAttachments = &m_depth_prepass_image.depth_texture->get_image_view();
+		fbuf_create_info.attachmentCount = 1;
+		fbuf_create_info.width = get_width();
+		fbuf_create_info.height = get_height();
+		fbuf_create_info.layers = 1;
+
+		// Create framebuffer
+		m_depth_prepass_image.framebuffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
+
+		get_graphics().transition_image_layout
+		(
+			m_depth_prepass_image.depth_texture->get_image(),
+			depth_format,
+			vk::ImageLayout::eUndefined,
+			vk::ImageLayout::eDepthStencilAttachmentOptimal
+		);
+	}
+
+	void ForwardRendererBase::destroy_depth_data()
+	{
+		// Destroy depth texture
+		m_depth_prepass_image.depth_texture->free();
+		m_texture_allocator->deallocate(m_depth_prepass_image.depth_texture.id);
+
+		// Destroy depth framebuffer
+		get_graphics().get_logical_device().destroyFramebuffer(m_depth_prepass_image.framebuffer);
+	}
+
 
 
 	ForwardRenderer::ForwardRenderer()
@@ -663,16 +681,17 @@ namespace dk
 	}
 
 	ForwardRenderer::ForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) :
-		ForwardRendererBase(graphics, texture_allocator, mesh_allocator),
+		ForwardRendererBase(graphics, graphics->get_width(), graphics->get_height(), texture_allocator, mesh_allocator),
 		m_vk_framebuffers({})
 	{
+		// Create swapchain manager
 		m_swapchain_manager = std::make_unique<VkSwapchainManager>
 		(
-				get_graphics().get_physical_device(),
-				get_graphics().get_logical_device(),
-				get_graphics().get_surface(),
-				get_graphics().get_width(),
-				get_graphics().get_height()
+			get_graphics().get_physical_device(),
+			get_graphics().get_logical_device(),
+			get_graphics().get_surface(),
+			get_width(),
+			get_height()
 		);
 
 		// Create semaphore
@@ -787,12 +806,8 @@ namespace dk
 		// Destroy semaphore
 		get_graphics().get_logical_device().destroySemaphore(m_vk_image_available);
 
-		// Destroy framebuffers
-		for (auto& framebuffer : m_vk_framebuffers)
-			get_graphics().get_logical_device().destroyFramebuffer(framebuffer);
-
-		// Destroy swapchain
-		m_swapchain_manager.reset();
+		// Destroy swapchain data
+		destroy_swapchain_data();
 	}
 
 	void ForwardRenderer::render()
@@ -814,8 +829,8 @@ namespace dk
 
 		// Window extent
 		vk::Extent2D extent = {};
-		extent.width = static_cast<uint32_t>(get_graphics().get_width());
-		extent.height = static_cast<uint32_t>(get_graphics().get_height());
+		extent.width = static_cast<uint32_t>(get_width());
+		extent.height = static_cast<uint32_t>(get_height());
 
 		// Perform depth prepass
 		generate_depth_prepass_command_buffer(extent);
@@ -872,6 +887,57 @@ namespace dk
 		flush_queues();
 	}
 
+	void ForwardRenderer::resize(int width, int height)
+	{
+		Renderer::resize(width, height);
+		SDL_Window* window = get_graphics().get_window();
+		SDL_SetWindowSize(window, width, height);
+	}
+
+	void ForwardRenderer::create_swapchain_data()
+	{
+		// Create swapchain
+		m_swapchain_manager = std::make_unique<VkSwapchainManager>
+		(
+			get_graphics().get_physical_device(),
+			get_graphics().get_logical_device(),
+			get_graphics().get_surface(),
+			get_width(),
+			get_height()
+		);
+
+		// Create framebuffers
+		for (size_t i = 0; i < m_vk_framebuffers.size(); i++)
+		{
+			std::array<vk::ImageView, 2> attachments =
+			{
+				get_swapchain_manager().get_image_view(i),
+				m_depth_prepass_image.depth_texture->get_image_view()
+			};
+
+			vk::FramebufferCreateInfo framebuffer_info = {};
+			framebuffer_info.renderPass = m_render_passes.shader_pass;
+			framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+			framebuffer_info.pAttachments = attachments.data();
+			framebuffer_info.width = get_swapchain_manager().get_image_extent().width;
+			framebuffer_info.height = get_swapchain_manager().get_image_extent().height;
+			framebuffer_info.layers = 1;
+
+			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
+			dk_assert(m_vk_framebuffers[i]);
+		}
+	}
+
+	void ForwardRenderer::destroy_swapchain_data()
+	{
+		// Destroy framebuffers
+		for (auto& framebuffer : m_vk_framebuffers)
+			get_graphics().get_logical_device().destroyFramebuffer(framebuffer);
+
+		// Destroy swapchain
+		m_swapchain_manager.reset();
+	}
+
 
 
 	OffScreenForwardRenderer::OffScreenForwardRenderer()
@@ -879,8 +945,13 @@ namespace dk
 
 	}
 
-	OffScreenForwardRenderer::OffScreenForwardRenderer(Graphics* graphics, ResourceAllocator<Texture>* texture_allocator, ResourceAllocator<Mesh>* mesh_allocator) :
-		ForwardRendererBase(graphics, texture_allocator, mesh_allocator)
+	OffScreenForwardRenderer::OffScreenForwardRenderer(
+		Graphics* graphics,
+		int width,
+		int height,
+		ResourceAllocator<Texture>* texture_allocator,
+		ResourceAllocator<Mesh>* mesh_allocator
+	) : ForwardRendererBase(graphics, width, height, texture_allocator, mesh_allocator)
 	{
 		// Get swapchain details
 		SwapChainSupportDetails swap_chain_support = query_swap_chain_support
@@ -893,8 +964,8 @@ namespace dk
 		vk::Extent2D extent = choose_swap_extent
 		(
 			swap_chain_support.capabilities,
-			static_cast<uint32_t>(graphics->get_width()), 
-			static_cast<uint32_t>(graphics->get_height())
+			static_cast<uint32_t>(get_width()), 
+			static_cast<uint32_t>(get_height())
 		);
 
 		// Create shader pass
@@ -969,66 +1040,8 @@ namespace dk
 			m_render_passes.shader_pass = get_graphics().get_logical_device().createRenderPass(render_pass_info);
 		}
 
-		// Create framebuffer attachments
-		FrameBufferAttachment color = get_graphics().create_attachment
-		(
-			surface_format.format,
-			vk::ImageUsageFlagBits::eColorAttachment
-		);
-
-		// Create sampler to sample from the attachments
-		vk::SamplerCreateInfo sampler = {};
-		sampler.magFilter = vk::Filter::eLinear;
-		sampler.minFilter = vk::Filter::eLinear;
-		sampler.mipmapMode = vk::SamplerMipmapMode::eLinear;
-		sampler.addressModeU = vk::SamplerAddressMode::eClampToEdge;
-		sampler.addressModeV = sampler.addressModeU;
-		sampler.addressModeW = sampler.addressModeU;
-		sampler.mipLodBias = 0.0f;
-		sampler.maxAnisotropy = 1.0f;
-		sampler.minLod = 0.0f;
-		sampler.maxLod = 1.0f;
-		sampler.borderColor = vk::BorderColor::eFloatOpaqueWhite;
-
-		// Create samplers
-		vk::Sampler color_sampler = get_graphics().get_logical_device().createSampler(sampler);
-
-		// Resize allocator if needed
-		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
-			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
-
-		// Create attachments
-		m_color_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
-
-		::new(m_color_texture.allocator->get_resource_by_handle(m_color_texture.id))(Texture)
-		(
-			&get_graphics(), 
-			color.image, 
-			color.view, 
-			color_sampler, 
-			color.memory,
-			vk::Filter::eLinear,
-			extent.width, 
-			extent.height
-		);
-
-		// Create color frame buffer
-		{
-			std::array<vk::ImageView, 2> attachments;
-			attachments[0] = m_color_texture->get_image_view();
-			attachments[1] = m_depth_prepass_image.depth_texture->get_image_view();
-
-			vk::FramebufferCreateInfo fbuf_create_info = {};
-			fbuf_create_info.pNext = nullptr;
-			fbuf_create_info.renderPass = m_render_passes.shader_pass;
-			fbuf_create_info.pAttachments = attachments.data();
-			fbuf_create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-			fbuf_create_info.width = extent.width;
-			fbuf_create_info.height = extent.height;
-			fbuf_create_info.layers = 1;
-
-			m_color_frame_buffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
-		}
+		// Create color data
+		create_color_data();
 	}
 
 	void OffScreenForwardRenderer::shutdown()
@@ -1038,12 +1051,17 @@ namespace dk
 
 		ForwardRendererBase::shutdown();
 
-		// Destroy framebuffer
-		get_graphics().get_logical_device().destroyFramebuffer(m_color_frame_buffer);
+		// Destroy color data
+		destroy_color_data();
+	}
 
-		// Destroy texture
-		m_color_texture->free();
-		m_texture_allocator->deallocate(m_color_texture.id);
+	void OffScreenForwardRenderer::resize(int width, int height)
+	{
+		Renderer::resize(width, height);
+		destroy_depth_data();
+		destroy_color_data();
+		create_depth_data();
+		create_color_data();
 	}
 
 	void OffScreenForwardRenderer::render()
@@ -1053,8 +1071,8 @@ namespace dk
 
 		// Window extent
 		vk::Extent2D extent = {};
-		extent.width = static_cast<uint32_t>(m_color_texture->get_width());
-		extent.height = static_cast<uint32_t>(m_color_texture->get_height());
+		extent.width = static_cast<uint32_t>(get_width());
+		extent.height = static_cast<uint32_t>(get_height());
 
 		// Perform depth prepass
 		generate_depth_prepass_command_buffer(extent);
@@ -1097,5 +1115,87 @@ namespace dk
 
 		// Clear rendering queues
 		flush_queues();
+	}
+
+	void OffScreenForwardRenderer::create_color_data()
+	{
+		// Get swapchain details
+		SwapChainSupportDetails swap_chain_support = query_swap_chain_support
+		(
+			get_graphics().get_physical_device(),
+			get_graphics().get_surface()
+		);
+		vk::SurfaceFormatKHR surface_format = choose_swap_surface_format(swap_chain_support.formats);
+
+		// Create framebuffer attachments
+		FrameBufferAttachment color = get_graphics().create_attachment
+		(
+			surface_format.format,
+			vk::ImageUsageFlagBits::eColorAttachment
+		);
+
+		// Create sampler to sample from the attachments
+		vk::SamplerCreateInfo sampler = {};
+		sampler.magFilter = vk::Filter::eLinear;
+		sampler.minFilter = vk::Filter::eLinear;
+		sampler.mipmapMode = vk::SamplerMipmapMode::eLinear;
+		sampler.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+		sampler.addressModeV = sampler.addressModeU;
+		sampler.addressModeW = sampler.addressModeU;
+		sampler.mipLodBias = 0.0f;
+		sampler.maxAnisotropy = 1.0f;
+		sampler.minLod = 0.0f;
+		sampler.maxLod = 1.0f;
+		sampler.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+
+		// Create samplers
+		vk::Sampler color_sampler = get_graphics().get_logical_device().createSampler(sampler);
+
+		// Resize allocator if needed
+		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
+			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
+
+		// Create attachments
+		m_color_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
+
+		::new(m_color_texture.allocator->get_resource_by_handle(m_color_texture.id))(Texture)
+		(
+			&get_graphics(),
+			color.image,
+			color.view,
+			color_sampler,
+			color.memory,
+			vk::Filter::eLinear,
+			get_width(),
+			get_height()
+		);
+
+		// Create color frame buffer
+		{
+			std::array<vk::ImageView, 2> attachments;
+			attachments[0] = m_color_texture->get_image_view();
+			attachments[1] = m_depth_prepass_image.depth_texture->get_image_view();
+
+			vk::FramebufferCreateInfo fbuf_create_info = {};
+			fbuf_create_info.pNext = nullptr;
+			fbuf_create_info.renderPass = m_render_passes.shader_pass;
+			fbuf_create_info.pAttachments = attachments.data();
+			fbuf_create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+			fbuf_create_info.width = get_width();
+			fbuf_create_info.height = get_height();
+			fbuf_create_info.layers = 1;
+
+			m_color_frame_buffer = get_graphics().get_logical_device().createFramebuffer(fbuf_create_info);
+		}
+	}
+
+	void OffScreenForwardRenderer::destroy_color_data()
+	{
+		// Destroy framebuffer
+		get_graphics().get_logical_device().destroyFramebuffer(m_color_frame_buffer);
+
+		// Destroy texture
+		m_color_texture->free();
+		m_texture_allocator->deallocate(m_color_texture.id);
 	}
 }

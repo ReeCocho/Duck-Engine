@@ -17,8 +17,8 @@ namespace dk
 
 	}
 
-	EditorRenderer::EditorRenderer(Graphics* graphics) :
-		Renderer(graphics),
+	EditorRenderer::EditorRenderer(Graphics* graphics, int width, int height) :
+		Renderer(graphics, width, height),
 		m_vk_framebuffers({})
 	{
 		// Create command pool
@@ -42,8 +42,8 @@ namespace dk
 			get_graphics().get_physical_device(),
 			get_graphics().get_logical_device(),
 			get_graphics().get_surface(),
-			get_graphics().get_width(),
-			get_graphics().get_height()
+			width,
+			height
 		);
 
 		// Create semaphores
@@ -264,13 +264,28 @@ namespace dk
 			return;
 
 		// Get image index to render too
-		uint32_t image_index = get_graphics().get_logical_device().acquireNextImageKHR
-		(
-			get_swapchain_manager().get_swapchain(),
-			std::numeric_limits<uint64_t>::max(),
-			m_vk_image_available,
-			vk::Fence()
-		).value;
+		vk::ResultValue<uint32_t> acquire_result = vk::ResultValue<uint32_t>(vk::Result::eIncomplete, 0);
+		try
+		{
+			acquire_result = get_graphics().get_logical_device().acquireNextImageKHR
+			(
+				get_swapchain_manager().get_swapchain(),
+				std::numeric_limits<uint64_t>::max(),
+				m_vk_image_available,
+				vk::Fence()
+			);
+		}
+		// Screen resizing
+		catch(vk::OutOfDateKHRError err)
+		{
+			rebuild_swapchain();
+			return;
+		}
+
+		if (acquire_result.result != vk::Result::eSuccess && acquire_result.result != vk::Result::eSuboptimalKHR)
+			throw std::runtime_error("VULKAN: Unable to acquire a swap chain image!");
+
+		uint32_t image_index = acquire_result.value;
 
 		// Update vertex and index buffers
 		{
@@ -368,8 +383,8 @@ namespace dk
 
 			// Window extent
 			vk::Extent2D extent = {};
-			extent.width = static_cast<uint32_t>(get_graphics().get_width());
-			extent.height = static_cast<uint32_t>(get_graphics().get_height());
+			extent.width = static_cast<uint32_t>(get_width());
+			extent.height = static_cast<uint32_t>(get_height());
 
 			// Set viewport
 			vk::Viewport viewport = {};
@@ -397,10 +412,7 @@ namespace dk
 			m_vk_primary_command_buffer.beginRenderPass(render_pass_begin_info, vk::SubpassContents::eInline);
 
 			// Bind pipeline
-			{
-				m_vk_primary_command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ui_shader->get_pipeline(0).pipeline);
-
-			}
+			m_vk_primary_command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_ui_shader->get_pipeline(0).pipeline);
 
 			// Bind Vertex And Index Buffer:
 			{
@@ -491,10 +503,74 @@ namespace dk
 			present_info.pSwapchains = &get_swapchain_manager().get_swapchain();
 			present_info.pImageIndices = &image_index;
 
-			get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
-		}
+			// Handles screen resizing
+			vk::Result result = vk::Result::eIncomplete;
+			try
+			{
+				result = get_graphics().get_device_manager().get_present_queue().presentKHR(present_info);
+			}
+			catch (vk::OutOfDateKHRError err)
+			{
+				rebuild_swapchain();
+				return;
+			}
 
-		// ImGuiIO& io = ImGui::GetIO();
-		// ImGui::NewFrame();
+			if (result == vk::Result::eSuboptimalKHR)
+				rebuild_swapchain();
+			else if (result != vk::Result::eSuccess)
+				throw std::runtime_error("VULKAN: Failed to present swap chain image!");
+		}
+	}
+
+	void EditorRenderer::resize(int width, int height)
+	{
+		Renderer::resize(width, height);
+		SDL_Window* window = get_graphics().get_window();
+		SDL_SetWindowSize(window, width, height);
+	}
+
+	void EditorRenderer::rebuild_swapchain()
+	{
+		// Wait for the GPU to be idle.
+		get_graphics().get_logical_device().waitIdle();
+		get_graphics().get_device_manager().get_present_queue().waitIdle();
+		get_graphics().get_device_manager().get_graphics_queue().waitIdle();
+		get_graphics().get_device_manager().get_transfer_queue().waitIdle();
+
+		// Update dimensions
+		Renderer::resize(get_graphics().get_width(), get_graphics().get_height());
+
+		// Destroy framebuffers
+		for (auto& framebuffer : m_vk_framebuffers)
+			get_graphics().get_logical_device().destroyFramebuffer(framebuffer);
+
+		// Destroy swapchain
+		m_swapchain_manager.reset();
+
+		// Create swapchain
+		m_swapchain_manager = std::make_unique<VkSwapchainManager>
+		(
+			get_graphics().get_physical_device(),
+			get_graphics().get_logical_device(),
+			get_graphics().get_surface(),
+			get_width(),
+			get_height()
+		);
+
+		// Create framebuffers
+		m_vk_framebuffers.resize(m_swapchain_manager->get_image_count());
+		for (size_t i = 0; i < m_vk_framebuffers.size(); i++)
+		{
+			vk::FramebufferCreateInfo framebuffer_info = {};
+			framebuffer_info.renderPass = m_vk_render_pass;
+			framebuffer_info.attachmentCount = 1;
+			framebuffer_info.pAttachments = &get_swapchain_manager().get_image_view(i);
+			framebuffer_info.width = get_swapchain_manager().get_image_extent().width;
+			framebuffer_info.height = get_swapchain_manager().get_image_extent().height;
+			framebuffer_info.layers = 1;
+
+			m_vk_framebuffers[i] = get_graphics().get_logical_device().createFramebuffer(framebuffer_info);
+			dk_assert(m_vk_framebuffers[i]);
+		}
 	}
 }

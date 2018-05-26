@@ -35,8 +35,9 @@ namespace dk
 		 * @param Window name.
 		 * @param Window width.
 		 * @param Window height.
+		 * @param Extra window flags.
 		 */
-		Graphics(size_t thread_count, const std::string& name, int width, int height);
+		Graphics(size_t thread_count, const std::string& name, int width, int height, uint32_t flags = 0);
 
 		/**
 		 * @brief Destructor.

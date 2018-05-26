@@ -30,8 +30,10 @@ namespace dk
 		/**
 		 * @brief Constructor.
 		 * @param Graphics context.
+		 * @param Width.
+		 * @param Height.
 		 */
-		Renderer(Graphics* graphics);
+		Renderer(Graphics* graphics, int width, int height);
 
 		/**
 		 * @brief Destructor.
@@ -57,6 +59,31 @@ namespace dk
 		 */
 		virtual void render() = 0;
 
+		/**
+		 * Resize the window.
+		 * @param New width.
+		 * @param New height.
+		 */
+		virtual void resize(int width, int height);
+
+		/**
+		 * Get window width.
+		 * @return Window width.
+		 */
+		int get_width() const
+		{
+			return m_width;
+		}
+
+		/**
+		 * Get window height.
+		 * @return Window height.
+		 */
+		int get_height() const
+		{
+			return m_height;
+		}
+
 	private:
 
 		/**
@@ -76,5 +103,11 @@ namespace dk
 
 		/** Graphics context. */
 		Graphics* m_graphics;
+
+		/** Width. */
+		int m_width;
+
+		/** Height. */
+		int m_height;
 	};
 }

@@ -18,6 +18,9 @@ namespace dk
 
 	void Input::poll_events()
 	{
+		// Reset flags
+		m_resizing = false;
+
 		// Reset text input
 		m_text_input = "";
 
@@ -85,6 +88,12 @@ namespace dk
 			else if (evt.type == SDL_MOUSEWHEEL)
 			{
 				m_mouse_wheel = { static_cast<float>(evt.wheel.x), static_cast<float>(evt.wheel.y) };
+			}
+
+			// Window resizing
+			else if (evt.type == SDL_WINDOWEVENT && evt.window.event == SDL_WINDOWEVENT_RESIZED)
+			{
+				m_resizing = true;
 			}
 		}
 	}
