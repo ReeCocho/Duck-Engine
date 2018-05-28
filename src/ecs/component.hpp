@@ -7,6 +7,7 @@
  */
 
 /** Includes. */
+#include <utilities\reflection.hpp>
 #include "entity.hpp"
 
 /** Defines constructors for a component. */
@@ -16,40 +17,6 @@ T(dk::Handle<T> handle, dk::Entity entity) : dk::Component<T>(handle, entity) {}
 
 namespace dk
 {
-	template<class T>
-	class Component;
-
-	/**
-	 * @class TypeIDGenerator
-	 * @brief A template class with a static member function to get IDs.
-	 */
-	template<class T>
-	class TypeIDGenerator final
-	{
-	public:
-
-		static const char id = 0;
-	};
-
-	/**
-	 * @class TypeID
-	 * @brief A template class to get ID.
-	 */
-	template<class T>
-	class TypeID final
-	{
-	public:
-
-		static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
-
-		static constexpr inline size_t id()
-		{
-			return reinterpret_cast<size_t>(&TypeIDGenerator<T>::id);
-		}
-	};
-
-
-
 	/**
 	 * @brief ECS component.
 	 * @tparam Type of the component.

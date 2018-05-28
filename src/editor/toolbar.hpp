@@ -37,6 +37,15 @@ namespace dk
 		 */
 		void draw();
 
+		/**
+		 * Get if quit was selected.
+		 * @return If quit was selected.
+		 */
+		bool is_closing() const
+		{
+			return m_closing;
+		}
+
 	private:
 
 		/** Graphics context. */
@@ -44,5 +53,8 @@ namespace dk
 
 		/** Scene. */
 		Scene* m_scene;
+
+		/** Close flag. */
+		bool m_closing = false;
 	};
 }

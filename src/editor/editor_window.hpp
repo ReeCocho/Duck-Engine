@@ -57,6 +57,51 @@ namespace dk
 		 */
 		void draw(float dt);
 
+		/**
+		 * Get inspector.
+		 * @return Inspector.
+		 */
+		Inspector& get_inspector() const
+		{
+			return *m_inspector.get();
+		}
+
+		/**
+		 * Get hierarchy.
+		 * @return Hierarchy.
+		 */
+		EditorHierarchy& get_hierarchy() const
+		{
+			return *m_hierarchy.get();
+		}
+
+		/**
+		 * Get scene view.
+		 * @return Scene view.
+		 */
+		SceneView& get_scene_view() const
+		{
+			return *m_scene_view.get();
+		}
+
+		/**
+		 * Get tool bar.
+		 * @return Tool bar.
+		 */
+		Toolbar& get_toolbar() const
+		{
+			return *m_toolbar.get();
+		}
+
+		/**
+		 * Get file explorer.
+		 * @return File explorer.
+		 */
+		FileExplorer& get_file_explorer() const
+		{
+			return *m_file_explorer.get();
+		}
+
 	private:
 
 		/** Graphics context. */
@@ -94,6 +139,9 @@ namespace dk
 
 		/** Toolbar widget. */
 		std::unique_ptr<Toolbar> m_toolbar;
+
+		/** File explorer widget. */
+		std::unique_ptr<FileExplorer> m_file_explorer;
 
 		/** Cursor handles. */
 		std::array<SDL_Cursor*, ImGuiMouseCursor_COUNT> m_cursors = {};

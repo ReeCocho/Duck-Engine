@@ -234,6 +234,7 @@ namespace dk
 		m_hierarchy = std::make_unique<EditorHierarchy>(m_graphics, m_scene, m_inspector.get());
 		m_scene_view = std::make_unique<SceneView>(m_scene_renderer, m_editor_renderer, m_input);
 		m_toolbar = std::make_unique<Toolbar>(m_graphics, m_scene);
+		m_file_explorer = std::make_unique<FileExplorer>(m_graphics);
 	}
 
 	EditorWindow::~EditorWindow()
@@ -337,18 +338,23 @@ namespace dk
 			ImGui::BeginDockspace();
 
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
-			if(ImGui::BeginDock("Inspector"))
+			if (ImGui::BeginDock("Hierarchy"))
+				m_hierarchy->draw();
+			ImGui::EndDock();
+
+			ImGui::SetNextDock(ImGuiDockSlot_Right);
+			if (ImGui::BeginDock("Inspector"))
 				m_inspector->draw();
 			ImGui::EndDock();
 
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
-			if(ImGui::BeginDock("Scene View"))
+			if (ImGui::BeginDock("Scene View"))
 				m_scene_view->draw(dt);
 			ImGui::EndDock();
 
-			ImGui::SetNextDock(ImGuiDockSlot_Left);
-			if(ImGui::BeginDock("Hierarchy"))
-				m_hierarchy->draw();
+			ImGui::SetNextDock(ImGuiDockSlot_Bottom);
+			if (ImGui::BeginDock("File explorer"))
+				m_file_explorer->draw();
 			ImGui::EndDock();
 
 			ImGui::EndDockspace();

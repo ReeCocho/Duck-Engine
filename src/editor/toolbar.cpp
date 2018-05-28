@@ -21,6 +21,15 @@ namespace dk
 		// Start menu bar
 		ImGui::BeginMainMenuBar();
 
+		// File
+		if (ImGui::BeginMenu("File"))
+		{
+			// Quit
+			ImGui::MenuItem("Quit", nullptr, &m_closing);
+
+			ImGui::EndMenu();
+		}
+
 		// End menu bar
 		ImGui::EndMainMenuBar();
 	}

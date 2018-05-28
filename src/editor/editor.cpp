@@ -132,7 +132,7 @@ namespace dk
 			// Create editor window (We do this here so the transform system can be added to the scene)
 			editor_window = std::make_unique<EditorWindow>(&graphics, &editor_renderer, &renderer, &input, &scene);
 
-			while (!input.is_closing())
+			while (!input.is_closing() && !editor_window->get_toolbar().is_closing())
 			{
 				// Gather input
 				input.poll_events();
