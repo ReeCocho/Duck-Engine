@@ -61,6 +61,12 @@ namespace dk
 		}
 
 		/**
+		 * Get a list of active component ID's.
+		 * @return Active component ID's.
+		 */
+		virtual std::vector<ResourceID> get_active_components() const = 0;
+
+		/**
 		 * @brief Remove a component from a system.
 		 * @param Components entity.
 		 */
@@ -138,7 +144,7 @@ namespace dk
 			 * @param System to iterate over.
 			 * @param Starting position for the handle.
 			 */
-			Iterator(System* system, size_t pos) : m_system(system), m_handle(pos) {}
+			Iterator(System* system, ResourceID pos) : m_system(system), m_handle(pos) {}
 
 			/**
 			 * @brief Default destructor.
@@ -205,6 +211,23 @@ namespace dk
 		virtual ~System() {}
 
 		/**
+		 * Get a list of active component ID's.
+		 * @return Active component ID's.
+		 */
+		std::vector<ResourceID> get_active_components() const override
+		{
+			std::vector<ResourceID> ids(m_components.num_allocated());
+			size_t index = 0;
+			for(ResourceID i = 0; i < m_components.max_allocated(); ++i)
+				if (m_components.is_allocated(i))
+				{
+					ids[index] = static_cast<ResourceID>(i);
+					++index;
+				}
+			return ids;
+		}
+
+		/**
 		 * @brief Add a component to the system.
 		 * @param Entity the component belongs to.
 		 * @return Components handle.
@@ -240,7 +263,7 @@ namespace dk
 		 */
 		Handle<T> find_component_by_entity(Entity entity)
 		{
-			for (size_t i = 0; i < m_components.max_allocated(); ++i)
+			for (ResourceID i = 0; i < m_components.max_allocated(); ++i)
 				if (m_components.is_allocated(i))
 				{
 					T* component = m_components.get_resource_by_handle(i);
@@ -279,7 +302,7 @@ namespace dk
 		 */
 		void remove_all_components() override
 		{
-			for (size_t i = 0; i < m_components.max_allocated(); ++i)
+			for (ResourceID i = 0; i < m_components.max_allocated(); ++i)
 				if (m_components.is_allocated(i))
 				{
 #if DK_EDITOR
@@ -323,7 +346,7 @@ namespace dk
 		 */
 		Iterator end()
 		{
-			return Iterator(this, m_components.max_allocated());
+			return Iterator(this, static_cast<ResourceID>(m_components.max_allocated()));
 		}
 
 	private:

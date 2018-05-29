@@ -47,7 +47,7 @@ namespace dk
 		 * @brief Create a new entity.
 		 * @return New entity ID.
 		 */
-		size_t create_entity();
+		EntityID create_entity();
 
 		/**
 		 * @brief Add a system.
@@ -58,7 +58,7 @@ namespace dk
 		{
 			auto system = std::make_unique<T>(this);
 
-			if(!find_system(system->get_id()))
+			if(!get_system_by_base(system->get_id()))
 				m_systems.push_back(std::move(system));
 		}
 
@@ -72,9 +72,9 @@ namespace dk
 		template<class T>
 		Handle<T> add_component(Entity entity)
 		{
-			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
+			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
 
-			System<T>* system = static_cast<System<T>*>(find_system(TypeID<T>::id()));
+			System<T>* system = static_cast<System<T>*>(get_system_by_base(TypeID<T>::id()));
 			dk_assert(system);
 
 			// Make sure the component does not already exist
@@ -95,12 +95,21 @@ namespace dk
 		template<class T>
 		Handle<T> get_component(Entity entity)
 		{
-			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
+			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
 
-			System<T>* system = static_cast<System<T>*>(find_system(TypeID<T>::id()));
+			System<T>* system = static_cast<System<T>*>(get_system_by_base(TypeID<T>::id()));
 			dk_assert(system);
 
 			return system->find_component_by_entity(entity);
+		}
+
+		/**
+		 * Get number of systems.
+		 * @return Number of systems.
+		 */
+		size_t get_system_count() const
+		{
+			return m_systems.size();
 		}
 
 		/**
@@ -111,9 +120,36 @@ namespace dk
 		template<class T>
 		System<T>* get_system()
 		{
-			SystemBase* system = find_system(TypeID<T>::id());
+			SystemBase* system = get_system_by_base(TypeID<T>::id());
 			dk_assert(system);
 			return static_cast<System<T>*>(system);
+		}
+
+		/**
+		 * Find a system belonging to a specific type.
+		 * @param Type of component the system manages.
+		 * @return Pointer to system.
+		 * @return Will be nullptr if the system doesn't exist.
+		 */
+		SystemBase* get_system_by_base(size_t id)
+		{
+			for (size_t i = 0; i < m_systems.size(); ++i)
+				if (m_systems[i]->get_id() == id)
+					return m_systems[i].get();
+
+			return nullptr;
+		}
+
+		/**
+		 * Find a system by it's index.
+		 * @param System index.
+		 * @return Pointer to system.
+		 * @return Will be nullptr if the system doesn't exist.
+		 */
+		SystemBase* get_system_by_index(size_t i)
+		{
+			dk_assert(i < m_systems.size());
+			return m_systems[i].get();
 		}
 
 		/**
@@ -124,7 +160,7 @@ namespace dk
 		template<class T>
 		void remove_component(Entity entity)
 		{
-			static_assert(std::is_base_of<Component<T>, T>::value, "T must derive from Component<T>.");
+			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
 			static_assert(!std::is_same<T, Transform>::value, "T must not be of type dk::Transform");
 			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>::id()));
 		}
@@ -141,35 +177,20 @@ namespace dk
 		 */
 		void destroy_components();
 
-		/**
-		 * @brief Find a system belonging to a specific type.
-		 * @param Type of component the system manages.
-		 * @return Pointer to system.
-		 * @return Will be nullptr if the system doesn't exist.
-		 */
-		SystemBase* find_system(size_t id)
-		{
-			for (size_t i = 0; i < m_systems.size(); ++i)
-				if (m_systems[i]->get_id() == id)
-					return m_systems[i].get();
-
-			return nullptr;
-		}
-
 		/** Systems. */
 		std::vector<std::unique_ptr<SystemBase>> m_systems = {};
 
 		/** Entity ID counter. */
-		size_t m_entity_id_counter = 0;
+		EntityID m_entity_id_counter = 0;
 
 		/** List of free entity IDs. */
-		std::vector<size_t> m_free_ids = {};
+		std::vector<EntityID> m_free_ids = {};
 
 		/** List of entities to be destroyed next tick. */
-		std::vector<size_t> m_entities_marked_for_delete = {};
+		std::vector<EntityID> m_entities_marked_for_delete = {};
 
 		/** List of components entity ID to be destroyed next tick. */
-		std::vector<std::tuple<Entity, size_t>> m_components_marked_for_delete = {};
+		std::vector<std::tuple<Entity, ResourceID>> m_components_marked_for_delete = {};
 	};
 
 	template<class T>

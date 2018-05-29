@@ -13,7 +13,7 @@ namespace dk
 {
 	class Scene;
 
-	using EntityID = size_t;
+	using EntityID = uint32_t;
 
 
 

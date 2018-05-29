@@ -193,6 +193,90 @@ namespace dk
 		}
 
 		/**
+		 * Get mesh name.
+		 * @param Mesh handle.
+		 * @return Mesh name.
+		 */
+		std::string get_mesh_name(Handle<Mesh> mesh)
+		{
+			dk_assert(mesh.allocator == m_mesh_allocator.get());
+			for (auto pair : m_mesh_map)
+				if (pair.second == mesh.id)
+					return pair.first;
+			return "";
+		}
+
+		/**
+		 * Get shader name.
+		 * @param Shader handle.
+		 * @return Shader name.
+		 */
+		std::string get_shader_name(Handle<MaterialShader> shader)
+		{
+			dk_assert(shader.allocator == m_shader_allocator.get());
+			for (auto pair : m_shader_map)
+				if (pair.second == shader.id)
+					return pair.first;
+			return "";
+		}
+
+		/**
+		 * Get material name.
+		 * @param Material handle.
+		 * @return Material name.
+		 */
+		std::string get_material_name(Handle<Material> material)
+		{
+			dk_assert(material.allocator == m_material_allocator.get());
+			for (auto pair : m_material_map)
+				if (pair.second == material.id)
+					return pair.first;
+			return "";
+		}
+
+		/**
+		 * Get texture name.
+		 * @param Texture handle.
+		 * @return Texture name.
+		 */
+		std::string get_texture_name(Handle<Texture> texture)
+		{
+			dk_assert(texture.allocator == m_texture_allocator.get());
+			for (auto pair : m_texture_map)
+				if (pair.second == texture.id)
+					return pair.first;
+			return "";
+		}
+
+		/**
+		 * Get sky box name.
+		 * @param Sky box handle.
+		 * @return Sky box name.
+		 */
+		std::string get_sky_box_name(Handle<SkyBox> sky_box)
+		{
+			dk_assert(sky_box.allocator == m_sky_box_allocator.get());
+			for (auto pair : m_sky_box_map)
+				if (pair.second == sky_box.id)
+					return pair.first;
+			return "";
+		}
+
+		/**
+		 * Get cube map name.
+		 * @param Cube map handle.
+		 * @return Cube map name.
+		 */
+		std::string get_cube_map_name(Handle<CubeMap> cube_map)
+		{
+			dk_assert(cube_map.allocator == m_cube_map_allocator.get());
+			for (auto pair : m_cube_map_map)
+				if (pair.second == cube_map.id)
+					return pair.first;
+			return "";
+		}
+
+		/**
 		 * @brief Create a mesh.
 		 * @param Name.
 		 * @param Indices.

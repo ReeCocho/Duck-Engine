@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <json.hpp>
+#include "debugging.hpp"
 
 /** For convenience. */
 using json = nlohmann::json;
@@ -50,11 +51,12 @@ namespace dk
 
 		/**
 		 * String dump of the archive.
+		 * @param Indentation.
 		 * @return JSON string.
 		 */
-		std::string dump() const
+		std::string dump(int i) const
 		{
-			return m_json.dump(4);
+			return m_json.dump(i);
 		}
 
 		/**
@@ -66,6 +68,7 @@ namespace dk
 		template<typename T>
 		void write(const std::string& name, T data)
 		{
+			dk_assert(m_writing);
 			m_json[name] = data;
 		}
 
@@ -78,6 +81,7 @@ namespace dk
 		template<typename T>
 		T read(const std::string& name)
 		{
+			dk_assert(!m_writing);
 			return m_json[name];
 		}
 

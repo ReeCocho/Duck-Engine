@@ -12,7 +12,7 @@
 
 namespace dk
 {
-	using ResourceID = size_t;
+	using ResourceID = uint32_t;
 
 	/**
 	 * @brief Base class for resource allocators.
@@ -123,7 +123,7 @@ namespace dk
 		 */
 		ResourceID allocate() override
 		{
-			for (size_t i = 0; i < m_allocation_table.size(); ++i)
+			for (ResourceID i = 0; i < m_allocation_table.size(); ++i)
 				if (!m_allocation_table[i])
 				{
 					m_allocation_table[i] = true;

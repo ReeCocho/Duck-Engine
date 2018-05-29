@@ -9,6 +9,7 @@ set(DUCK_ENGINE_HDRS
 	engine.hpp
 	input.hpp
 	resource_manager.hpp
+	archive.hpp
 	components/mesh_renderer.hpp
 	components/camera.hpp
 	components/lights.hpp
@@ -21,6 +22,7 @@ set(DUCK_ENGINE_SRCS
 	engine.cpp
 	input.cpp
 	resource_manager.cpp
+	archive.cpp
 	components/mesh_renderer.cpp
 	components/camera.cpp
 	components/lights.cpp

@@ -24,9 +24,9 @@ namespace dk
 		m_systems.clear();
 	}
 
-	size_t Scene::create_entity()
+	EntityID Scene::create_entity()
 	{
-		size_t handle = 0;
+		EntityID handle = 0;
 
 		if (m_free_ids.size() > 0)
 		{
