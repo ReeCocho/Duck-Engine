@@ -217,6 +217,11 @@ namespace dk
 
 
 
+	void TransformSystem::on_new_entity(Entity entity)
+	{
+		entity.add_component<Transform>();
+	}
+
 	void TransformSystem::on_begin()
 	{
 		get_component()->generate_model_matrix();
@@ -230,5 +235,17 @@ namespace dk
 			transform->get_child(0)->set_parent(Handle<Transform>(0, nullptr));
 
 		transform->set_parent(Handle<Transform>(0, nullptr));
+	}
+
+	void TransformSystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<Transform> transform = get_component();
+		a.field<glm::vec3>("Position", &transform->m_position);
+		a.field<glm::quat>("Rotation", &transform->m_rotation);
+		a.field<glm::vec3>("Scale", &transform->m_local_scale);
+
+		if(a.is_writing())
+			transform->generate_model_matrix();
 	}
 }

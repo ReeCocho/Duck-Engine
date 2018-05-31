@@ -7,7 +7,6 @@
 /** Includes. */
 #include <config.hpp>
 #include "scene.hpp"
-#include "transform.hpp"
 
 namespace dk
 {
@@ -36,7 +35,14 @@ namespace dk
 		else 
 			handle = ++m_entity_id_counter;
 
-		add_component<Transform>(Entity(this, handle));
+		for (auto& system : m_systems)
+		{
+#if DK_EDITOR
+			if (system->get_runs_in_editor())
+#endif
+				system->on_new_entity(Entity(this, handle));
+		}
+
 		return handle;
 	}
 

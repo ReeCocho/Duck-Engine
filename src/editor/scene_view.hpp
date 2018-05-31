@@ -9,7 +9,7 @@
 /** Includes. */
 #include <graphics\graphics.hpp>
 #include <graphics\forward_renderer.hpp>
-#include <ecs\transform.hpp>
+#include <components\transform.hpp>
 #include <ecs\scene.hpp>
 #include <input.hpp>
 #include "editor_renderer.hpp"

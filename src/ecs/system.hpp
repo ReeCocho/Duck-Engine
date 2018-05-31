@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
+#include <utilities\archive.hpp>
 #include <config.hpp>
 #include "component.hpp"
 
@@ -78,6 +79,12 @@ namespace dk
 		virtual void remove_all_components() = 0;
 
 		/**
+		 * Called when a new entity is created.
+		 * @param Entity created.
+		 */
+		virtual void on_new_entity(Entity entity);
+
+		/**
 		 * @brief Called when a component is added to the system.
 		 */
 		virtual void on_begin();
@@ -104,6 +111,12 @@ namespace dk
 		 * @brief Called when a component is removed from the system.
 		 */
 		virtual void on_end();
+
+		/**
+		 * Serialize the active component.
+		 * @param Archiver.
+		 */
+		virtual void serialize(ReflectionContext& archive);
 
 	private:
 

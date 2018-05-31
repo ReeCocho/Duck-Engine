@@ -9,7 +9,8 @@
 /** Includes. */
 #include <glm\glm.hpp>
 #include <glm\gtc\quaternion.hpp>
-#include "Scene.hpp"
+#include <archive.hpp>
+#include <ecs/scene.hpp>
 
 namespace dk
 {
@@ -371,6 +372,12 @@ namespace dk
 		~TransformSystem() = default;
 
 		/**
+		 * Called when a new entity is created.
+		 * @param Entity created.
+		 */
+		void on_new_entity(Entity entity) override;
+
+		/**
 		 * @brief Called when a component is added to the system.
 		 * @param Component to act upon.
 		 */
@@ -380,5 +387,11 @@ namespace dk
 		 * @brief Called when a component is removed from the system.
 		 */
 		void on_end() override;
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 */
+		void serialize(ReflectionContext& archive) override;
 	};
 }

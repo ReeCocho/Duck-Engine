@@ -10,6 +10,7 @@
 #include <ecs\scene.hpp>
 #include <graphics\material.hpp>
 #include <graphics\mesh.hpp>
+#include "transform.hpp"
 
 namespace dk
 {

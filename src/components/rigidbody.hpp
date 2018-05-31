@@ -9,6 +9,7 @@
 /** Includes. */
 #include <physics\physics.hpp>
 #include <ecs\scene.hpp>
+#include "transform.hpp"
 
 namespace dk
 {

@@ -16,10 +16,6 @@
 
 namespace dk
 {
-	class Transform;
-
-
-
 	/**
 	 * @brief ECS scene.
 	 */
@@ -56,10 +52,8 @@ namespace dk
 		template<class T>
 		void add_system()
 		{
-			auto system = std::make_unique<T>(this);
-
-			if(!get_system_by_base(system->get_id()))
-				m_systems.push_back(std::move(system));
+			if(!get_system_by_base(TypeID<T>::id()))
+				m_systems.push_back(std::make_unique<T>(this));
 		}
 
 		/**
@@ -161,7 +155,6 @@ namespace dk
 		void remove_component(Entity entity)
 		{
 			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
-			static_assert(!std::is_same<T, Transform>::value, "T must not be of type dk::Transform");
 			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>::id()));
 		}
 

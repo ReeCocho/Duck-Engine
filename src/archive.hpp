@@ -9,96 +9,222 @@
 /** Includes. */
 #include <ecs\scene.hpp>
 #include <vector>
+#include <utilities\reflection.hpp>
+#include <utilities\archive.hpp>
 #include "resource_manager.hpp"
 
 namespace dk
 {
 	/**
-	 * Scene archiving object.
+	 * Component archiving object.
 	 */
-	class SceneWriteArchive
+	class ComponentArchive : public ReflectionContext
 	{
 	public:
 
 		/**
-		 * Constructor.
-		 * @param Scene to archive.
-		 * @param Resource manager to use for certain handles.
-		 * @param Write chunk size.
+		 * Component archive field.
 		 */
-		SceneWriteArchive(Scene* scene, ResourceManager* resource_manager, size_t chunk_size = 512);
+		struct Field
+		{
+			/** Name. */
+			std::string name = "";
+
+			/** Size of field. */
+			uint32_t size = 0;
+
+			/** Pointer to field data. */
+			void* data = nullptr;
+
+			/** Field type ID. */
+			size_t type_id = 0;
+		};
+
+		/**
+		 * Constructor.
+		 * @param Scene to archive with.
+		 * @param Resource manager to use for certain handles.
+		 * @param Archive to read from/write to.
+		 * @note The archive must not be mullptr.
+		 */
+		ComponentArchive(Scene* scene, ResourceManager* resource_manager, Archive* archive);
+
+		/**
+		 * Constructor.
+		 * @param Scene to archive with.
+		 * @param Resource manager to use for certain handles.
+		 * @param Whether the archive is in write mode or not.
+		 */
+		ComponentArchive(Scene* scene, ResourceManager* resource_manager, bool writing);
 
 		/**
 		 * Destructor.
 		 */
-		~SceneWriteArchive();
+		~ComponentArchive() = default;
 
 		/**
-		 * Serialize everything.
+		 * Detect if the archive is in writing mode or not.
+		 * @return If the archive is in writing mode or not.
 		 */
-		void serialize();
-
+		bool is_writing() const
+		{
+			return m_archive ? m_archive->is_writing() : m_writing;
+		}
+		
 		/**
-		 * Write data to the archive.
-		 * @tparam Data type.
-		 * @param Data.
+		 * Either register a new field or read a field from the archive.
+		 * @tparam Field type.
+		 * @param Field name.
+		 * @param Pointer to field destination/source.
+		 * @note If the archive doesn't exist, the write mode flag will determine whether a read or write occurs.
 		 */
 		template<typename T>
-		void write(T data)
+		void field(const std::string& name, T* data)
 		{
-			// Expand archive if we need to
-			while ((sizeof(T) + (intptr_t)m_write_head) - (intptr_t)m_data > m_data_length)
-				expand_archive();
-			
-			// Copy data
-			std::memcpy(m_write_head, &data, sizeof(T));
+			if (m_archive)
+			{
+				// Set the field
+				set_field<T>(name, data);
 
-			// Move write head
-			m_write_head = (void*)((intptr_t)m_write_head + sizeof(T));
+				if (m_archive->is_writing())
+					// Write field to archive
+					m_archive->write<T>(*data);
+				else
+					// Read from the archive
+					*data = m_archive->read<T>();
+			}
+			else
+			{
+				if(m_writing)
+					// Create the field
+					set_field<T>(name, data);
+				else
+				{
+					// Set the field if it exists
+					Field field = get_field(name);
+					if (field.data) *data = *static_cast<T*>(field.data);
+				}
+			}
 		}
 
 		/**
-		 * Write a vector to the archive.
-		 * @tparam Type held by the vector.
-		 * @param Vector.
+		 * Either register a new field or read a field from the archive.
+		 * @tparam Template class type.
+		 * @tparam Type held in the template class.
+		 * @tparam Allocator.
+		 * @param Field name.
+		 * @param Pointer to destination/source field.
+		 * @note The archive must exist.
+		 */
+		template<template<class, class> class V, class T, class A>
+		void field(const std::string& name, V<T, A>* data)
+		{
+			if (m_archive)
+			{
+				if (m_archive->is_writing())
+					// Write field to archive
+					m_archive->write<V, T, A>(*data);
+				else
+					// Read feild from archive
+					*data = m_archive->read<V, T, A>();
+			}
+			else
+			{
+				if (m_writing)
+				{
+					// Create the field
+					set_field<V, T, A>(name, data);
+				}
+				else
+				{
+					// Set the field if it exists
+					Field field = get_field(name);
+					if (field.data) *data = *static_cast<V<T, A>*>(field.data);
+				}
+			}
+		}
+
+		/**
+		 * Set a field.
+		 * @tparam Field type.
+		 * @param Field name.
+		 * @param Pointer to field.
 		 */
 		template<typename T>
-		void write(const std::vector<T>& data)
+		void set_field(const std::string& name, T* data)
 		{
-			// Copy length
-			write<uint32_t>(static_cast<uint32_t>(data.size()));
+			// Make sure the field doesn't already exist
+			dk_assert(!field_exists(name));
 
-			// Write every object in the vector
-			for (const auto& elem : data)
-				write<T>(elem);
+			// Add field
+			m_fields.push_back({});
+			m_fields[m_fields.size() - 1].name = name;
+			m_fields[m_fields.size() - 1].size = sizeof(T);
+			m_fields[m_fields.size() - 1].data = static_cast<void*>(data);
+			m_fields[m_fields.size() - 1].type_id = TypeID<T>::id();
+		}
+
+		/**
+		 * Set a field.
+		 * @tparam Template class type.
+		 * @tparam Type held in the template class.
+		 * @tparam Allocator.
+		 * @param Field name.
+		 * @param Pointer to field.
+		 */
+		template<template<class, class> class V, class T, class A>
+		void set_field(const std::string& name, V<T, A>* data)
+		{
+			// Make sure the field doesn't already exist
+			dk_assert(!field_exists(name));
+
+			// Add field
+			m_fields.push_back({});
+			m_fields[m_fields.size() - 1].name = name;
+			m_fields[m_fields.size() - 1].size = sizeof(V<T, A>);
+			m_fields[m_fields.size() - 1].data = static_cast<void*>(data);
+			m_fields[m_fields.size() - 1].type_id = TypeID<V<T, A>>::id();
+		}
+
+		/**
+		 * Get a field.
+		 * @tparam Field type.
+		 * @param Field name.
+		 * @return Field.
+		 */
+		Field get_field(const std::string& name)
+		{
+			for (auto& field : m_fields)
+				if (field.name == name)
+					return field;
+
+			return Field();
 		}
 
 	private:
 
 		/**
-		 * Allocate more memory for the data.
+		 * Check if a field exists.
+		 * @param Field name.
+		 * @return If the field exists.
 		 */
-		void expand_archive();
+		bool field_exists(const std::string& name);
 
-		/** List of systems components. */
-		std::vector<std::vector<ResourceID>> m_systems_components;
 
-		/** Scene to serialize. */
+
+		/** Is the archive writing or not? */
+		bool m_writing;
+
+		/** Archive we are reading/writing from/to. */
+		Archive* m_archive;
+
+		/** Scene. */
 		Scene* m_scene;
 
 		/** Resource manager. */
 		ResourceManager* m_resource_manager;
-		
-		/** Size of serialized data. */
-		size_t m_data_length;
 
-		/** Pointer to serialized data. */
-		void* m_data;
-
-		/** Write head. */
-		void* m_write_head;
-
-		/** Chunck size. */
-		size_t m_chunk_size;
+		/** Fields. */
+		std::vector<Field> m_fields;
 	};
 }

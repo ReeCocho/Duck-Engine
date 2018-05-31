@@ -8,7 +8,7 @@
 
 /** Includes. */
 #include <graphics\graphics.hpp>
-#include <ecs\transform.hpp>
+#include <components\transform.hpp>
 #include <ecs\scene.hpp>
 #include "imgui\imgui.h"
 #include "inspector.hpp"

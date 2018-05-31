@@ -22,6 +22,11 @@ namespace dk
 
 	}
 
+	void SystemBase::on_new_entity(Entity entity)
+	{
+
+	}
+
 	void SystemBase::on_begin()
 	{
 
@@ -45,5 +50,10 @@ namespace dk
 	void SystemBase::on_end()
 	{
 		
+	}
+
+	void SystemBase::serialize(ReflectionContext& archive)
+	{
+
 	}
 }

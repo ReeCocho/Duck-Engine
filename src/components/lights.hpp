@@ -9,6 +9,7 @@
 /** Includes. */
 #include <engine.hpp>
 #include <ecs\scene.hpp>
+#include "transform.hpp"
 
 namespace dk
 {
