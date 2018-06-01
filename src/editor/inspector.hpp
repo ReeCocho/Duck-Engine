@@ -25,8 +25,9 @@ namespace dk
 		 * Constructor.
 		 * @param Graphics context.
 		 * @param Scene to inspect.
+		 * @param Resource manager.
 		 */
-		Inspector(Graphics* graphics, Scene* scene);
+		Inspector(Graphics* graphics, Scene* scene, ResourceManager* resource_manager);
 
 		/**
 		 * Destructor.
@@ -42,12 +43,15 @@ namespace dk
 		 * Change which entity is being inspected.
 		 * @param Entity to inspect.
 		 */
-		void inspect_entity(Entity entity)
-		{
-			m_inspected_entity = entity;
-		}
+		void inspect_entity(Entity entity);
 
 	private:
+
+		/**
+		 * Draw a field.
+		 * @param Field.
+		 */
+		void draw_field(const ComponentArchive::Field& field);
 
 		/** Graphics context. */
 		Graphics* m_graphics;
@@ -55,7 +59,13 @@ namespace dk
 		/** Scene. */
 		Scene* m_scene;
 
+		/** Resource manager. */
+		ResourceManager* m_resource_manager;
+
 		/** Entity being inspected. */
 		Entity m_inspected_entity = Entity(nullptr, 0);
+
+		/** Inspector entites component archives. */
+		std::vector<ComponentArchive> m_component_archives = {};
 	};
 }

@@ -298,5 +298,11 @@ namespace dk
 		 * @brief Called when a component is removed from the system.
 		 */
 		void on_end() override;
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 */
+		void serialize(ReflectionContext& archive) override;
 	};
 }

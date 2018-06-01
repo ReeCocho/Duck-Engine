@@ -5,8 +5,7 @@
  */
 
 /** Includes. */
-#include <engine.hpp>
-#include <editor\editor.hpp>
+#include <common.hpp>
 #include "transform.hpp"
 #include <config.hpp>
 #include "camera.hpp"
@@ -211,5 +210,14 @@ namespace dk
 		mesh_renderer->m_command_buffer.free();
 		mesh_renderer->m_depth_prepass_command_buffer.free();
 		mesh_renderer->free_resources();
+	}
+
+	void MeshRendererSystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<MeshRenderer> mesh_renderer = get_component();
+		a.set_name("Mesh Renderer");
+		a.field<Handle<Mesh>>("Mesh", &mesh_renderer->m_mesh);
+		a.field<Handle<Material>>("Material", &mesh_renderer->m_material);
 	}
 }

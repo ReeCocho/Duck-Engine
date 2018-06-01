@@ -56,4 +56,14 @@ namespace dk
 	{
 
 	}
+
+	void SystemBase::serialize_by_id(ReflectionContext& archive, ResourceID id)
+	{
+
+	}
+
+	bool SystemBase::serialize_by_entity(ReflectionContext& archive, Entity entity)
+	{
+		return false;
+	}
 }

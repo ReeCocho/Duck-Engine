@@ -8,10 +8,7 @@
 #include "transform.hpp"
 #include <config.hpp>
 #include "lights.hpp"
-
-#if DK_EDITOR
-#include <editor\editor.hpp>
-#endif
+#include <common.hpp>
 
 namespace dk
 {
@@ -34,6 +31,15 @@ namespace dk
 		}
 	}
 
+	void DirectionalLightSystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<DirectionalLight> light = get_component();
+		a.set_name("Directional Light");
+		a.field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
+		a.field<float>("Intensity", &light->m_light_data.color.w);
+	}
+
 	void PointLightSystem::on_begin()
 	{
 		Handle<PointLight> light = get_component();
@@ -52,5 +58,15 @@ namespace dk
 			dk::engine::renderer.draw(light->m_light_data);
 #endif
 		}
+	}
+
+	void PointLightSystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<PointLight> light = get_component();
+		a.set_name("Point Light");
+		a.field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
+		a.field<float>("Intensity", &light->m_light_data.color.w);
+		a.field<float>("Range", &light->m_light_data.position.w);
 	}
 }

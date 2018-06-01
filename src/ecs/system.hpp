@@ -118,6 +118,21 @@ namespace dk
 		 */
 		virtual void serialize(ReflectionContext& archive);
 
+		/**
+		 * Serialize a component
+		 * @param Archiver.
+		 * @param Component ID.
+		 */
+		virtual void serialize_by_id(ReflectionContext& archive, ResourceID id);
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 * @param Entity.
+		 * @return If the entity has the proper component.
+		 */
+		virtual bool serialize_by_entity(ReflectionContext& archive, Entity entity);
+
 	private:
 
 		/** Scene the system exists in. */
@@ -183,7 +198,7 @@ namespace dk
 			{
 				++m_handle;
 
-				while (m_handle != m_system->m_components.max_allocated() && !m_system->m_components.is_allocated(m_handle))
+				while (m_handle != static_cast<uint32_t>(m_system->m_components.max_allocated()) && !m_system->m_components.is_allocated(m_handle))
 					++m_handle;
 
 				m_system->m_active_component = m_handle;
@@ -224,10 +239,45 @@ namespace dk
 		virtual ~System() {}
 
 		/**
+		 * Serialize a component
+		 * @param Archiver.
+		 * @param Component ID.
+		 */
+		void serialize_by_id(ReflectionContext& archive, ResourceID id) override final
+		{
+			dk_assert(m_components.is_allocated(id));
+			ResourceID old_id = m_active_component;
+			m_active_component = id;
+			serialize(archive);
+			m_active_component = old_id;
+		}
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 * @param Entity.
+		 * @return If the entity has the proper component.
+		 */
+		bool serialize_by_entity(ReflectionContext& archive, Entity entity) override final
+		{
+			dk_assert(&entity.get_scene() == &get_scene());
+			Handle<T> comp = find_component_by_entity(entity);
+			if (comp == Handle<T>())
+				return false;
+
+			// Serialize the component
+			ResourceID old_id = m_active_component;
+			m_active_component = comp.id;
+			serialize(archive);
+			m_active_component = old_id;
+			return true;
+		}
+
+		/**
 		 * Get a list of active component ID's.
 		 * @return Active component ID's.
 		 */
-		std::vector<ResourceID> get_active_components() const override
+		std::vector<ResourceID> get_active_components() const override final
 		{
 			std::vector<ResourceID> ids(m_components.num_allocated());
 			size_t index = 0;

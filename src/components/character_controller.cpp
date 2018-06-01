@@ -1,6 +1,6 @@
 /** Includes. */
 #include "transform.hpp"
-#include <engine.hpp>
+#include <common.hpp>
 #include <config.hpp>
 #include "character_controller.hpp"
 
@@ -232,4 +232,11 @@ namespace dk
 		controller->m_shape.reset();
 		controller->m_rigid_body.reset();
     }
+
+	void CharacterControllerSystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<CharacterController> controller = get_component();
+		a.set_name("Character Controller");
+	}
 }

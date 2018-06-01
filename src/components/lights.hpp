@@ -7,7 +7,7 @@
  */
 
 /** Includes. */
-#include <engine.hpp>
+#include <common.hpp>
 #include <ecs\scene.hpp>
 #include "transform.hpp"
 
@@ -138,6 +138,12 @@ namespace dk
 		 * @param Time in seconds since the last frame.
 		 */
 		void on_pre_render(float delta_time) override;
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 */
+		void serialize(ReflectionContext& archive) override;
 	};
 
 	/**
@@ -168,5 +174,11 @@ namespace dk
 		 * @param Time in seconds since the last frame.
 		 */
 		void on_pre_render(float delta_time) override;
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 */
+		void serialize(ReflectionContext& archive) override;
 	};
 }

@@ -72,6 +72,24 @@ namespace dk
 		}
 		
 		/**
+		 * Set the name of the component.
+		 * @param Component name.
+		 */
+		void set_name(const std::string& name)
+		{
+			m_name = name;
+		}
+
+		/**
+		 * Get the name of the component.
+		 * @return Component name.
+		 */
+		std::string get_name() const
+		{
+			return m_name;
+		}
+
+		/**
 		 * Either register a new field or read a field from the archive.
 		 * @tparam Field type.
 		 * @param Field name.
@@ -188,7 +206,6 @@ namespace dk
 
 		/**
 		 * Get a field.
-		 * @tparam Field type.
 		 * @param Field name.
 		 * @return Field.
 		 */
@@ -199,6 +216,15 @@ namespace dk
 					return field;
 
 			return Field();
+		}
+
+		/**
+		 * Get a list of all fields.
+		 * @return All fields.
+		 */
+		const std::vector<Field>& get_fields() const
+		{
+			return m_fields;
 		}
 
 	private:
@@ -224,7 +250,27 @@ namespace dk
 		/** Resource manager. */
 		ResourceManager* m_resource_manager;
 
+		/** The components name. */
+		std::string m_name;
+
 		/** Fields. */
 		std::vector<Field> m_fields;
 	};
+
+	// Specializations
+
+	template<>
+	void ComponentArchive::field<Handle<Mesh>>(const std::string& name, Handle<Mesh>* data);
+
+	template<>
+	void ComponentArchive::field<Handle<MaterialShader>>(const std::string& name, Handle<MaterialShader>* data);
+
+	template<>
+	void ComponentArchive::field<Handle<Material>>(const std::string& name, Handle<Material>* data);
+
+	template<>
+	void ComponentArchive::field<Handle<SkyBox>>(const std::string& name, Handle<SkyBox>* data);
+
+	template<>
+	void ComponentArchive::field<Handle<CubeMap>>(const std::string& name, Handle<CubeMap>* data);
 }

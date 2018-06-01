@@ -8,7 +8,7 @@
 
 /** Includes. */
 #include <glm\glm.hpp>
-#include "engine.hpp"
+#include <common.hpp>
 #include <ecs\scene.hpp>
 
 namespace dk
@@ -203,6 +203,12 @@ namespace dk
 		 * @brief Called when a component is removed from the system.
 		 */
 		void on_end() override;
+
+		/**
+		 * Serialize a component.
+		 * @param Archiver.
+		 */
+		void serialize(ReflectionContext& archive) override;
 
 		/**
 		 * @brief Set the main camera.

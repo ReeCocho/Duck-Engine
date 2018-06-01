@@ -15,13 +15,15 @@ namespace dk
 		EditorRenderer* editor_renderer,
 		OffScreenForwardRenderer* scene_renderer,
 		Input* input,
-		Scene* scene
+		Scene* scene,
+		ResourceManager* resource_manager
 	) :
 		m_graphics(graphics),
 		m_editor_renderer(editor_renderer),
 		m_scene_renderer(scene_renderer),
 		m_input(input),
-		m_scene(scene)
+		m_scene(scene),
+		m_resource_manager(resource_manager)
 	{
 		// Setup Dear ImGui binding
 		IMGUI_CHECKVERSION();
@@ -230,7 +232,7 @@ namespace dk
 		ImGui::SetCurrentDockContext(m_dock_context);
 
 		// Create widgets
-		m_inspector = std::make_unique<Inspector>(m_graphics, m_scene);
+		m_inspector = std::make_unique<Inspector>(m_graphics, m_scene, m_resource_manager);
 		m_hierarchy = std::make_unique<EditorHierarchy>(m_graphics, m_scene, m_inspector.get());
 		m_scene_view = std::make_unique<SceneView>(m_scene_renderer, m_editor_renderer, m_input);
 		m_toolbar = std::make_unique<Toolbar>(m_graphics, m_scene);
@@ -258,27 +260,27 @@ namespace dk
 	{
 		// Get IMGUI IO 
 		ImGuiIO& io = ImGui::GetIO();
-
+		
 		// Update delta time for imgui
 		io.DeltaTime = dt;
-
+		
 		// Update mouse events
 		io.MouseDown[0] = m_input->get_mouse_button_held(dk::MouseButton::Left);
 		io.MouseDown[1] = m_input->get_mouse_button_held(dk::MouseButton::Right);
 		io.MouseDown[2] = m_input->get_mouse_button_held(dk::MouseButton::Middle);
-
+		
 		glm::vec2 mouse_pos = m_input->get_mouse_position();
 		io.MousePos = ImVec2(mouse_pos.x, mouse_pos.y);
-
+		
 		glm::vec2 mouse_wheel = m_input->get_mouse_wheel();
 		if (mouse_wheel.x > 0) io.MouseWheelH += 1;
 		if (mouse_wheel.x < 0) io.MouseWheelH -= 1;
 		if (mouse_wheel.y > 0) io.MouseWheel += 1;
 		if (mouse_wheel.y < 0) io.MouseWheel -= 1;
-
+		
 		// Update text input
 		io.AddInputCharactersUTF8(m_input->get_text_input().data());
-
+		
 		// Update keyboard
 		io.KeysDown[SDL_SCANCODE_TAB] = m_input->get_key_held(dk::KeyCode::Tab);
 		io.KeysDown[SDL_SCANCODE_LEFT] = m_input->get_key_held(dk::KeyCode::Left);
@@ -305,7 +307,7 @@ namespace dk
 		io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
 		io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
 		io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-
+		
 		// Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
 		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0)
 		{
@@ -318,13 +320,13 @@ namespace dk
 				SDL_ShowCursor(1);
 			}
 		}
-
+		
 		// Master frame
 		ImGui::NewFrame();
-
+		
 		// Title bar
 		m_toolbar->draw();
-
+		
 		// Docking
 		const ImVec2 display_size = ImGui::GetIO().DisplaySize;
 		ImGui::SetNextWindowPos(ImVec2(0, 16));
@@ -336,34 +338,34 @@ namespace dk
 		if (visible)
 		{
 			ImGui::BeginDockspace();
-
+			
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
 			if (ImGui::BeginDock("Hierarchy"))
 				m_hierarchy->draw();
 			ImGui::EndDock();
-
+		
 			ImGui::SetNextDock(ImGuiDockSlot_Right);
 			if (ImGui::BeginDock("Inspector"))
 				m_inspector->draw();
 			ImGui::EndDock();
-
+		
 			ImGui::SetNextDock(ImGuiDockSlot_Left);
 			if (ImGui::BeginDock("Scene View"))
 				m_scene_view->draw(dt);
 			ImGui::EndDock();
-
+		
 			ImGui::SetNextDock(ImGuiDockSlot_Bottom);
 			if (ImGui::BeginDock("File explorer"))
 				m_file_explorer->draw();
 			ImGui::EndDock();
-
+		
 			ImGui::EndDockspace();
 		}
 		ImGui::End();
-
+		
 		// End master frame
 		ImGui::EndFrame();
-
+		
 		// Tell IMGUI to render
 		ImGui::Render();
 	}

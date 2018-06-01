@@ -1,6 +1,6 @@
 /* Includes. */
 #include "transform.hpp"
-#include <engine.hpp>
+#include <common.hpp>
 #include <config.hpp>
 #include "rigidbody.hpp"
 
@@ -268,4 +268,11 @@ namespace dk
 		rigid_body->m_shape.reset();
 		rigid_body->m_rigid_body.reset();
     }
+
+	void RigidBodySystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<RigidBody> body = get_component();
+		a.set_name("Rigid Body");
+	}
 }

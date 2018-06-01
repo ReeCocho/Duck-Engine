@@ -35,18 +35,18 @@ namespace dk
 	void EditorHierarchy::draw_transform_tree(Handle<Transform> transform)
 	{
 		// Create new tree element (Use transform ID since it's unique)
-		ImGui::TreePush((void*)transform.id);
-
+		ImGui::TreePush((void*)(intptr_t)transform.id);
+		
 		// Inspect the entity
 		if (ImGui::Button("Entity"))
 		{
 			m_inspector->inspect_entity(transform->get_entity());
 		}
-
+		
 		// Draw every childs tree
 		for (size_t i = 0; i < transform->child_count(); ++i)
 			draw_transform_tree(transform->get_child(i));
-
+		
 		// Pop tree off the stack
 		ImGui::TreePop();
 	}

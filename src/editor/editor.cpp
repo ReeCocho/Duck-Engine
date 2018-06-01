@@ -130,13 +130,21 @@ namespace dk
 			physics_clock.get_delta_time();
 
 			// Create editor window (We do this here so the transform system can be added to the scene)
-			editor_window = std::make_unique<EditorWindow>(&graphics, &editor_renderer, &renderer, &input, &scene);
-
+			editor_window = std::make_unique<EditorWindow>
+			(
+				&graphics, 
+				&editor_renderer, 
+				&renderer, 
+				&input, 
+				&scene, 
+				&resource_manager
+			);
+			
 			while (!input.is_closing() && !editor_window->get_toolbar().is_closing())
 			{
 				// Gather input
 				input.poll_events();
-
+				
 				// Resize window if needed
 				if (input.is_resizing())
 				{
@@ -147,28 +155,28 @@ namespace dk
 					renderer.resize(w, h);
 					io.DisplaySize = ImVec2(static_cast<float>(w), static_cast<float>(h));
 				}
-
+				
 				// Get delta time
 				delta_time = game_clock.get_delta_time();
-
+				
 				// Perform a game tick
 				scene.tick(delta_time);
-
+			
 				// Start rendering thread
 				rendering_thread->start();
-
+			
 				// Increment physics timer
 				physics_timer += physics_clock.get_delta_time();
-
+				
 				// Run physics
 				if (physics_timer >= DK_PHYSICS_STEP_RATE)
 					physics_thread->start();
-
-				// Wait for threads to finish
+			
+			 	// Wait for threads to finish
 				rendering_thread->wait();
 				physics_thread->wait();
 			}
-
+			
 			// Wait for threads to finish
 			rendering_thread->wait();
 			physics_thread->wait();

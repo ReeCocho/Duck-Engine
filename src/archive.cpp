@@ -14,7 +14,8 @@ namespace dk
 		m_resource_manager(resource_manager),
 		m_archive(archive),
 		m_writing(false),
-		m_fields({})
+		m_fields({}),
+		m_name("")
 	{
 		dk_assert(archive);
 	}
@@ -24,7 +25,8 @@ namespace dk
 		m_resource_manager(resource_manager),
 		m_archive(nullptr),
 		m_writing(writing),
-		m_fields({})
+		m_fields({}),
+		m_name("")
 	{
 
 	}
@@ -51,7 +53,8 @@ namespace dk
 			if (m_archive->is_writing())
 			{
 				// Write name to archive
-				mesh_name = m_resource_manager->get_mesh_name(*data);
+				if(*data != Handle<Mesh>())
+					mesh_name = m_resource_manager->get_mesh_name(*data);
 				m_archive->write<std::string>(mesh_name);
 			}
 			else
@@ -89,7 +92,8 @@ namespace dk
 			if (m_archive->is_writing())
 			{
 				// Write name to archive
-				shader_name = m_resource_manager->get_shader_name(*data);
+				if (*data != Handle<MaterialShader>())
+					shader_name = m_resource_manager->get_shader_name(*data);
 				m_archive->write<std::string>(shader_name);
 			}
 			else
@@ -127,7 +131,8 @@ namespace dk
 			if (m_archive->is_writing())
 			{
 				// Write name to archive
-				material_name = m_resource_manager->get_material_name(*data);
+				if (*data != Handle<Material>())
+					material_name = m_resource_manager->get_material_name(*data);
 				m_archive->write<std::string>(material_name);
 			}
 			else
@@ -147,6 +152,84 @@ namespace dk
 				// Set the field if it exists
 				Field field = get_field(name);
 				if (field.data) *data = *static_cast<Handle<Material>*>(field.data);
+			}
+		}
+	}
+
+	template<>
+	void ComponentArchive::field<Handle<SkyBox>>(const std::string& name, Handle<SkyBox>* data)
+	{
+		if (m_archive)
+		{
+			// Set the field
+			set_field<Handle<SkyBox>>(name, data);
+
+			// Sky box name
+			std::string sky_box_name;
+
+			if (m_archive->is_writing())
+			{
+				// Write name to archive
+				if (*data != Handle<SkyBox>())
+					sky_box_name = m_resource_manager->get_sky_box_name(*data);
+				m_archive->write<std::string>(sky_box_name);
+			}
+			else
+			{
+				// Read name the archive
+				sky_box_name = m_archive->read<std::string>();
+				*data = m_resource_manager->get_sky_box(sky_box_name);
+			}
+		}
+		else
+		{
+			if (m_writing)
+				// Create the field
+				set_field<Handle<SkyBox>>(name, data);
+			else
+			{
+				// Set the field if it exists
+				Field field = get_field(name);
+				if (field.data) *data = *static_cast<Handle<SkyBox>*>(field.data);
+			}
+		}
+	}
+
+	template<>
+	void ComponentArchive::field<Handle<CubeMap>>(const std::string& name, Handle<CubeMap>* data)
+	{
+		if (m_archive)
+		{
+			// Set the field
+			set_field<Handle<CubeMap>>(name, data);
+
+			// Cube map name
+			std::string cube_map_name;
+
+			if (m_archive->is_writing())
+			{
+				// Write name to archive
+				if (*data != Handle<CubeMap>())
+					cube_map_name = m_resource_manager->get_cube_map_name(*data);
+				m_archive->write<std::string>(cube_map_name);
+			}
+			else
+			{
+				// Read name the archive
+				cube_map_name = m_archive->read<std::string>();
+				*data = m_resource_manager->get_cube_map(cube_map_name);
+			}
+		}
+		else
+		{
+			if (m_writing)
+				// Create the field
+				set_field<Handle<CubeMap>>(name, data);
+			else
+			{
+				// Set the field if it exists
+				Field field = get_field(name);
+				if (field.data) *data = *static_cast<Handle<CubeMap>*>(field.data);
 			}
 		}
 	}

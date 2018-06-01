@@ -384,6 +384,12 @@ namespace dk
 		void on_begin() override;
 
 		/**
+		 * @brief Called after on_tick().
+		 * @param Time in seconds since the last frame.
+		 */
+		void on_late_tick(float delta_time) override;
+
+		/**
 		 * @brief Called when a component is removed from the system.
 		 */
 		void on_end() override;

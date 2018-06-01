@@ -36,6 +36,7 @@ namespace dk
 		 * @param Scene renderer.
 		 * @param Input manager.
 		 * @param Scene.
+		 * @param Resource manager.
 		 */
 		EditorWindow
 		(
@@ -43,7 +44,8 @@ namespace dk
 			EditorRenderer* editor_renderer, 
 			OffScreenForwardRenderer* scene_renderer, 
 			Input* input, 
-			Scene* scene
+			Scene* scene,
+			ResourceManager* resource_manager
 		);
 
 		/**
@@ -118,6 +120,9 @@ namespace dk
 
 		/** Scene. */
 		Scene* m_scene;
+
+		/** Resource manager. */
+		ResourceManager* m_resource_manager;
 
 		/** Font texture. */
 		std::unique_ptr<Texture> m_font_texture;

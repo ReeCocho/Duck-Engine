@@ -10,6 +10,7 @@ set(DUCK_ENGINE_HDRS
 	input.hpp
 	resource_manager.hpp
 	archive.hpp
+	common.hpp
 	components/mesh_renderer.hpp
 	components/camera.hpp
 	components/lights.hpp

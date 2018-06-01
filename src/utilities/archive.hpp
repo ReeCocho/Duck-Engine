@@ -166,4 +166,10 @@ namespace dk
 		/** Chunck size. */
 		size_t m_chunk_size;
 	};
+
+	template<>
+	void Archive::write<std::string>(std::string data);
+
+	template<>
+	std::string Archive::read<std::string>();
 }

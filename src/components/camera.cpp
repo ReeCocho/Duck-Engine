@@ -82,6 +82,25 @@ namespace dk
 			command_buffer.free();
 	}
 
+	void CameraSystem::serialize(ReflectionContext& archive)
+	{
+		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
+		Handle<Camera> camera = get_component();
+		a.set_name("Camera");
+		a.field<Handle<SkyBox>>("Sky box", &camera->m_sky_box);
+		a.field<float>("Field of view", &camera->m_field_of_view);
+		a.field<float>("Near clipping plane", &camera->m_near_clipping_plane);
+		a.field<float>("Far clipping plane", &camera->m_far_clipping_plane);
+
+		if (a.is_writing())
+		{
+#if !DK_EDITOR
+			camera->calculate_vp_matrices();
+			camera->calculate_frustum();
+#endif
+		}
+	}
+
 	void CameraSystem::set_main_camera(Handle<Camera> camera)
 	{
 		main_camera = camera;

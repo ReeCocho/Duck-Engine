@@ -7,6 +7,7 @@
  */
 
 /** Includes. */
+#include <config.hpp>
 #include "graphics\graphics.hpp"
 #include "graphics\forward_renderer.hpp"
 #include "input.hpp"
@@ -15,6 +16,7 @@
 #include "resource_manager.hpp"
 #include "editor_renderer.hpp"
 
+#if DK_EDITOR
 namespace dk
 {
 	namespace editor
@@ -58,4 +60,7 @@ namespace dk
 		 */
 		extern void shutdown();
 	}
+
+	namespace engine = editor;
 }
+#endif
