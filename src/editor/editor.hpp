@@ -7,13 +7,13 @@
  */
 
 /** Includes. */
-#include <config.hpp>
+#include <engine\config.hpp>
 #include "graphics\graphics.hpp"
 #include "graphics\forward_renderer.hpp"
-#include "input.hpp"
+#include <engine\input.hpp>
 #include "ecs\scene.hpp"
 #include "physics\physics.hpp"
-#include "resource_manager.hpp"
+#include <engine\resource_manager.hpp>
 #include "editor_renderer.hpp"
 
 #if DK_EDITOR

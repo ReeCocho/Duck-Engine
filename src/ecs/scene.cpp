@@ -5,7 +5,7 @@
  */
 
 /** Includes. */
-#include <config.hpp>
+#include <engine/config.hpp>
 #include "scene.hpp"
 
 namespace dk

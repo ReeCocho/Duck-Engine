@@ -9,7 +9,7 @@
 /** Includes. */
 #include <utilities\resource_allocator.hpp>
 #include <utilities\archive.hpp>
-#include <config.hpp>
+#include <engine/config.hpp>
 #include "component.hpp"
 
 namespace dk

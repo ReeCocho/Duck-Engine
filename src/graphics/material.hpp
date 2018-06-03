@@ -188,4 +188,7 @@ namespace dk
 		/** Cube maps. */
 		std::map<size_t, Handle<CubeMap>> m_cube_maps = {};
 	};
+
+	/** Handle to a material. */
+	using HMaterial = Handle<Material>;
 }

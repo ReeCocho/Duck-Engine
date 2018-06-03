@@ -227,14 +227,6 @@ namespace dk
 		get_component()->generate_model_matrix();
 	}
 
-	void TransformSystem::on_late_tick(float delta_time)
-	{
-#if DK_EDITOR
-		for (Handle<Transform> transform : *this)
-			transform->generate_model_matrix();
-#endif
-	}
-
 	void TransformSystem::on_end()
 	{
 		auto transform = get_component();
@@ -250,11 +242,8 @@ namespace dk
 		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
 		Handle<Transform> transform = get_component();
 		a.set_name("Transform");
-		a.field<glm::vec3>("Position", &transform->m_local_position);
-		a.field<glm::quat>("Rotation", &transform->m_local_rotation);
-		a.field<glm::vec3>("Scale", &transform->m_local_scale);
-
-		if (a.is_writing())
-			transform->generate_model_matrix();
+		a.field<glm::vec3>("Position", &transform->m_local_position, [transform] { transform->generate_model_matrix(); });
+		a.field<glm::quat>("Rotation", &transform->m_local_rotation, [transform] { transform->generate_model_matrix(); });
+		a.field<glm::vec3>("Scale", &transform->m_local_scale, [transform] { transform->generate_model_matrix(); });
 	}
 }

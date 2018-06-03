@@ -9,7 +9,7 @@
 /** Includes. */
 #include <glm\glm.hpp>
 #include <glm\gtc\quaternion.hpp>
-#include <archive.hpp>
+#include <engine/archive.hpp>
 #include <ecs/scene.hpp>
 
 namespace dk
@@ -382,12 +382,6 @@ namespace dk
 		 * @param Component to act upon.
 		 */
 		void on_begin() override;
-
-		/**
-		 * @brief Called after on_tick().
-		 * @param Time in seconds since the last frame.
-		 */
-		void on_late_tick(float delta_time) override;
 
 		/**
 		 * @brief Called when a component is removed from the system.

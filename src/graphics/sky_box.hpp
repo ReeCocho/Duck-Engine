@@ -125,4 +125,7 @@ namespace dk
 		/** Fragment buffer mapping. */
 		void* m_fragment_map = nullptr;
 	};
+
+	/** Handle to a sky box. */
+	using HSkyBox = Handle<SkyBox>;
 }

@@ -231,7 +231,7 @@ namespace dk
 		 * @brief Access operator.
 		 * @return Resource.
 		 */
-		T* operator->()
+		T* operator->() const
 		{
 			dk_assert(allocator);
 			return allocator->get_resource_by_handle(id);

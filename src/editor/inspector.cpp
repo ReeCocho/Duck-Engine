@@ -62,17 +62,21 @@ namespace dk
 
 	void Inspector::draw_field(const ComponentArchive::Field& field)
 	{
+		bool run_callback = false;
+
 		// Float
 		if (field.type_id == TypeID<float>::id())
-			ImGui::InputFloat(field.name.data(), static_cast<float*>(field.data));
+			run_callback = ImGui::InputFloat(field.name.data(), static_cast<float*>(field.data));
 		// Vec2
 		else if(field.type_id == TypeID<glm::vec2>::id())
-			ImGui::InputFloat2(field.name.data(), static_cast<float*>(field.data));
+			run_callback = ImGui::InputFloat2(field.name.data(), static_cast<float*>(field.data));
 		// Vec3
 		else if(field.type_id == TypeID<glm::vec3>::id())
-			ImGui::InputFloat3(field.name.data(), static_cast<float*>(field.data));
+			run_callback = ImGui::InputFloat3(field.name.data(), static_cast<float*>(field.data));
 		// Vec4 or Quaternion
 		else if(field.type_id == TypeID<glm::vec4>::id() || field.type_id == TypeID<glm::quat>::id())
-			ImGui::InputFloat4(field.name.data(), static_cast<float*>(field.data));
+			run_callback = ImGui::InputFloat4(field.name.data(), static_cast<float*>(field.data));
+
+		if (run_callback) field.callback();
 	}
 }

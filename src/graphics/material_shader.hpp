@@ -164,4 +164,7 @@ namespace dk
 		/** Size in bytes of the per instance fragment uniform buffer. */
 		size_t m_inst_fragment_buffer_size;
 	};
+
+	/** Handle to a material shader. */
+	using HMaterialShader = Handle<MaterialShader>;
 }

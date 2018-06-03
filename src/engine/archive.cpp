@@ -40,12 +40,12 @@ namespace dk
 	}
 
 	template<>
-	void ComponentArchive::field<Handle<Mesh>>(const std::string& name, Handle<Mesh>* data)
+	void ComponentArchive::field<Handle<Mesh>>(const std::string& name, Handle<Mesh>* data, std::function<void()> callback)
 	{
 		if (m_archive)
 		{
 			// Set the field
-			set_field<Handle<Mesh>>(name, data);
+			set_field<Handle<Mesh>>(name, data, callback);
 
 			// Mesh name
 			std::string mesh_name;
@@ -68,7 +68,7 @@ namespace dk
 		{
 			if (m_writing)
 				// Create the field
-				set_field<Handle<Mesh>>(name, data);
+				set_field<Handle<Mesh>>(name, data, callback);
 			else
 			{
 				// Set the field if it exists
@@ -79,12 +79,12 @@ namespace dk
 	}
 
 	template<>
-	void ComponentArchive::field<Handle<MaterialShader>>(const std::string& name, Handle<MaterialShader>* data)
+	void ComponentArchive::field<Handle<MaterialShader>>(const std::string& name, Handle<MaterialShader>* data, std::function<void()> callback)
 	{
 		if (m_archive)
 		{
 			// Set the field
-			set_field<Handle<MaterialShader>>(name, data);
+			set_field<Handle<MaterialShader>>(name, data, callback);
 
 			// Shader name
 			std::string shader_name;
@@ -107,7 +107,7 @@ namespace dk
 		{
 			if (m_writing)
 				// Create the field
-				set_field<Handle<MaterialShader>>(name, data);
+				set_field<Handle<MaterialShader>>(name, data, callback);
 			else
 			{
 				// Set the field if it exists
@@ -118,12 +118,12 @@ namespace dk
 	}
 
 	template<>
-	void ComponentArchive::field<Handle<Material>>(const std::string& name, Handle<Material>* data)
+	void ComponentArchive::field<Handle<Material>>(const std::string& name, Handle<Material>* data, std::function<void()> callback)
 	{
 		if (m_archive)
 		{
 			// Set the field
-			set_field<Handle<Material>>(name, data);
+			set_field<Handle<Material>>(name, data, callback);
 
 			// Material name
 			std::string material_name;
@@ -146,7 +146,7 @@ namespace dk
 		{
 			if (m_writing)
 				// Create the field
-				set_field<Handle<Material>>(name, data);
+				set_field<Handle<Material>>(name, data, callback);
 			else
 			{
 				// Set the field if it exists
@@ -157,12 +157,12 @@ namespace dk
 	}
 
 	template<>
-	void ComponentArchive::field<Handle<SkyBox>>(const std::string& name, Handle<SkyBox>* data)
+	void ComponentArchive::field<Handle<SkyBox>>(const std::string& name, Handle<SkyBox>* data, std::function<void()> callback)
 	{
 		if (m_archive)
 		{
 			// Set the field
-			set_field<Handle<SkyBox>>(name, data);
+			set_field<Handle<SkyBox>>(name, data, callback);
 
 			// Sky box name
 			std::string sky_box_name;
@@ -185,7 +185,7 @@ namespace dk
 		{
 			if (m_writing)
 				// Create the field
-				set_field<Handle<SkyBox>>(name, data);
+				set_field<Handle<SkyBox>>(name, data, callback);
 			else
 			{
 				// Set the field if it exists
@@ -196,12 +196,12 @@ namespace dk
 	}
 
 	template<>
-	void ComponentArchive::field<Handle<CubeMap>>(const std::string& name, Handle<CubeMap>* data)
+	void ComponentArchive::field<Handle<CubeMap>>(const std::string& name, Handle<CubeMap>* data, std::function<void()> callback)
 	{
 		if (m_archive)
 		{
 			// Set the field
-			set_field<Handle<CubeMap>>(name, data);
+			set_field<Handle<CubeMap>>(name, data, callback);
 
 			// Cube map name
 			std::string cube_map_name;
@@ -224,7 +224,7 @@ namespace dk
 		{
 			if (m_writing)
 				// Create the field
-				set_field<Handle<CubeMap>>(name, data);
+				set_field<Handle<CubeMap>>(name, data, callback);
 			else
 			{
 				// Set the field if it exists

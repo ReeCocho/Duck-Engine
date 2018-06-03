@@ -6,9 +6,9 @@
 
 /** Includes. */
 #include "transform.hpp"
-#include <config.hpp>
+#include <engine\config.hpp>
 #include "lights.hpp"
-#include <common.hpp>
+#include <engine\common.hpp>
 
 namespace dk
 {

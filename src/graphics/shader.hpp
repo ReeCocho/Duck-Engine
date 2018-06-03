@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <glm\glm.hpp>
+#include <utilities\resource_allocator.hpp>
 #include "graphics.hpp"
 
 namespace dk
@@ -101,4 +102,7 @@ namespace dk
 		/** Number of textures. */
 		size_t m_texture_count;
 	};
+
+	/** Handle to a shader. */
+	using HShader = Handle<Shader>;
 }

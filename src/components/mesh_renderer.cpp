@@ -5,9 +5,9 @@
  */
 
 /** Includes. */
-#include <common.hpp>
+#include <engine/common.hpp>
 #include "transform.hpp"
-#include <config.hpp>
+#include <engine/config.hpp>
 #include "camera.hpp"
 #include "mesh_renderer.hpp"
 

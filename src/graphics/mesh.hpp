@@ -9,6 +9,7 @@
 /** Includes. */
 #include <glm\glm.hpp>
 #include <utilities\frustum.hpp>
+#include <utilities\resource_allocator.hpp>
 #include "graphics.hpp"
 
 namespace dk
@@ -180,4 +181,7 @@ namespace dk
 		/** AABB box. */
 		AABB m_aabb = {};
 	};
+
+	/** Handle to a mesh. */
+	using HMesh = Handle<Mesh>;
 }

@@ -9,6 +9,7 @@
 /** Includes. */
 #include <ecs\scene.hpp>
 #include <vector>
+#include <functional>
 #include <utilities\reflection.hpp>
 #include <utilities\archive.hpp>
 #include "resource_manager.hpp"
@@ -35,6 +36,9 @@ namespace dk
 
 			/** Pointer to field data. */
 			void* data = nullptr;
+
+			/** Callback should you choose to change the data pointer. */
+			std::function<void()> callback = []() {};
 
 			/** Field type ID. */
 			size_t type_id = 0;
@@ -94,15 +98,16 @@ namespace dk
 		 * @tparam Field type.
 		 * @param Field name.
 		 * @param Pointer to field destination/source.
+		 * @param Optional callback.
 		 * @note If the archive doesn't exist, the write mode flag will determine whether a read or write occurs.
 		 */
 		template<typename T>
-		void field(const std::string& name, T* data)
+		void field(const std::string& name, T* data, std::function<void()> callback = []() {})
 		{
 			if (m_archive)
 			{
 				// Set the field
-				set_field<T>(name, data);
+				set_field<T>(name, data, callback);
 
 				if (m_archive->is_writing())
 					// Write field to archive
@@ -115,7 +120,7 @@ namespace dk
 			{
 				if(m_writing)
 					// Create the field
-					set_field<T>(name, data);
+					set_field<T>(name, data, callback);
 				else
 				{
 					// Set the field if it exists
@@ -132,10 +137,11 @@ namespace dk
 		 * @tparam Allocator.
 		 * @param Field name.
 		 * @param Pointer to destination/source field.
+		 * @param Optional callback.
 		 * @note The archive must exist.
 		 */
 		template<template<class, class> class V, class T, class A>
-		void field(const std::string& name, V<T, A>* data)
+		void field(const std::string& name, V<T, A>* data, std::function<void()> callback = []() {})
 		{
 			if (m_archive)
 			{
@@ -167,9 +173,10 @@ namespace dk
 		 * @tparam Field type.
 		 * @param Field name.
 		 * @param Pointer to field.
+		 * @param Optional callback.
 		 */
 		template<typename T>
-		void set_field(const std::string& name, T* data)
+		void set_field(const std::string& name, T* data, std::function<void()> callback = []() {})
 		{
 			// Make sure the field doesn't already exist
 			dk_assert(!field_exists(name));
@@ -180,6 +187,7 @@ namespace dk
 			m_fields[m_fields.size() - 1].size = sizeof(T);
 			m_fields[m_fields.size() - 1].data = static_cast<void*>(data);
 			m_fields[m_fields.size() - 1].type_id = TypeID<T>::id();
+			m_fields[m_fields.size() - 1].callback = callback;
 		}
 
 		/**
@@ -189,9 +197,10 @@ namespace dk
 		 * @tparam Allocator.
 		 * @param Field name.
 		 * @param Pointer to field.
+		 * @param Optional callback.
 		 */
 		template<template<class, class> class V, class T, class A>
-		void set_field(const std::string& name, V<T, A>* data)
+		void set_field(const std::string& name, V<T, A>* data, std::function<void()> callback = []() {})
 		{
 			// Make sure the field doesn't already exist
 			dk_assert(!field_exists(name));
@@ -202,6 +211,7 @@ namespace dk
 			m_fields[m_fields.size() - 1].size = sizeof(V<T, A>);
 			m_fields[m_fields.size() - 1].data = static_cast<void*>(data);
 			m_fields[m_fields.size() - 1].type_id = TypeID<V<T, A>>::id();
+			m_fields[m_fields.size() - 1].callback = callback;
 		}
 
 		/**
@@ -260,17 +270,17 @@ namespace dk
 	// Specializations
 
 	template<>
-	void ComponentArchive::field<Handle<Mesh>>(const std::string& name, Handle<Mesh>* data);
+	void ComponentArchive::field<Handle<Mesh>>(const std::string& name, Handle<Mesh>* data, std::function<void()> callback);
 
 	template<>
-	void ComponentArchive::field<Handle<MaterialShader>>(const std::string& name, Handle<MaterialShader>* data);
+	void ComponentArchive::field<Handle<MaterialShader>>(const std::string& name, Handle<MaterialShader>* data, std::function<void()> callback);
 
 	template<>
-	void ComponentArchive::field<Handle<Material>>(const std::string& name, Handle<Material>* data);
+	void ComponentArchive::field<Handle<Material>>(const std::string& name, Handle<Material>* data, std::function<void()> callback);
 
 	template<>
-	void ComponentArchive::field<Handle<SkyBox>>(const std::string& name, Handle<SkyBox>* data);
+	void ComponentArchive::field<Handle<SkyBox>>(const std::string& name, Handle<SkyBox>* data, std::function<void()> callback);
 
 	template<>
-	void ComponentArchive::field<Handle<CubeMap>>(const std::string& name, Handle<CubeMap>* data);
+	void ComponentArchive::field<Handle<CubeMap>>(const std::string& name, Handle<CubeMap>* data, std::function<void()> callback);
 }

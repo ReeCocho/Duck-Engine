@@ -6,7 +6,7 @@
 
 /** Includes. */
 #include <utilities\file_io.hpp>
-#include <config.hpp>
+#include <engine/config.hpp>
 #include "imgui\imgui.h"
 #include "editor_renderer.hpp"
 

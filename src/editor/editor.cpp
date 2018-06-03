@@ -8,7 +8,7 @@
 #include <utilities\threading.hpp>
 #include <utilities\clock.hpp>
 #include <graphics\material.hpp>
-#include <config.hpp>
+#include <engine/config.hpp>
 #include <json.hpp>
 #include <fstream>
 #include "imgui\imgui.h"

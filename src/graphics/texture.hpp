@@ -8,6 +8,7 @@
 
 /** Includes. */
 #include <utilities\debugging.hpp>
+#include <utilities\resource_allocator.hpp>
 #include "graphics.hpp"
 
 namespace dk
@@ -160,6 +161,9 @@ namespace dk
 		uint32_t m_height = 0;
 	};
 
+	/** Handle to a texture. */
+	using HTexture = Handle<Texture>;
+
 	/**
 	 * @brief 3D texture.
 	 */
@@ -217,4 +221,7 @@ namespace dk
 			vk::Filter filter
 		);
 	};
+
+	/** Handle to a cube map. */
+	using HCubeMap = Handle<CubeMap>;
 }

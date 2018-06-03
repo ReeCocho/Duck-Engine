@@ -7,11 +7,11 @@
  */
 
 /** Includes. */
-#include <config.hpp>
+#include <engine\config.hpp>
 
 // Engine/editor header
 #if DK_EDITOR
 #include <editor\editor.hpp>
 #else
-#include <engine.hpp>
+#include <engine\engine.hpp>
 #endif

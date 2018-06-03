@@ -8,7 +8,7 @@
 
 /** Includes. */
 #include <glm\glm.hpp>
-#include <common.hpp>
+#include <engine\common.hpp>
 #include <ecs\scene.hpp>
 
 namespace dk
