@@ -288,8 +288,8 @@ namespace dk
 
 		// Draw skybox if allowed
 		if (m_main_camera.sky_box.allocator &&
-			m_main_camera.sky_box->get_material() != Handle<Material>() &&
-			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
+			m_main_camera.sky_box->get_material() != HMaterial() &&
+			m_main_camera.sky_box->get_mesh() != HMesh())
 		{
 			command_buffers.push_back(m_main_camera.command_buffers[1].get_command_buffer());
 			draw_sky_box(m_main_camera.command_buffers[1], extent, inheritance_info, true);
@@ -417,9 +417,9 @@ namespace dk
 		std::vector<vk::CommandBuffer> command_buffers = {};
 
 		// Draw skybox if allowed
-		if (m_main_camera.sky_box != Handle<SkyBox>() &&
-			m_main_camera.sky_box->get_material() != Handle<Material>() &&
-			m_main_camera.sky_box->get_mesh() != Handle<Mesh>())
+		if (m_main_camera.sky_box != HSkyBox() &&
+			m_main_camera.sky_box->get_material() != HMaterial() &&
+			m_main_camera.sky_box->get_mesh() != HMesh())
 		{
 			command_buffers.push_back(m_main_camera.command_buffers[0].get_command_buffer());
 			draw_sky_box(m_main_camera.command_buffers[0], extent, inheritance_info, false);
@@ -628,7 +628,7 @@ namespace dk
 			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
 
 		// Create attachments
-		m_depth_prepass_image.depth_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
+		m_depth_prepass_image.depth_texture = HTexture(m_texture_allocator->allocate(), m_texture_allocator);
 
 		::new(m_texture_allocator->get_resource_by_handle(m_depth_prepass_image.depth_texture.id))(Texture)
 		(
@@ -1156,7 +1156,7 @@ namespace dk
 			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 1);
 
 		// Create attachments
-		m_color_texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator);
+		m_color_texture = HTexture(m_texture_allocator->allocate(), m_texture_allocator);
 
 		::new(m_color_texture.allocator->get_resource_by_handle(m_color_texture.id))(Texture)
 		(

@@ -31,7 +31,7 @@ namespace dk
 		 * @param Graphics context.
 		 * @param Shader.
 		 */
-		Material(Graphics* graphics, Handle<MaterialShader> shader);
+		Material(Graphics* graphics, HMaterialShader shader);
 
 		/**
 		 * @brief Destructor.
@@ -48,20 +48,20 @@ namespace dk
 		 * @param Texture index.
 		 * @param Texture handle.
 		 */
-		void set_texture(size_t index, Handle<Texture> texture);
+		void set_texture(size_t index, HTexture texture);
 
 		/**
 		 * @brief Set cube map.
 		 * @param Cube map index.
 		 * @param Cube map handle.
 		 */
-		void set_cube_map(size_t index, Handle<CubeMap> cube_map);
+		void set_cube_map(size_t index, HCubeMap cube_map);
 
 		/**
 		 * @brief Get shader.
 		 * @return Shader.
 		 */
-		Handle<MaterialShader> get_shader()
+		HMaterialShader get_shader()
 		{
 			return m_shader;
 		}
@@ -71,15 +71,15 @@ namespace dk
 		 * @param Index.
 		 * @return Texture.
 		 */
-		Handle<Texture> get_texture(size_t index)
+		HTexture get_texture(size_t index)
 		{
 			try
 			{
-				Handle<Texture> handle = m_textures.at(index);
+				HTexture handle = m_textures.at(index);
 				return handle;
 			}
 			catch (std::out_of_range e)
-			{ return Handle<Texture>(); }
+			{ return HTexture(); }
 		}
 
 		/**
@@ -87,15 +87,15 @@ namespace dk
 		 * @param Index.
 		 * @return Cube map.
 		 */
-		Handle<CubeMap> get_cube_map(size_t index)
+		HCubeMap get_cube_map(size_t index)
 		{
 			try
 			{
-				Handle<CubeMap> handle = m_cube_maps.at(index);
+				HCubeMap handle = m_cube_maps.at(index);
 				return handle;
 			}
 			catch (std::out_of_range e)
-			{ return Handle<CubeMap>(); }
+			{ return HCubeMap(); }
 		}
 
 		/**
@@ -162,7 +162,7 @@ namespace dk
 		Graphics* m_graphics;
 
 		/** Shader. */
-		Handle<MaterialShader> m_shader;
+		HMaterialShader m_shader;
 
 		/** Descriptor pool. */
 		vk::DescriptorPool m_vk_descriptor_pool = {};
@@ -183,10 +183,10 @@ namespace dk
 		void* m_vertex_map;
 
 		/** Textures. */
-		std::map<size_t, Handle<Texture>> m_textures = {};
+		std::map<size_t, HTexture> m_textures = {};
 
 		/** Cube maps. */
-		std::map<size_t, Handle<CubeMap>> m_cube_maps = {};
+		std::map<size_t, HCubeMap> m_cube_maps = {};
 	};
 
 	/** Handle to a material. */

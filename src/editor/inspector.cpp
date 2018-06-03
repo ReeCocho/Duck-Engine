@@ -19,17 +19,17 @@ namespace dk
 
 	void Inspector::inspect_entity(Entity entity)
 	{
-		m_component_archives.clear();
+		m_component_inspectors.clear();
 		m_inspected_entity = entity;
 
 		// Find component fields
 		for (size_t i = 0; i < m_scene->get_system_count(); ++i)
 		{
-			auto archive = ComponentArchive(m_scene, m_resource_manager, true);
+			auto archive = std::make_unique<ComponentInspector>(m_scene, m_resource_manager);
 
 			// Try to serialize component
-			if (m_scene->get_system_by_index(i)->serialize_by_entity(archive, m_inspected_entity))
-				m_component_archives.push_back(archive);
+			if (m_scene->get_system_by_index(i)->serialize_by_entity(*archive, m_inspected_entity))
+				m_component_inspectors.push_back(std::move(archive));
 		}
 	}
 
@@ -39,18 +39,16 @@ namespace dk
 		float height = static_cast<float>(m_graphics->get_height());
 		float width = static_cast<float>(m_graphics->get_width());
 
-		//ImGui::Text("Inspector");
-
 		// Begin window
 		if (m_inspected_entity != Entity(nullptr, 0))
 		{
 			// Loop over every system archive
-			for (const auto& archive : m_component_archives)
+			for (const auto& archive : m_component_inspectors)
 			{
 				// Show component name
-				if (ImGui::CollapsingHeader(archive.get_name().data()))
+				if (ImGui::CollapsingHeader(archive->get_name().data()))
 				{
-					const auto& fields = archive.get_fields();
+					const auto& fields = archive->get_fields();
 
 					// Loop over every field
 					for (const auto& field : fields)
@@ -60,23 +58,23 @@ namespace dk
 		}
 	}
 
-	void Inspector::draw_field(const ComponentArchive::Field& field)
+	void Inspector::draw_field(ComponentInspector::Field* field)
 	{
 		bool run_callback = false;
 
 		// Float
-		if (field.type_id == TypeID<float>::id())
-			run_callback = ImGui::InputFloat(field.name.data(), static_cast<float*>(field.data));
+		if (field->type_id == TypeID<float>::id())
+			run_callback = ImGui::InputFloat(field->name.data(), static_cast<float*>(field->data));
 		// Vec2
-		else if(field.type_id == TypeID<glm::vec2>::id())
-			run_callback = ImGui::InputFloat2(field.name.data(), static_cast<float*>(field.data));
+		else if(field->type_id == TypeID<glm::vec2>::id())
+			run_callback = ImGui::InputFloat2(field->name.data(), static_cast<float*>(field->data));
 		// Vec3
-		else if(field.type_id == TypeID<glm::vec3>::id())
-			run_callback = ImGui::InputFloat3(field.name.data(), static_cast<float*>(field.data));
+		else if(field->type_id == TypeID<glm::vec3>::id())
+			run_callback = ImGui::InputFloat3(field->name.data(), static_cast<float*>(field->data));
 		// Vec4 or Quaternion
-		else if(field.type_id == TypeID<glm::vec4>::id() || field.type_id == TypeID<glm::quat>::id())
-			run_callback = ImGui::InputFloat4(field.name.data(), static_cast<float*>(field.data));
+		else if(field->type_id == TypeID<glm::vec4>::id() || field->type_id == TypeID<glm::quat>::id())
+			run_callback = ImGui::InputFloat4(field->name.data(), static_cast<float*>(field->data));
 
-		if (run_callback) field.callback();
+		if (run_callback) field->callback();
 	}
 }

@@ -6,6 +6,7 @@
 
 /** Includes. */
 #include <engine/common.hpp>
+#include <editor\component_inspector.hpp>
 #include "transform.hpp"
 #include <engine/config.hpp>
 #include "camera.hpp"
@@ -214,10 +215,18 @@ namespace dk
 
 	void MeshRendererSystem::serialize(ReflectionContext& archive)
 	{
-		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
 		Handle<MeshRenderer> mesh_renderer = get_component();
-		a.set_name("Mesh Renderer");
-		a.field<Handle<Mesh>>("Mesh", &mesh_renderer->m_mesh);
-		a.field<Handle<Material>>("Material", &mesh_renderer->m_material);
+
+		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
+		{
+			a->field<HMesh>(&mesh_renderer->m_mesh);
+			a->field<HMaterial>(&mesh_renderer->m_material);
+		}
+		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
+		{
+			a->set_name("Mesh Renderer");
+			a->set_field<HMesh>("Mesh", &mesh_renderer->m_mesh);
+			a->set_field<HMaterial>("Material", &mesh_renderer->m_material);
+		}
 	}
 }

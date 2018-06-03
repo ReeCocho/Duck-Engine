@@ -7,6 +7,7 @@
 /** Includes. */
 #include <algorithm>
 #include <glm\gtc\matrix_transform.hpp>
+#include <editor\component_inspector.hpp>
 #include "transform.hpp"
 
 namespace dk
@@ -239,11 +240,20 @@ namespace dk
 
 	void TransformSystem::serialize(ReflectionContext& archive)
 	{
-		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
 		Handle<Transform> transform = get_component();
-		a.set_name("Transform");
-		a.field<glm::vec3>("Position", &transform->m_local_position, [transform] { transform->generate_model_matrix(); });
-		a.field<glm::quat>("Rotation", &transform->m_local_rotation, [transform] { transform->generate_model_matrix(); });
-		a.field<glm::vec3>("Scale", &transform->m_local_scale, [transform] { transform->generate_model_matrix(); });
+
+		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
+		{
+			a->field<glm::vec3>(&transform->m_local_position);
+			a->field<glm::quat>(&transform->m_local_rotation);
+			a->field<glm::vec3>(&transform->m_local_scale);
+		}
+		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
+		{
+			a->set_name("Transform");
+			a->set_field<glm::vec3>("Position", &transform->m_local_position, [transform] { transform->generate_model_matrix(); });
+			a->set_field<glm::vec3>("Rotation", &transform->m_local_euler_angles, [transform] { transform->set_local_euler_angles(transform->get_local_euler_angles()); });
+			a->set_field<glm::vec3>("Scale", &transform->m_local_scale, [transform] { transform->generate_model_matrix(); });
+		}
 	}
 }

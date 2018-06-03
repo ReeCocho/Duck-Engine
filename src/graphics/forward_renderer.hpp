@@ -33,7 +33,7 @@ namespace dk
 		std::vector<VkManagedCommandBuffer> command_buffers = {};
 
 		/** Sky box. */
-		Handle<SkyBox> sky_box = Handle<SkyBox>();
+		HSkyBox sky_box = HSkyBox();
 	};
 
 	/**
@@ -45,10 +45,10 @@ namespace dk
 		std::vector<VkManagedCommandBuffer> command_buffers = {};
 
 		/** Shader. */
-		Handle<MaterialShader> shader = {};
+		HMaterialShader shader = {};
 
 		/** Mesh. */
-		Handle<Mesh> mesh = {};
+		HMesh mesh = {};
 
 		/** Descriptor sets. */
 		std::vector<vk::DescriptorSet> descriptor_sets = {};
@@ -289,7 +289,7 @@ namespace dk
 			vk::Framebuffer framebuffer = {};
 
 			/** Depth texture. */
-			Handle<Texture> depth_texture = {};
+			HTexture depth_texture = {};
 
 		} m_depth_prepass_image;
 
@@ -489,7 +489,7 @@ namespace dk
 		 * Get color texture.
 		 * @return Color texture.
 		 */
-		Handle<Texture> get_color_texture() const
+		HTexture get_color_texture() const
 		{
 			return m_color_texture;
 		}
@@ -524,6 +524,6 @@ namespace dk
 		vk::Framebuffer m_color_frame_buffer = {};
 
 		/** Color exture to render to. */
-		Handle<Texture> m_color_texture = {};
+		HTexture m_color_texture = {};
 	};
 }

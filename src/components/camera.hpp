@@ -73,7 +73,7 @@ namespace dk
 		 * Get sky box.
 		 * @return Sky box.
 		 */
-		Handle<SkyBox> get_sky_box() const
+		HSkyBox get_sky_box() const
 		{
 			return m_sky_box;
 		}
@@ -122,7 +122,7 @@ namespace dk
 		 * @param New sky box.
 		 * @return New sky box.
 		 */
-		Handle<SkyBox> set_sky_box(Handle<SkyBox> sky_box)
+		HSkyBox set_sky_box(HSkyBox sky_box)
 		{
 			m_sky_box = sky_box;
 			return m_sky_box;
@@ -158,7 +158,7 @@ namespace dk
 		std::vector<VkManagedCommandBuffer> m_command_buffers = {};
 
 		/** Skybox. */
-		Handle<SkyBox> m_sky_box = {};
+		HSkyBox m_sky_box = {};
 
 		/** Field of view. */
 		float m_field_of_view = 100.0f;

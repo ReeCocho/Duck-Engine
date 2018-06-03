@@ -119,12 +119,12 @@ namespace dk
 		 * @param Name.
 		 * @param Mesh handle.
 		 */
-		Handle<Mesh> get_mesh(const std::string& name)
+		HMesh get_mesh(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_mesh_map.at(name); }
-			catch (std::out_of_range e) { return Handle<Mesh>(0, nullptr); }
-			return Handle<Mesh>(id, m_mesh_allocator.get());
+			catch (std::out_of_range e) { return HMesh(0, nullptr); }
+			return HMesh(id, m_mesh_allocator.get());
 		}
 
 		/**
@@ -132,12 +132,12 @@ namespace dk
 		 * @param Name.
 		 * @param Shader handle.
 		 */
-		Handle<MaterialShader> get_shader(const std::string& name)
+		HMaterialShader get_shader(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_shader_map.at(name); }
-			catch (std::out_of_range e) { return Handle<MaterialShader>(0, nullptr); }
-			return Handle<MaterialShader>(id, m_shader_allocator.get());
+			catch (std::out_of_range e) { return HMaterialShader(0, nullptr); }
+			return HMaterialShader(id, m_shader_allocator.get());
 		}
 
 		/**
@@ -145,12 +145,12 @@ namespace dk
 		 * @param Name.
 		 * @param Material handle.
 		 */
-		Handle<Material> get_material(const std::string& name)
+		HMaterial get_material(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_material_map.at(name); }
-			catch (std::out_of_range e) { return Handle<Material>(0, nullptr); }
-			return Handle<Material>(id, m_material_allocator.get());
+			catch (std::out_of_range e) { return HMaterial(0, nullptr); }
+			return HMaterial(id, m_material_allocator.get());
 		}
 
 		/**
@@ -158,12 +158,12 @@ namespace dk
 		 * @param Name.
 		 * @param Texture handle.
 		 */
-		Handle<Texture> get_texture(const std::string& name)
+		HTexture get_texture(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_texture_map.at(name); }
-			catch (std::out_of_range e) { return Handle<Texture>(0, nullptr); }
-			return Handle<Texture>(id, m_texture_allocator.get());
+			catch (std::out_of_range e) { return HTexture(0, nullptr); }
+			return HTexture(id, m_texture_allocator.get());
 		}
 
 		/**
@@ -171,12 +171,12 @@ namespace dk
 		 * @param Name.
 		 * @param Sky box handle.
 		 */
-		Handle<SkyBox> get_sky_box(const std::string& name)
+		HSkyBox get_sky_box(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_sky_box_map.at(name); }
-			catch (std::out_of_range e) { return Handle<SkyBox>(0, nullptr); }
-			return Handle<SkyBox>(id, m_sky_box_allocator.get());
+			catch (std::out_of_range e) { return HSkyBox(0, nullptr); }
+			return HSkyBox(id, m_sky_box_allocator.get());
 		}
 
 		/**
@@ -184,12 +184,12 @@ namespace dk
 		 * @param Name.
 		 * @param Cube map handle.
 		 */
-		Handle<CubeMap> get_cube_map(const std::string& name)
+		HCubeMap get_cube_map(const std::string& name)
 		{
 			ResourceID id = 0;
 			try { id = m_cube_map_map.at(name); }
-			catch (std::out_of_range e) { return Handle<CubeMap>(0, nullptr); }
-			return Handle<CubeMap>(id, m_cube_map_allocator.get());
+			catch (std::out_of_range e) { return HCubeMap(0, nullptr); }
+			return HCubeMap(id, m_cube_map_allocator.get());
 		}
 
 		/**
@@ -197,7 +197,7 @@ namespace dk
 		 * @param Mesh handle.
 		 * @return Mesh name.
 		 */
-		std::string get_mesh_name(Handle<Mesh> mesh)
+		std::string get_mesh_name(HMesh mesh)
 		{
 			dk_assert(mesh.allocator == m_mesh_allocator.get());
 			for (auto pair : m_mesh_map)
@@ -211,7 +211,7 @@ namespace dk
 		 * @param Shader handle.
 		 * @return Shader name.
 		 */
-		std::string get_shader_name(Handle<MaterialShader> shader)
+		std::string get_shader_name(HMaterialShader shader)
 		{
 			dk_assert(shader.allocator == m_shader_allocator.get());
 			for (auto pair : m_shader_map)
@@ -225,7 +225,7 @@ namespace dk
 		 * @param Material handle.
 		 * @return Material name.
 		 */
-		std::string get_material_name(Handle<Material> material)
+		std::string get_material_name(HMaterial material)
 		{
 			dk_assert(material.allocator == m_material_allocator.get());
 			for (auto pair : m_material_map)
@@ -239,7 +239,7 @@ namespace dk
 		 * @param Texture handle.
 		 * @return Texture name.
 		 */
-		std::string get_texture_name(Handle<Texture> texture)
+		std::string get_texture_name(HTexture texture)
 		{
 			dk_assert(texture.allocator == m_texture_allocator.get());
 			for (auto pair : m_texture_map)
@@ -253,7 +253,7 @@ namespace dk
 		 * @param Sky box handle.
 		 * @return Sky box name.
 		 */
-		std::string get_sky_box_name(Handle<SkyBox> sky_box)
+		std::string get_sky_box_name(HSkyBox sky_box)
 		{
 			dk_assert(sky_box.allocator == m_sky_box_allocator.get());
 			for (auto pair : m_sky_box_map)
@@ -267,7 +267,7 @@ namespace dk
 		 * @param Cube map handle.
 		 * @return Cube map name.
 		 */
-		std::string get_cube_map_name(Handle<CubeMap> cube_map)
+		std::string get_cube_map_name(HCubeMap cube_map)
 		{
 			dk_assert(cube_map.allocator == m_cube_map_allocator.get());
 			for (auto pair : m_cube_map_map)
@@ -283,7 +283,7 @@ namespace dk
 		 * @param Vertices.
 		 * @return Mesh handle.
 		 */
-		Handle<Mesh> create_mesh(const std::string& name, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
+		HMesh create_mesh(const std::string& name, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices);
 
 		/**
 		 * @brief Create a mesh.
@@ -291,7 +291,7 @@ namespace dk
 		 * @param Path to the OBJ file.
 		 * @return Mesh handle.
 		 */
-		Handle<Mesh> create_mesh(const std::string& name, const std::string& path);
+		HMesh create_mesh(const std::string& name, const std::string& path);
 
 		/**
 		 * @brief Create a shader.
@@ -301,7 +301,7 @@ namespace dk
 		 * @param Should the shader perform depth testing?
 		 * @return Shader handle.
 		 */
-		Handle<MaterialShader> create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth = true);
+		HMaterialShader create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth = true);
 
 		/**
 		 * @brief Create a material.
@@ -309,7 +309,7 @@ namespace dk
 		 * @param Shader handle.
 		 * @return Material handle.
 		 */
-		Handle<Material> create_material(const std::string& name, Handle<MaterialShader> shader);
+		HMaterial create_material(const std::string& name, HMaterialShader shader);
 
 		/**
 		 * @brief Create a texture.
@@ -319,7 +319,7 @@ namespace dk
 		 * @param Mip map level.
 		 * @return Texture handle.
 		 */
-		Handle<Texture> create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level = 1);
+		HTexture create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level = 1);
 
 		/**
 		 * @brief Create a texture
@@ -333,7 +333,7 @@ namespace dk
 		 * @param Height.
 		 * @param Mip map levels.
 		 */
-		Handle<Texture> create_texture
+		HTexture create_texture
 		(
 			const std::string& name,
 			vk::Image image,
@@ -350,7 +350,7 @@ namespace dk
 		 * Create a sky box.
 		 * @param Name.
 		 */
-		Handle<SkyBox> create_sky_box(const std::string& name);
+		HSkyBox create_sky_box(const std::string& name);
 
 		/**
 		 * Create a cube map.
@@ -363,7 +363,7 @@ namespace dk
 		 * @param Path to file containing west image.
 		 * @param Texture filtering.
 		 */
-		Handle<CubeMap> create_cube_map
+		HCubeMap create_cube_map
 		(
 			const std::string& name,
 			const std::string& top,
@@ -379,37 +379,37 @@ namespace dk
 		 * @brief Destroy a mesh.
 		 * @param Mesh handle.
 		 */
-		void destroy(Handle<Mesh> mesh);
+		void destroy(HMesh mesh);
 
 		/**
 		 * @brief Destroy a shader.
 		 * @param Shader handle.
 		 */
-		void destroy(Handle<MaterialShader> shader);
+		void destroy(HMaterialShader shader);
 
 		/**
 		 * @brief Destroy a material.
 		 * @param Material handle.
 		 */
-		void destroy(Handle<Material> material);
+		void destroy(HMaterial material);
 
 		/**
 		 * @brief Destroy a texture.
 		 * @param Texture handle.
 		 */
-		void destroy(Handle<Texture> texture);
+		void destroy(HTexture texture);
 
 		/**
 		 * Destroy a sky box.
 		 * @param Sky box handle.
 		 */
-		void destroy(Handle<SkyBox> sky_box);
+		void destroy(HSkyBox sky_box);
 
 		/**
 		 * Destroy a cube map.
 		 * @param Cube map handle.
 		 */
-		void destroy(Handle<CubeMap> cube_map);
+		void destroy(HCubeMap cube_map);
 
 	private:
 		

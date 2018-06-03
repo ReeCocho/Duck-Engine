@@ -5,6 +5,7 @@ set(DUCK_ENGINE_HDRS
 	resource_manager.hpp
 	archive.hpp
 	common.hpp
+	config.hpp
 )
 
 # Sources

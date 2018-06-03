@@ -12,6 +12,7 @@
 #include <components\lights.hpp>
 #include <components\rigidbody.hpp>
 #include <components\character_controller.hpp>
+#include <editor\component_inspector.hpp>
 
 
 #if DK_EDITOR
@@ -154,10 +155,16 @@ public:
 		}
 	}
 
-	void serialize(dk::ReflectionContext& context)
+	void serialize(dk::ReflectionContext& archive)
 	{
-		auto& archive = static_cast<dk::ComponentArchive&>(context);
-		archive.set_name("Player");
+		if (auto a = dynamic_cast<dk::ComponentArchive*>(&archive))
+		{
+
+		}
+		else if (auto a = dynamic_cast<dk::ComponentInspector*>(&archive))
+		{
+			a->set_name("Player");
+		}
 	}
 
 private:

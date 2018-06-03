@@ -9,6 +9,7 @@
 /** Includes. */
 #include <graphics\graphics.hpp>
 #include <components\transform.hpp>
+#include <editor\component_inspector.hpp>
 #include <ecs\scene.hpp>
 #include "imgui\imgui.h"
 
@@ -51,7 +52,7 @@ namespace dk
 		 * Draw a field.
 		 * @param Field.
 		 */
-		void draw_field(const ComponentArchive::Field& field);
+		void draw_field(ComponentInspector::Field* field);
 
 		/** Graphics context. */
 		Graphics* m_graphics;
@@ -65,7 +66,7 @@ namespace dk
 		/** Entity being inspected. */
 		Entity m_inspected_entity = Entity(nullptr, 0);
 
-		/** Inspector entites component archives. */
-		std::vector<ComponentArchive> m_component_archives = {};
+		/** Systems inspected components. */
+		std::vector<std::unique_ptr<ComponentInspector>> m_component_inspectors = {};
 	};
 }

@@ -131,14 +131,14 @@ namespace dk
 		}
 	}
 
-	Handle<Mesh> SkyBox::set_mesh(Handle<Mesh> mesh)
+	HMesh SkyBox::set_mesh(HMesh mesh)
 	{
 		m_mesh = mesh;
 		generate_resources();
 		return m_mesh;
 	}
 
-	Handle<Material> SkyBox::set_material(Handle<Material> material)
+	HMaterial SkyBox::set_material(HMaterial material)
 	{
 		m_material = material;
 		generate_resources();

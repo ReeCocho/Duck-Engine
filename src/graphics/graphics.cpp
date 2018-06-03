@@ -60,7 +60,7 @@ namespace dk
 		// Check for Vulkan layers
 		std::vector<const char*> layers = 
 		{
-#if DUCK_DEBUG_VULKAN
+#if DK_DEBUG_VULKAN
 			"VK_LAYER_LUNARG_standard_validation"
 #endif
 		};
@@ -69,7 +69,7 @@ namespace dk
 		// Check for Vulkan extensions
 		std::vector<const char*> extensions =
 		{
-#ifdef DUCK_DEBUG_VULKAN
+#ifdef DK_DEBUG_VULKAN
 			VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
 #endif
 			VK_KHR_SURFACE_EXTENSION_NAME
@@ -105,7 +105,7 @@ namespace dk
 			m_vk_surface = static_cast<vk::SurfaceKHR>(surface);
 		}
 
-#if DUCK_DEBUG_VULKAN
+#if DK_DEBUG_VULKAN
 		m_debugger = std::make_unique<VkDebugger>(m_vk_instance);
 #endif
 
@@ -135,7 +135,7 @@ namespace dk
 		m_vk_instance.destroySurfaceKHR(m_vk_surface);
 
 		// Destroy debugger
-#if DUCK_DEBUG_VULKAN
+#if DK_DEBUG_VULKAN
 		m_debugger.reset();
 #endif
 

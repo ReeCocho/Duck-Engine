@@ -30,7 +30,7 @@ namespace dk
 		 * @param New material.
 		 * @return New material.
 		 */
-		Handle<Material> set_material(Handle<Material> material)
+		HMaterial set_material(HMaterial material)
 		{
 			m_material = material;
 			generate_resources();
@@ -42,7 +42,7 @@ namespace dk
 		 * @param New mesh.
 		 * @return New mesh.
 		 */
-		Handle<Mesh> set_mesh(Handle<Mesh> mesh)
+		HMesh set_mesh(HMesh mesh)
 		{
 			m_mesh = mesh;
 			generate_resources();
@@ -53,7 +53,7 @@ namespace dk
 		 * @brief Get the material.
 		 * @return The material.
 		 */
-		Handle<Material> get_material()
+		HMaterial get_material()
 		{
 			return m_material;
 		}
@@ -62,7 +62,7 @@ namespace dk
 		 * @brief Get the mesh.
 		 * @return The mesh.
 		 */
-		Handle<Mesh> get_mesh()
+		HMesh get_mesh()
 		{
 			return m_mesh;
 		}
@@ -85,10 +85,10 @@ namespace dk
 		Handle<Transform> m_transform = {};
 
 		/** Material the mesh renders using. */
-		Handle<Material> m_material = {};
+		HMaterial m_material = {};
 
 		/** Mesh used when rendering. */
-		Handle<Mesh> m_mesh = {};
+		HMesh m_mesh = {};
 
 		/** Command buffer used for rendering. */
 		VkManagedCommandBuffer m_command_buffer = {};

@@ -11,7 +11,7 @@ namespace dk
 {
 	Material::Material() {}
 
-	Material::Material(Graphics* graphics, Handle<MaterialShader> shader) :
+	Material::Material(Graphics* graphics, HMaterialShader shader) :
 		m_graphics(graphics),
 		m_shader(shader),
 		m_textures({}),
@@ -60,7 +60,7 @@ namespace dk
 
 	Material::~Material() {}
 
-	void Material::set_texture(size_t index, Handle<Texture> texture) 
+	void Material::set_texture(size_t index, HTexture texture) 
 	{
 		dk_assert(index < m_shader->get_texture_count());
 		m_cube_maps.erase(index);
@@ -68,7 +68,7 @@ namespace dk
 		update_texture_descriptor_set();
 	}
 
-	void Material::set_cube_map(size_t index, Handle<CubeMap> cube_map)
+	void Material::set_cube_map(size_t index, HCubeMap cube_map)
 	{
 		dk_assert(index < m_shader->get_texture_count());
 		m_textures.erase(index);

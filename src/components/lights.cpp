@@ -9,6 +9,7 @@
 #include <engine\config.hpp>
 #include "lights.hpp"
 #include <engine\common.hpp>
+#include <editor\component_inspector.hpp>
 
 namespace dk
 {
@@ -33,11 +34,19 @@ namespace dk
 
 	void DirectionalLightSystem::serialize(ReflectionContext& archive)
 	{
-		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
 		Handle<DirectionalLight> light = get_component();
-		a.set_name("Directional Light");
-		a.field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
-		a.field<float>("Intensity", &light->m_light_data.color.w);
+
+		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
+		{
+			a->field<glm::vec3>((glm::vec3*)&light->m_light_data.color);
+			a->field<float>(&light->m_light_data.color.w);
+		}
+		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
+		{
+			a->set_name("Directional Light");
+			a->set_field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
+			a->set_field<float>("Intensity", &light->m_light_data.color.w);
+		}
 	}
 
 	void PointLightSystem::on_begin()
@@ -62,11 +71,20 @@ namespace dk
 
 	void PointLightSystem::serialize(ReflectionContext& archive)
 	{
-		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
 		Handle<PointLight> light = get_component();
-		a.set_name("Point Light");
-		a.field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
-		a.field<float>("Intensity", &light->m_light_data.color.w);
-		a.field<float>("Range", &light->m_light_data.position.w);
+
+		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
+		{
+			a->field<glm::vec3>((glm::vec3*)&light->m_light_data.color);
+			a->field<float>(&light->m_light_data.color.w);
+			a->field<float>(&light->m_light_data.position.w);
+		}
+		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
+		{
+			a->set_name("Point Light");
+			a->set_field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
+			a->set_field<float>("Intensity", &light->m_light_data.color.w);
+			a->set_field<float>("Range", &light->m_light_data.position.w);
+		}
 	}
 }

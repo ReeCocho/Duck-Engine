@@ -2,6 +2,7 @@
 #include "transform.hpp"
 #include <engine\common.hpp>
 #include <engine\config.hpp>
+#include <editor\component_inspector.hpp>
 #include "character_controller.hpp"
 
 namespace dk
@@ -235,8 +236,15 @@ namespace dk
 
 	void CharacterControllerSystem::serialize(ReflectionContext& archive)
 	{
-		ComponentArchive& a = static_cast<ComponentArchive&>(archive);
 		Handle<CharacterController> controller = get_component();
-		a.set_name("Character Controller");
+
+		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
+		{
+
+		}
+		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
+		{
+			a->set_name("Character Controller");
+		}
 	}
 }

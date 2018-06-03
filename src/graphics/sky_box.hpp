@@ -46,7 +46,7 @@ namespace dk
 		 * Get mesh.
 		 * @return Mesh.
 		 */
-		Handle<Mesh> get_mesh() const
+		HMesh get_mesh() const
 		{
 			return m_mesh;
 		}
@@ -55,7 +55,7 @@ namespace dk
 		 * Get material.
 		 * @return Material.
 		 */
-		Handle<Material> get_material() const
+		HMaterial get_material() const
 		{
 			return m_material;
 		}
@@ -74,14 +74,14 @@ namespace dk
 		 * @param New mesh.
 		 * @return New mesh.
 		 */
-		Handle<Mesh> set_mesh(Handle<Mesh> mesh);
+		HMesh set_mesh(HMesh mesh);
 
 		/**
 		 * Set material.
 		 * @param New material.
 		 * @return New material.
 		 */
-		Handle<Material> set_material(Handle<Material> material);
+		HMaterial set_material(HMaterial material);
 
 		/**
 		 * Set vertex data.
@@ -102,10 +102,10 @@ namespace dk
 		Graphics* m_graphics;
 
 		/** Mesh. */
-		Handle<Mesh> m_mesh = Handle<Mesh>();
+		HMesh m_mesh = HMesh();
 
 		/** Material. */
-		Handle<Material> m_material = Handle<Material>();
+		HMaterial m_material = HMaterial();
 
 		/** Descriptor pool. */
 		vk::DescriptorPool m_vk_descriptor_pool = {};

@@ -164,7 +164,7 @@ namespace dk
 
 			// Load file
 			std::string mesh_path = j["path"];
-			Handle<Mesh> mesh = create_mesh(path, meshes + mesh_path);
+			HMesh mesh = create_mesh(path, meshes + mesh_path);
 
 			// Calculate normals if requested
 			if (j["calc_normals"]) mesh->compute_normals();
@@ -264,7 +264,7 @@ namespace dk
 			stream.close();
 
 			// Create material
-			Handle<Material> material = create_material(path, get_shader(j["shader"]));
+			HMaterial material = create_material(path, get_shader(j["shader"]));
 
 			// Set textures
 			for (auto& texture : j["textures"])
@@ -286,20 +286,20 @@ namespace dk
 			stream.close();
 
 			// Create sky box
-			Handle<SkyBox> sky_box = create_sky_box(path);
+			HSkyBox sky_box = create_sky_box(path);
 			sky_box->set_material(get_material(j["material"]));
 			sky_box->set_mesh(get_mesh(j["mesh"]));
 		}
 	}
 
-	Handle<Mesh> ResourceManager::create_mesh(const std::string& name, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
+	HMesh ResourceManager::create_mesh(const std::string& name, const std::vector<uint16_t>& indices, const std::vector<Vertex>& vertices)
 	{
 		dk_assert(m_mesh_map.find(name) == m_mesh_map.end());
 
 		if (m_mesh_allocator->num_allocated() + 1 > m_mesh_allocator->max_allocated())
 			m_mesh_allocator->resize(m_mesh_allocator->max_allocated() + 16);
 
-		auto mesh = Handle<Mesh>(m_mesh_allocator->allocate(), m_mesh_allocator.get());
+		auto mesh = HMesh(m_mesh_allocator->allocate(), m_mesh_allocator.get());
 		::new(m_mesh_allocator->get_resource_by_handle(mesh.id))(Mesh)(&m_renderer->get_graphics(), indices, vertices);
 		
 		m_mesh_map[name] = mesh.id;
@@ -307,7 +307,7 @@ namespace dk
 		return mesh;
 	}
 
-	Handle<Mesh> ResourceManager::create_mesh(const std::string& name, const std::string& path)
+	HMesh ResourceManager::create_mesh(const std::string& name, const std::string& path)
 	{
 		dk_assert(m_mesh_map.find(name) == m_mesh_map.end());
 
@@ -382,7 +382,7 @@ namespace dk
 		if (m_mesh_allocator->num_allocated() + 1 > m_mesh_allocator->max_allocated())
 			m_mesh_allocator->resize(m_mesh_allocator->max_allocated() + 16);
 
-		auto mesh = Handle<Mesh>(m_mesh_allocator->allocate(), m_mesh_allocator.get());
+		auto mesh = HMesh(m_mesh_allocator->allocate(), m_mesh_allocator.get());
 		::new(m_mesh_allocator->get_resource_by_handle(mesh.id))(Mesh)(&m_renderer->get_graphics(), indices, unique_vertices);
 
 		m_mesh_map[name] = mesh.id;
@@ -390,7 +390,7 @@ namespace dk
 		return mesh;
 	}
 
-	Handle<MaterialShader> ResourceManager::create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth)
+	HMaterialShader ResourceManager::create_shader(const std::string& name, const std::vector<char>& vert_byte_code, const std::vector<char>& frag_byte_code, bool depth)
 	{
 		dk_assert(m_shader_map.find(name) == m_shader_map.end());
 
@@ -412,7 +412,7 @@ namespace dk
 		create_info[1].render_pass = m_renderer->get_shader_render_pass();
 		create_info[1].stage_flags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
 
-		auto shader = Handle<MaterialShader>(m_shader_allocator->allocate(), m_shader_allocator.get());
+		auto shader = HMaterialShader(m_shader_allocator->allocate(), m_shader_allocator.get());
 		::new(m_shader_allocator->get_resource_by_handle(shader.id))(MaterialShader)
 		(
 			&m_renderer->get_graphics(),
@@ -426,14 +426,14 @@ namespace dk
 		return shader;
 	}
 
-	Handle<Material> ResourceManager::create_material(const std::string& name, Handle<MaterialShader> shader)
+	HMaterial ResourceManager::create_material(const std::string& name, HMaterialShader shader)
 	{
 		dk_assert(m_material_map.find(name) == m_material_map.end());
 
 		if (m_material_allocator->num_allocated() + 1 > m_material_allocator->max_allocated())
 			m_material_allocator->resize(m_material_allocator->max_allocated() + 16);
 
-		auto material = Handle<Material>(m_material_allocator->allocate(), m_material_allocator.get());
+		auto material = HMaterial(m_material_allocator->allocate(), m_material_allocator.get());
 		::new(m_material_allocator->get_resource_by_handle(material.id))(Material)(&m_renderer->get_graphics(), shader);
 
 		m_material_map[name] = material.id;
@@ -441,14 +441,14 @@ namespace dk
 		return material;
 	}
 
-	Handle<Texture> ResourceManager::create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level)
+	HTexture ResourceManager::create_texture(const std::string& name, const std::string& path, vk::Filter filtering, uint32_t mip_map_level)
 	{
 		dk_assert(m_texture_map.find(name) == m_texture_map.end());
 
 		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
 			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
 
-		auto texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator.get());
+		auto texture = HTexture(m_texture_allocator->allocate(), m_texture_allocator.get());
 		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)(&m_renderer->get_graphics(), path, filtering, mip_map_level);
 
 		m_texture_map[name] = texture.id;
@@ -456,7 +456,7 @@ namespace dk
 		return texture;
 	}
 
-	Handle<Texture> ResourceManager::create_texture
+	HTexture ResourceManager::create_texture
 	(
 		const std::string& name,
 		vk::Image image,
@@ -474,7 +474,7 @@ namespace dk
 		if (m_texture_allocator->num_allocated() + 1 > m_texture_allocator->max_allocated())
 			m_texture_allocator->resize(m_texture_allocator->max_allocated() + 16);
 
-		auto texture = Handle<Texture>(m_texture_allocator->allocate(), m_texture_allocator.get());
+		auto texture = HTexture(m_texture_allocator->allocate(), m_texture_allocator.get());
 		::new(m_texture_allocator->get_resource_by_handle(texture.id))(Texture)
 		(
 			&m_renderer->get_graphics(), 
@@ -492,14 +492,14 @@ namespace dk
 		return texture;
 	}
 
-	Handle<SkyBox> ResourceManager::create_sky_box(const std::string& name)
+	HSkyBox ResourceManager::create_sky_box(const std::string& name)
 	{
 		dk_assert(m_sky_box_map.find(name) == m_sky_box_map.end());
 
 		if (m_sky_box_allocator->num_allocated() + 1 > m_sky_box_allocator->max_allocated())
 			m_sky_box_allocator->resize(m_sky_box_allocator->max_allocated() + 2);
 
-		auto sky_box = Handle<SkyBox>(m_sky_box_allocator->allocate(), m_sky_box_allocator.get());
+		auto sky_box = HSkyBox(m_sky_box_allocator->allocate(), m_sky_box_allocator.get());
 		::new(m_sky_box_allocator->get_resource_by_handle(sky_box.id))(SkyBox)(&m_renderer->get_graphics());
 
 		m_sky_box_map[name] = sky_box.id;
@@ -507,7 +507,7 @@ namespace dk
 		return sky_box;
 	}
 
-	Handle<CubeMap> ResourceManager::create_cube_map
+	HCubeMap ResourceManager::create_cube_map
 	(
 		const std::string& name,
 		const std::string& top,
@@ -524,7 +524,7 @@ namespace dk
 		if (m_cube_map_allocator->num_allocated() + 1 > m_cube_map_allocator->max_allocated())
 			m_cube_map_allocator->resize(m_cube_map_allocator->max_allocated() + 2);
 
-		auto cube_map = Handle<CubeMap>(m_cube_map_allocator->allocate(), m_cube_map_allocator.get());
+		auto cube_map = HCubeMap(m_cube_map_allocator->allocate(), m_cube_map_allocator.get());
 		::new(m_cube_map_allocator->get_resource_by_handle(cube_map.id))(CubeMap)
 		(
 			&m_renderer->get_graphics(),
@@ -539,7 +539,7 @@ namespace dk
 		return cube_map;
 	}
 
-	void ResourceManager::destroy(Handle<Mesh> mesh)
+	void ResourceManager::destroy(HMesh mesh)
 	{
 		dk_assert(m_mesh_allocator->is_allocated(mesh.id));
 
@@ -554,7 +554,7 @@ namespace dk
 		m_mesh_allocator->deallocate(mesh.id);
 	}
 
-	void ResourceManager::destroy(Handle<MaterialShader> shader)
+	void ResourceManager::destroy(HMaterialShader shader)
 	{
 		dk_assert(m_shader_allocator->is_allocated(shader.id));
 
@@ -569,7 +569,7 @@ namespace dk
 		m_shader_allocator->deallocate(shader.id);
 	}
 
-	void ResourceManager::destroy(Handle<Material> material)
+	void ResourceManager::destroy(HMaterial material)
 	{
 		dk_assert(m_material_allocator->is_allocated(material.id));
 
@@ -584,7 +584,7 @@ namespace dk
 		m_material_allocator->deallocate(material.id);
 	}
 
-	void ResourceManager::destroy(Handle<Texture> texture)
+	void ResourceManager::destroy(HTexture texture)
 	{
 		dk_assert(m_texture_allocator->is_allocated(texture.id));
 
@@ -599,7 +599,7 @@ namespace dk
 		m_texture_allocator->deallocate(texture.id);
 	}
 
-	void ResourceManager::destroy(Handle<SkyBox> sky_box)
+	void ResourceManager::destroy(HSkyBox sky_box)
 	{
 		dk_assert(m_sky_box_allocator->is_allocated(sky_box.id));
 
@@ -614,7 +614,7 @@ namespace dk
 		m_sky_box_allocator->deallocate(sky_box.id);
 	}
 
-	void ResourceManager::destroy(Handle<CubeMap> cube_map)
+	void ResourceManager::destroy(HCubeMap cube_map)
 	{
 		dk_assert(m_cube_map_allocator->is_allocated(cube_map.id));
 
