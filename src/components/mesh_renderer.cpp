@@ -219,8 +219,11 @@ namespace dk
 
 		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
 		{
-			a->field<HMesh>(&mesh_renderer->m_mesh);
-			a->field<HMaterial>(&mesh_renderer->m_material);
+			a->field(mesh_renderer->m_mesh);
+			a->field(mesh_renderer->m_material);
+
+			if (!a->is_writing())
+				mesh_renderer->generate_resources();
 		}
 		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
 		{

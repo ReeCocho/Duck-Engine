@@ -52,32 +52,93 @@ namespace dk
 		 * @param Pointer to field destination/source.
 		 */
 		template<typename T>
-		void field(T* data)
+		void field(T& data)
 		{
 			if (m_archive->is_writing())
 				// Write field to archive
-				m_archive->write<T>(*data);
+				m_archive->write<T>(data);
 			else
 				// Read from the archive
-				*data = m_archive->read<T>();
+				data = m_archive->read<T>();
 		}
 
 		/**
 		 * Either register a new field or read a field from the archive.
-		 * @tparam Template class type.
-		 * @tparam Type held in the template class.
-		 * @tparam Allocator.
+		 * @tparam Component handle field type.
+		 * @param Pointer to component handle field destination/source.
+		 */
+		template<typename T>
+		void field(Handle<T>& data)
+		{
+			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
+
+			if (m_archive->is_writing())
+			{
+				// Null handle
+				if (data == Handle<T>())
+				{
+					m_archive->write<std::string>("");
+					m_archive->write<ResourceID>(0);
+				}
+				else
+				{
+					// Write system name
+					std::string system_name = m_scene->get_system_by_base(TypeID<T>::id())->get_name();
+					m_archive->write<std::string>(system_name);
+
+					// Write component resource ID
+					m_archive->write<ResourceID>(data.id);
+				}
+			}
+			else
+			{
+				// Get system by name
+				std::string system_name = m_archive->read<std::string>();
+
+				// Set ID (even if the system doesn't exist
+				data.id = m_archive->read<ResourceID>();
+
+				// Null handle
+				if (system_name == "")
+					data.allocator = nullptr;
+				else
+				{
+					SystemBase* system = m_scene->get_system_by_name(system_name);
+					dk_assert(system);
+
+					// Create handle
+					data.allocator = static_cast<ResourceAllocator<T>*>(system->get_component_allocator());
+				}
+			}
+		}
+
+		/**
+		 * Either register a new field or read a field from the archive.
+		 * @tparam Vector type.
 		 * @param Pointer to destination/source field.
 		 */
-		template<template<class, class> class V, class T, class A>
-		void field(V<T, A>* data)
+		template<typename T>
+		void field(std::vector<T>& data)
 		{
 			if (m_archive->is_writing())
-				// Write field to archive
-				m_archive->write<V, T, A>(*data);
+			{
+				// Write vector size
+				m_archive->write(static_cast<uint32_t>(data.size()));
+
+				// Write vector elements
+				for (size_t i = 0; i < data.size(); ++i)
+					field(data[i]);
+			}
 			else
-				// Read feild from archive
-				*data = m_archive->read<V, T, A>();
+			{
+				// Read data size
+				uint32_t len = m_archive->read<uint32_t>();
+				data.resize(len);
+
+				// Read elements
+				for (uint32_t i = 0; i < len; ++i)
+					field(data[i]);
+			}
 		}
 
 	private:
@@ -95,17 +156,17 @@ namespace dk
 	// Specializations
 
 	template<>
-	void ComponentArchive::field<HMesh>(HMesh* data);
+	void ComponentArchive::field<Mesh>(HMesh& data);
 
 	template<>
-	void ComponentArchive::field<HMaterialShader>(HMaterialShader* data);
+	void ComponentArchive::field<MaterialShader>(HMaterialShader& data);
 
 	template<>
-	void ComponentArchive::field<HMaterial>(HMaterial* data);
+	void ComponentArchive::field<Material>(HMaterial& data);
 
 	template<>
-	void ComponentArchive::field<HSkyBox>(HSkyBox* data);
+	void ComponentArchive::field<SkyBox>(HSkyBox& data);
 
 	template<>
-	void ComponentArchive::field<HCubeMap>(HCubeMap* data);
+	void ComponentArchive::field<CubeMap>(HCubeMap& data);
 }

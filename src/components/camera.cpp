@@ -89,18 +89,16 @@ namespace dk
 
 		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
 		{
-			a->field<HSkyBox>(&camera->m_sky_box);
-			a->field<float>(&camera->m_field_of_view);
-			a->field<float>(&camera->m_near_clipping_plane);
-			a->field<float>(&camera->m_far_clipping_plane);
+			a->field(camera->m_sky_box);
+			a->field(camera->m_field_of_view);
+			a->field(camera->m_near_clipping_plane);
+			a->field(camera->m_far_clipping_plane);
 
-#if !DK_EDITOR
-			if (a->is_writing())
-			{
-				camera->calculate_vp_matrices();
-				camera->calculate_frustum();
-			}
-#endif
+			char is_main_camera = main_camera.id == camera.id ? 1 : 0;
+			a->field(is_main_camera);
+
+			if (!a->is_writing() && is_main_camera)
+				set_main_camera(camera);
 		}
 		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
 		{

@@ -38,8 +38,8 @@ namespace dk
 
 		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
 		{
-			a->field<glm::vec3>((glm::vec3*)&light->m_light_data.color);
-			a->field<float>(&light->m_light_data.color.w);
+			a->field(*(glm::vec3*)&light->m_light_data.color);
+			a->field(light->m_light_data.color.w);
 		}
 		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
 		{
@@ -75,9 +75,9 @@ namespace dk
 
 		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
 		{
-			a->field<glm::vec3>((glm::vec3*)&light->m_light_data.color);
-			a->field<float>(&light->m_light_data.color.w);
-			a->field<float>(&light->m_light_data.position.w);
+			a->field(*(glm::vec3*)&light->m_light_data.color);
+			a->field(light->m_light_data.color.w);
+			a->field(light->m_light_data.position.w);
 		}
 		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
 		{

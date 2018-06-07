@@ -15,15 +15,7 @@ namespace dk
 	glm::vec3 Transform::set_position(glm::vec3 value)
 	{
 		m_position = value;
-
-		if (m_parent == Handle<Transform>(0, nullptr))
-			m_local_position = m_position;
-		else
-		{
-			glm::vec4 newPos = glm::inverse(m_parent->m_unscaled_model_matrix) * glm::vec4(m_position, 1.0);
-			m_local_position = glm::vec3(newPos.x, newPos.y, newPos.z);
-		}
-
+		global_to_local_position();
 		generate_model_matrix();
 		update_children();
 
@@ -33,15 +25,7 @@ namespace dk
 	glm::vec3 Transform::set_local_position(glm::vec3 value)
 	{
 		m_local_position = value;
-
-		if (m_parent == Handle<Transform>(0, nullptr))
-			m_position = value;
-		else
-		{
-			glm::vec4 newPos = m_parent->m_unscaled_model_matrix * glm::vec4(m_local_position, 1.0);
-			m_position = glm::vec3(newPos.x, newPos.y, newPos.z);
-		}
-
+		local_to_global_position();
 		generate_model_matrix();
 		update_children();
 
@@ -52,18 +36,8 @@ namespace dk
 	{
 		m_rotation = value;
 		m_euler_angles = glm::degrees(glm::eulerAngles(value));
-
-		if (m_parent == Handle<Transform>(0, nullptr))
-		{
-			m_local_rotation = m_rotation;
-			m_local_euler_angles = m_euler_angles;
-		}
-		else
-		{
-			m_local_rotation = inverse(m_parent->m_rotation) * m_rotation;
-			m_local_euler_angles = glm::degrees(glm::eulerAngles(m_local_rotation));
-		}
-
+		global_to_local_rotation();
+		global_to_local_euler_angles();
 		generate_model_matrix();
 		update_children();
 
@@ -74,18 +48,8 @@ namespace dk
 	{
 		m_local_rotation = value;
 		m_local_euler_angles = glm::degrees(glm::eulerAngles(value));
-
-		if (m_parent == Handle<Transform>(0, nullptr))
-		{
-			m_rotation = m_local_rotation;
-			m_euler_angles = m_local_euler_angles;
-		}
-		else
-		{
-			m_rotation = m_parent->m_rotation * m_local_rotation;
-			m_euler_angles = glm::degrees(glm::eulerAngles(m_rotation));
-		}
-
+		local_to_global_rotation();
+		local_to_global_euler_angles();
 		generate_model_matrix();
 		update_children();
 
@@ -100,18 +64,8 @@ namespace dk
 
 		m_euler_angles = value;
 		m_rotation = glm::quat(value * (glm::pi<float>() / 180.0f));
-		
-		if (m_parent == Handle<Transform>(0, nullptr))
-		{
-			m_local_rotation = m_rotation;
-			m_local_euler_angles = m_euler_angles;
-		}
-		else
-		{
-			m_local_rotation = glm::inverse(m_parent->m_rotation) * m_rotation;
-			m_local_euler_angles = glm::degrees(glm::eulerAngles(m_local_rotation));
-		}
-		
+		global_to_local_euler_angles();
+		global_to_local_rotation();
 		generate_model_matrix();
 		update_children();
 
@@ -126,18 +80,8 @@ namespace dk
 
 		m_local_euler_angles = value;
 		m_local_rotation = glm::quat(glm::radians(value));
-
-		if (m_parent == Handle<Transform>(0, nullptr))
-		{
-			m_euler_angles = m_local_euler_angles;
-			m_rotation = m_local_rotation;
-		}
-		else
-		{
-			m_rotation = m_parent->m_rotation * m_local_rotation;
-			m_euler_angles = glm::degrees(glm::eulerAngles(m_rotation));
-		}
-
+		local_to_global_euler_angles();
+		local_to_global_rotation();
 		generate_model_matrix();
 		update_children();
 
@@ -152,27 +96,47 @@ namespace dk
 		return m_local_scale;
 	}
 
-	Handle<Transform> Transform::set_parent(Handle<Transform> parent)
+	Handle<Transform> Transform::set_parent(Handle<Transform> parent, bool maintain_local)
 	{
+		// Make sure we don't parent to ourselves
+		if (parent == get_handle())
+			return m_parent;
+
 		// Remove self from parents child list
-		if (m_parent != Handle<Transform>(0, nullptr))
+		if (m_parent != Handle<Transform>())
 			m_parent->m_children.erase(std::remove(m_parent->m_children.begin(), m_parent->m_children.end(), get_handle()), m_parent->m_children.end());
 
 		// Set parent
 		m_parent = parent;
 
 		// Add self to new parents children list
-		if (m_parent != Handle<Transform>(0, nullptr))
+		if (m_parent != Handle<Transform>())
 			m_parent->m_children.push_back(get_handle());
+
+		// Update transformation
+		if (maintain_local)
+		{
+			local_to_global_position();
+			local_to_global_rotation();
+			local_to_global_euler_angles();
+		}
+		else
+		{
+			global_to_local_position();
+			global_to_local_rotation();
+			global_to_local_euler_angles();
+		}
 
 		// Update local values and model matrix
 		generate_model_matrix();
+		update_children();
 
 		return m_parent;
 	}
 
 	void Transform::generate_model_matrix()
 	{
+		// Reset matrices
 		m_model_matrix = {};
 		m_unscaled_model_matrix = {};
 
@@ -187,7 +151,7 @@ namespace dk
 		m_model_matrix = glm::scale(m_model_matrix, m_local_scale);
 
 		// Get parent matrix if we have one
-		if (m_parent != Handle<Transform>(0, nullptr))
+		if (m_parent != Handle<Transform>())
 		{
 			m_model_matrix = m_parent->m_unscaled_model_matrix * m_model_matrix;
 			m_unscaled_model_matrix = m_parent->m_unscaled_model_matrix * m_unscaled_model_matrix;
@@ -202,18 +166,59 @@ namespace dk
 	{
 		for (auto child : m_children)
 		{
-			// Update rotation
-			child->m_rotation = m_rotation * child->m_local_rotation;
-			child->m_euler_angles = glm::degrees(glm::eulerAngles(m_rotation));
+			// Update global transformations
+			child->local_to_global_position();
+			child->local_to_global_rotation();
+			child->local_to_global_euler_angles();
 
-			// Update position
-			glm::vec4 newPos = m_unscaled_model_matrix * glm::vec4(child->m_local_position, 1.0);
-			child->m_position = glm::vec3(newPos.x, newPos.y, newPos.z);
-
-			// Update model matrix and childrens children
+			// Update model matrix
 			child->generate_model_matrix();
 			child->update_children();
 		}
+	}
+
+	void Transform::global_to_local_position()
+	{
+		if (m_parent == Handle<Transform>()) m_local_position = m_position;
+		else
+		{
+			glm::vec4 new_pos = glm::inverse(m_parent->m_unscaled_model_matrix) * glm::vec4(m_position, 1.0);
+			m_local_position = glm::vec3(new_pos.x, new_pos.y, new_pos.z);
+		}
+	}
+
+	void Transform::global_to_local_rotation()
+	{
+		if (m_parent == Handle<Transform>()) m_local_rotation = m_rotation;
+		else m_local_rotation = inverse(m_parent->m_rotation) * m_rotation;
+	}
+
+	void Transform::global_to_local_euler_angles()
+	{
+		if (m_parent == Handle<Transform>()) m_local_euler_angles = m_euler_angles;
+		else m_local_euler_angles = glm::degrees(glm::eulerAngles(m_local_rotation));
+	}
+
+	void Transform::local_to_global_position()
+	{
+		if (m_parent == Handle<Transform>()) m_position = m_local_position;
+		else
+		{
+			glm::vec4 new_pos = m_parent->m_unscaled_model_matrix * glm::vec4(m_local_position, 1.0);
+			m_position = glm::vec3(new_pos.x, new_pos.y, new_pos.z);
+		}
+	}
+
+	void Transform::local_to_global_rotation()
+	{
+		if (m_parent == Handle<Transform>()) m_rotation = m_local_rotation;
+		else m_rotation = m_parent->m_rotation * m_local_rotation;
+	}
+
+	void Transform::local_to_global_euler_angles()
+	{
+		if (m_parent == Handle<Transform>()) m_euler_angles = m_local_euler_angles;
+		else m_euler_angles = glm::degrees(glm::eulerAngles(m_rotation));
 	}
 
 
@@ -226,6 +231,7 @@ namespace dk
 	void TransformSystem::on_begin()
 	{
 		get_component()->generate_model_matrix();
+		get_component()->update_children();
 	}
 
 	void TransformSystem::on_end()
@@ -244,16 +250,25 @@ namespace dk
 
 		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
 		{
-			a->field<glm::vec3>(&transform->m_local_position);
-			a->field<glm::quat>(&transform->m_local_rotation);
-			a->field<glm::vec3>(&transform->m_local_scale);
+			a->field(transform->m_local_position);
+			a->field(transform->m_local_rotation);
+			a->field(transform->m_local_scale);
+			a->field(transform->m_parent);
+			a->field(transform->m_children);
+
+			if (!a->is_writing())
+			{
+				transform->set_local_position(transform->m_local_position);
+				transform->set_local_rotation(transform->m_local_rotation);
+				transform->set_local_scale(transform->m_local_scale);
+			}
 		}
 		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
 		{
 			a->set_name("Transform");
-			a->set_field<glm::vec3>("Position", &transform->m_local_position, [transform] { transform->generate_model_matrix(); });
-			a->set_field<glm::vec3>("Rotation", &transform->m_local_euler_angles, [transform] { transform->set_local_euler_angles(transform->get_local_euler_angles()); });
-			a->set_field<glm::vec3>("Scale", &transform->m_local_scale, [transform] { transform->generate_model_matrix(); });
+			a->set_field("Position", &transform->m_local_position, [transform] { transform->generate_model_matrix(); });
+			a->set_field("Rotation", &transform->m_local_euler_angles, [transform] { transform->set_local_euler_angles(transform->get_local_euler_angles()); });
+			a->set_field("Scale", &transform->m_local_scale, [transform] { transform->generate_model_matrix(); });
 		}
 	}
 }

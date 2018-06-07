@@ -7,7 +7,6 @@
  */
 
 /** Includes. */
-#include <vector>
 #include <memory>
 #include <tuple>
 #include "entity.hpp"
@@ -17,36 +16,44 @@
 namespace dk
 {
 	/**
-	 * @brief ECS scene.
+	 * ECS scene.
 	 */
 	class Scene
 	{
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 */
 		Scene();
 
 		/**
-		 * @brief Shutdown the scene.
+		 * Shutdown the scene.
 		 */
 		void shutdown();
 
 		/**
-		 * @brief Perform a tick in the scene.
+		 * Perform a tick in the scene.
 		 * @param Time in seconds since the last frame.
 		 */
 		void tick(float delta_time);
 
 		/**
-		 * @brief Create a new entity.
+		 * Save/load the entire scene depending on whether the archive is in read or write mode.
+		 * @param Generic archive.
+		 * @param Archive for components.
+		 * @note The component archive should use the generic archive to read and write.
+		 */
+		void serialize(Archive& archive, ReflectionContext& comp_archive);
+
+		/**
+		 * Create a new entity.
 		 * @return New entity ID.
 		 */
 		EntityID create_entity();
 
 		/**
-		 * @brief Add a system.
+		 * Add a system.
 		 * @tparam Type of system.
 		 */
 		template<class T>
@@ -57,7 +64,7 @@ namespace dk
 		}
 
 		/**
-		 * @brief Add a component.
+		 * Add a component.
 		 * @tparam Type of component.
 		 * @param Entity the component will belong to.
 		 * @return Component handle.
@@ -80,7 +87,7 @@ namespace dk
 		}
 
 		/**
-		 * @brief Get a component from an entity.
+		 * Get a component from an entity.
 		 * @tparam Type of component.
 		 * @param Entity the component belongs to.
 		 * @return Component handle.
@@ -101,7 +108,7 @@ namespace dk
 		 * Get number of systems.
 		 * @return Number of systems.
 		 */
-		size_t get_system_count() const
+		inline size_t get_system_count() const
 		{
 			return m_systems.size();
 		}
@@ -112,7 +119,7 @@ namespace dk
 		 * @return System.
 		 */
 		template<class T>
-		System<T>* get_system()
+		inline System<T>* get_system()
 		{
 			SystemBase* system = get_system_by_base(TypeID<T>::id());
 			dk_assert(system);
@@ -125,7 +132,7 @@ namespace dk
 		 * @return Pointer to system.
 		 * @return Will be nullptr if the system doesn't exist.
 		 */
-		SystemBase* get_system_by_base(size_t id)
+		inline SystemBase* get_system_by_base(size_t id)
 		{
 			for (size_t i = 0; i < m_systems.size(); ++i)
 				if (m_systems[i]->get_id() == id)
@@ -138,21 +145,35 @@ namespace dk
 		 * Find a system by it's index.
 		 * @param System index.
 		 * @return Pointer to system.
-		 * @return Will be nullptr if the system doesn't exist.
+		 * @note Will be nullptr if the system doesn't exist.
 		 */
-		SystemBase* get_system_by_index(size_t i)
+		inline SystemBase* get_system_by_index(size_t i)
 		{
 			dk_assert(i < m_systems.size());
 			return m_systems[i].get();
 		}
 
 		/**
-		 * @brief Remove a component from an entity.
+		 * Find system by it's name.
+		 * @param System name.
+		 * @return Pointer to system.
+		 * @note Will be nullptr if the system doesn't exist.
+		 */
+		inline SystemBase* get_system_by_name(const std::string& name)
+		{
+			for (auto& system : m_systems)
+				if (system->get_name() == name)
+					return system.get();
+			return nullptr;
+		}
+
+		/**
+		 * Remove a component from an entity.
 		 * @tparam Type of component.
 		 * @param entity the component belongs to.
 		 */
 		template<class T>
-		void remove_component(Entity entity)
+		inline void remove_component(Entity entity)
 		{
 			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
 			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>::id()));

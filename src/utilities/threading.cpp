@@ -150,10 +150,10 @@ namespace dk
 		
 	}
 
-	ThreadPool::ThreadPool(size_t threadCount)
+	ThreadPool::ThreadPool(size_t thread_count)
 	{
-		workers.resize(threadCount);
-		for (size_t i = 0; i < threadCount; i++)
+		workers.resize(thread_count);
+		for (size_t i = 0; i < thread_count; ++i)
 			workers[i] = new WorkerThread();
 	}
 

@@ -12,7 +12,7 @@ namespace dk
 {
 	AABB& AABB::transform(glm::mat4 model)
 	{
-		glm::vec3 scale =
+		const glm::vec3 scale =
 		{
 			glm::length(glm::vec3(model[0][0], model[1][0], model[2][0])),
 			glm::length(glm::vec3(model[0][1], model[1][1], model[2][1])),
@@ -39,7 +39,7 @@ namespace dk
 	float Frustum::distance(size_t i, glm::vec3 p)
 	{
 		dk_assert(i < 6);
-		glm::vec3 norm = glm::vec3(planes[i]);
+		const glm::vec3 norm = glm::vec3(planes[i]);
 		return (glm::dot(norm, p) + planes[i].w) / glm::length(norm);
 	}
 
@@ -57,8 +57,8 @@ namespace dk
 	{
 		for (size_t i = 0; i < 6; ++i)
 		{
-			float d = glm::dot(aabb.center, glm::vec3(planes[i]));
-			float r = glm::dot(aabb.extent, glm::abs(glm::vec3(planes[i])));
+			const float d = glm::dot(aabb.center, glm::vec3(planes[i]));
+			const float r = glm::dot(aabb.extent, glm::abs(glm::vec3(planes[i])));
 			if (d + r < -planes[i].w) return false;
 		}
 
@@ -67,9 +67,9 @@ namespace dk
 
 	bool Frustum::check_inside(glm::vec3 c, float r)
 	{
-		float dist01 = glm::min(distance(0, c), distance(1, c));
-		float dist23 = glm::min(distance(2, c), distance(3, c));
-		float dist45 = glm::min(distance(4, c), distance(5, c));
+		const float dist01 = glm::min(distance(0, c), distance(1, c));
+		const float dist23 = glm::min(distance(2, c), distance(3, c));
+		const float dist45 = glm::min(distance(4, c), distance(5, c));
 		return glm::min(glm::min(dist01, dist23), dist45) + r;
 	}
 }

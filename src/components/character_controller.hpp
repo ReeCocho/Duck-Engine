@@ -139,16 +139,7 @@ namespace dk
 	{
 	public:
 
-		/**
-		 * @brief Constructor.
-		 * @param Scene the system exists in.
-		 */
-		CharacterControllerSystem(Scene* scene) : System<CharacterController>(scene, true, 16) {}
-
-		/**
-		 * @brief Destructor.
-		 */
-		~CharacterControllerSystem() = default;
+		DK_SYSTEM_BODY(CharacterControllerSystem, CharacterController, true, 16)
 
 		/**
 		 * @brief Called when a component is added to the system.

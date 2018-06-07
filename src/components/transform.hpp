@@ -217,9 +217,10 @@ namespace dk
 		/**
 		 * @brief Set the transforms parent.
 		 * @param New parent transform.
+		 * @param Should we maintain our local position?
 		 * @return New parent transform.
 		 */
-		Handle<Transform> set_parent(Handle<Transform> parent);
+		Handle<Transform> set_parent(Handle<Transform> parent, bool maintain_local = false);
 
 
 		/**
@@ -305,14 +306,44 @@ namespace dk
 	private:
 
 		/**
-		 * @brief Generate a new model matrix.
+		 * Generate a new model matrix.
 		 */
 		void generate_model_matrix();
 
 		/**
-		 * @brief Update the transforms children.
+		 * Update the transforms children.
 		 */
 		void update_children();
+
+		/**
+		 * Convert global position into local position.
+		 */
+		void global_to_local_position();
+
+		/**
+		 * Convert global position into local rotation.
+		 */
+		void global_to_local_rotation();
+
+		/**
+		 * Convert global position into local euler angles.
+		 */
+		void global_to_local_euler_angles();
+
+		/**
+		 * Convert local position into global position.
+		 */
+		void local_to_global_position();
+
+		/**
+		 * Convert local position into global rotation.
+		 */
+		void local_to_global_rotation();
+
+		/**
+		 * Convert local position into global euler angles.
+		 */
+		void local_to_global_euler_angles();
 
 
 
@@ -360,16 +391,7 @@ namespace dk
 	{
 	public:
 
-		/**
-		 * @brief Constructor.
-		 * @param Scene the system is in.
-		 */
-		TransformSystem(Scene* scene) : System<Transform>(scene, true, 32) {}
-
-		/**
-		 * @brief Destructor.
-		 */
-		~TransformSystem() = default;
+		DK_SYSTEM_BODY(TransformSystem, Transform, true, 32)
 
 		/**
 		 * Called when a new entity is created.

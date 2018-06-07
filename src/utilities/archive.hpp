@@ -8,7 +8,8 @@
 
 /** Includes. */
 #include <vector>
-#include <utilities\debugging.hpp>
+#include <string>
+#include "debugging.hpp"
 #include "reflection.hpp"
 
 namespace dk
@@ -44,7 +45,7 @@ namespace dk
 		 * Determine if the archive is in write mode.
 		 * @return If the archive is in write mode.
 		 */
-		bool is_writing() const
+		inline bool is_writing() const
 		{
 			return m_writing;
 		}
@@ -53,7 +54,7 @@ namespace dk
 		 * Get data pointer.
 		 * @return Data pointer.
 		 */
-		char* get_data() const
+		inline char* get_data() const
 		{
 			return m_data;
 		}
@@ -62,7 +63,7 @@ namespace dk
 		 * Get number of bytes allocated.
 		 * @return Number of bytes allocated.
 		 */
-		size_t get_bytes_allocated() const
+		inline size_t get_bytes_allocated() const
 		{
 			return (size_t)((intptr_t)m_head - (intptr_t)m_data);
 		}
@@ -89,26 +90,6 @@ namespace dk
 		}
 
 		/**
-		 * Write a template parameter class to the archive.
-		 * @tparam Template class type.
-		 * @tparam Type held in the template class.
-		 * @tparam Allocator.
-		 * @param Vector.
-		 */
-		template<template<class, class> class V, class T, class A>
-		void write(const V<T, A>& data)
-		{
-			dk_assert(m_writing);
-
-			// Copy length
-			write<uint32_t>(static_cast<uint32_t>(data.size()));
-
-			// Write every object in the vector
-			for (const auto& elem : data)
-				write<T>(elem);
-		}
-
-		/**
 		 * Read data from the archive.
 		 * @tparam Data type.
 		 * @return Data.
@@ -120,28 +101,6 @@ namespace dk
 			void* old_head = m_head;
 			m_head = (char*)((intptr_t)m_head + sizeof(T));
 			return *(T*)(old_head);
-		}
-
-		/**
-		 * Read a template parameter class from the archive.
-		 * @tparam Template class type.
-		 * @tparam Type held in the template class.
-		 * @tparam Allocator.
-		 * @return Vector of data.
-		 */
-		template<template<class, class> class V, class T, class A>
-		V<T, A> read()
-		{
-			dk_assert(!m_writing);
-
-			// Create vector and read length
-			V<T, A> vec(read<uint32_t>());
-
-			// Read every element
-			for (size_t i = 0; i < vec.size(); ++i)
-				vec[i] = read<T>();
-
-			return vec;
 		}
 
 	private:
@@ -166,6 +125,8 @@ namespace dk
 		/** Chunck size. */
 		size_t m_chunk_size;
 	};
+
+	// Specializations
 
 	template<>
 	void Archive::write<std::string>(std::string data);

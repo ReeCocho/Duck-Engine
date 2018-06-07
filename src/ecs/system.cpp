@@ -9,9 +9,10 @@
 
 namespace dk
 {
-	SystemBase::SystemBase(Scene* scene, size_t id, bool rie) : 
+	SystemBase::SystemBase(Scene* scene, type_id id, const std::string& name, bool rie) :
 		m_scene(scene), 
 		m_component_id(id),
+		m_name(name),
 		m_run_in_editor(rie)
 	{
 
@@ -57,13 +58,13 @@ namespace dk
 
 	}
 
-	void SystemBase::serialize_by_id(ReflectionContext& archive, ResourceID id)
-	{
-
-	}
-
 	bool SystemBase::serialize_by_entity(ReflectionContext& archive, Entity entity)
 	{
 		return false;
+	}
+
+	void SystemBase::serialize_system(Archive& archive, ReflectionContext& comp_archive)
+	{
+
 	}
 }

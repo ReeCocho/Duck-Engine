@@ -12,54 +12,53 @@
 namespace dk
 {
 	/**
-	 * @class Clock
-	 * @brief Allows for timing
+	 * Allows for timing
 	 */
 	class Clock
 	{
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 */
 		Clock();
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		~Clock() = default;
 
 		/**
-		 * @brief Get the time the clock was created.
+		 * Get the time the clock was created.
 		 * @return Time the clock was created.
 		 * @note In seconds
 		 */
-		float get_creation_time() const
+		inline float get_creation_time() const
 		{
 			return	static_cast<float>(m_creation_time) / 
 					static_cast<float>(SDL_GetPerformanceFrequency());
 		}
 
 		/**
-		 * @brief Get elapsed time since the clock was created.
+		 * Get elapsed time since the clock was created.
 		 * @note In seconds.
 		 */
-		float get_elapsed_time() const
+		inline float get_elapsed_time() const
 		{
 			return	static_cast<float>(SDL_GetPerformanceCounter() - m_creation_time) / 
 					static_cast<float>(SDL_GetPerformanceFrequency());
 		}
 
 		/**
-		 * @brief Get time since last measuring delta time.
+		 * Get time since last measuring delta time.
 		 * @return Time since last measuring delta time.
 		 * @note In seconds.
 		 */
-		float get_delta_time()
+		inline float get_delta_time()
 		{
-			uint64_t new_time = SDL_GetPerformanceCounter();
-			float delta_time =	static_cast<float>(new_time - m_measuring_time) / 
-								static_cast<float>(SDL_GetPerformanceFrequency());
+			const uint64_t new_time = SDL_GetPerformanceCounter();
+			const float delta_time =	static_cast<float>(new_time - m_measuring_time) / 
+										static_cast<float>(SDL_GetPerformanceFrequency());
 			m_measuring_time = new_time;
 
 			return delta_time;

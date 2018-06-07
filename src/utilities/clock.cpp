@@ -5,7 +5,7 @@
  */
 
 /** Includes. */
-#include "Clock.hpp"
+#include "clock.hpp"
 
 namespace dk
 {

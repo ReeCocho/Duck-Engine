@@ -177,16 +177,7 @@ namespace dk
 	{
 	public:
 
-		/**
-		 * @brief Constructor.
-		 * @param Scene the system exists in.
-		 */
-		CameraSystem(Scene* scene) : System<Camera>(scene, false, 4) {}
-
-		/**
-		 * @brief Destructor.
-		 */
-		~CameraSystem() = default;
+		DK_SYSTEM_BODY(CameraSystem, Camera, false, 4)
 
 		/**
 		 * @brief Called when a component is added to the system.

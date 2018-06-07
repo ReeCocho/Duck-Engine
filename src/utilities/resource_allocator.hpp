@@ -12,60 +12,75 @@
 
 namespace dk
 {
+	/** ID of a resource in the resource allocator. */
 	using ResourceID = uint32_t;
 
 	/**
-	 * @brief Base class for resource allocators.
+	 * Base class for resource allocators.
 	 */
 	class ResourceAllocatorBase
 	{
 	public:
 		
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		virtual ~ResourceAllocatorBase();
 
 		/**
-		 * @brief Check if a resource is allocated.
+		 * Check if a resource is allocated.
 		 * @param Resource ID.
 		 * @return If the resource is allocated.
 		 */
-		bool is_allocated(ResourceID id) const
+		inline bool is_allocated(ResourceID id) const
 		{
 			dk_assert(id < m_allocation_table.size());
 			return m_allocation_table[id];
 		}
 
 		/**
-		 * @brief Allocate a resource.
+		 * Allocate a resource.
 		 * @return The resource's ID.
 		 */
 		virtual ResourceID allocate() = 0;
 
 		/**
-		 * @brief Deallocate a resource.
+		 * Allocate a specific resource.
+		 * @param Resource ID.
+		 */
+		virtual void allocate_by_id(ResourceID id) = 0;
+
+		/**
+		 * Deallocate a resource.
 		 * @param The resource's ID.
 		 */
 		virtual void deallocate(ResourceID id) = 0;
 
 		/**
-		 * @brief Change the number of resources that can be allocated.
+		 * Change the number of resources that can be allocated.
 		 * @param New number.
 		 */
 		virtual void resize(size_t amt) = 0;
 
 		/**
-		 * @brief Get the number of resources allocated.
+		 * Get the number of resources allocated.
 		 * @return Number of resources allocated.
 		 */
-		size_t num_allocated() const;
+		inline size_t num_allocated() const
+		{
+			size_t count = 0;
+
+			for (auto is_alloc : m_allocation_table)
+				count += is_alloc ? 1 : 0;
+
+			return count;
+		}
 
 		/**
-		 * @brief Get the max number of resources that can be allocated.
+		 * Get the max number of resources that can be allocated.
 		 * @return Max number of resources that can be allocated.
 		 */
-		size_t max_allocated() const
+		inline size_t max_allocated() const
 		{
 			return m_allocation_table.size();
 		}
@@ -73,19 +88,19 @@ namespace dk
 	protected:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Amount of resources preallocated.
 		 */
 		ResourceAllocatorBase(size_t amt);
 
 		/**
-		 * @brief Copy constructor.
+		 * Copy constructor.
 		 * @param Other resource allocator.
 		 */
 		ResourceAllocatorBase(const ResourceAllocatorBase& other) = default;
 		
 		/**
-		 * @brief Assignment operator.
+		 * Assignment operator.
 		 */
 		ResourceAllocatorBase& operator=(const ResourceAllocatorBase& other) = default;
 
@@ -98,7 +113,7 @@ namespace dk
 
 
 	/**
-	 * @brief Resource allocator.
+	 * Resource allocator.
 	 * @tparam Type of data the resource allocator allocates.
 	 */
 	template<class T>
@@ -107,18 +122,18 @@ namespace dk
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Number of resources to preallocate.
 		 */
 		ResourceAllocator(size_t amt) : ResourceAllocatorBase(amt), m_resources(amt) {}
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		~ResourceAllocator() {}
 
 		/**
-		 * @brief Allocate a resource.
+		 * Allocate a resource.
 		 * @return Resource ID.
 		 */
 		ResourceID allocate() override
@@ -135,7 +150,17 @@ namespace dk
 		}
 
 		/**
-		 * @brief Deallocate a resource.
+		 * Allocate a specific resource.
+		 * @param Resource ID.
+		 */
+		void allocate_by_id(ResourceID id) override
+		{
+			dk_assert(!m_allocation_table[id]);
+			m_allocation_table[id] = true;
+		}
+
+		/**
+		 * Deallocate a resource.
 		 * @param Resource ID.
 		 */
 		void deallocate(ResourceID id) override
@@ -145,7 +170,7 @@ namespace dk
 		}
 
 		/**
-		 * @brief Change the number of resources that can be allocated.
+		 * Change the number of resources that can be allocated.
 		 * @param New number.
 		 */
 		void resize(size_t amt) override
@@ -155,7 +180,7 @@ namespace dk
 		}
 
 		/**
-		 * @brief Get a resource by it's handle.
+		 * Get a resource by it's handle.
 		 * @param Handle.
 		 * @return Resource.
 		 */
@@ -168,13 +193,13 @@ namespace dk
 	private:
 
 		/**
-		 * @brief Copy constructor.
+		 * Copy constructor.
 		 * @param Other resource allocator.
 		 */
 		ResourceAllocator(const ResourceAllocator<T>& other) = default;
 		
 		/**
-		 * @brief Assignment operator.
+		 * Assignment operator.
 		 */
 		ResourceAllocator<T>& operator=(const ResourceAllocator<T>& other) = default;
 
@@ -187,7 +212,7 @@ namespace dk
 
 
 	/**
-	 * @brief Handle for a resource in a resource allocator.
+	 * Handle for a resource in a resource allocator.
 	 * @tparam Type of resource.
 	 */
 	template<class T>
@@ -196,45 +221,56 @@ namespace dk
 	public:
 
 		/**
-		 * @brief Default constructor.
+		 * Default constructor.
 		 */
 		Handle() : id(0), allocator(nullptr) {}
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Resource ID.
 		 * @param Resource allocator
 		 */
 		Handle(ResourceID a_id, ResourceAllocator<T>* a_allocator) : id(a_id), allocator(a_allocator) {}
 
 		/**
-		 * @brief Equivilence operator.
+		 * Equivilence operator.
 		 * @param Other handle.
 		 * @return If the two handles are equal.
 		 */
-		bool operator==(const Handle<T>& other) const
+		inline bool operator==(const Handle<T>& other) const
 		{
 			return id == other.id && allocator == other.allocator;
 		}
 
 		/**
-		 * @brief Unequivilence operator.
+		 * Unequivilence operator.
 		 * @param Other handle.
 		 * @return If the two handles are not equal.
 		 */
-		bool operator!=(const Handle<T>& other) const
+		inline bool operator!=(const Handle<T>& other) const
 		{
 			return id != other.id || allocator != other.allocator;
 		}
 
 		/**
-		 * @brief Access operator.
+		 * Access operator.
 		 * @return Resource.
 		 */
-		T* operator->() const
+		inline T* operator->() const
 		{
 			dk_assert(allocator);
 			return allocator->get_resource_by_handle(id);
+		}
+
+		/**
+		 * Deallocate the resource.
+		 */
+		inline void deallocate()
+		{
+			dk_assert(allocator && allocator->is_allocated(id));
+			allocator->deallocate(id);
+			id = 0;
+			allocator = nullptr;
 		}
 
 		/** Resource ID. */

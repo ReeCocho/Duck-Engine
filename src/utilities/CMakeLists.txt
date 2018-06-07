@@ -1,8 +1,6 @@
 # Headers
 set(DUCK_UTILS_HDRS
-	common.hpp
 	debugging.hpp
-	macros.hpp
 	resource_allocator.hpp
 	file_io.hpp
 	threading.hpp

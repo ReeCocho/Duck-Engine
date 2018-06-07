@@ -19,35 +19,35 @@
 namespace dk
 {
 	/**
-	 * @brief A thread that repeats the same function when told to.
+	 * A thread that repeats the same function when told to.
 	 */
 	class SimulationThread
 	{
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 */
 		SimulationThread();
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Function to run.
 		 */
 		SimulationThread(std::function<void()> func);
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		~SimulationThread();
 
 		/**
-		 * @brief Start simulation.
+		 * Start simulation.
 		 */
 		void start();
 
 		/**
-		 * @brief Wait for the simulation to finish.
+		 * Wait for the simulation to finish.
 		 */
 		void wait();
 
@@ -69,7 +69,7 @@ namespace dk
 	};
 
 	/**
-	 * @brief Performs work for a thread pool.
+	 * Performs work for a thread pool.
 	 * @see ThreadPool
 	 */
 	class WorkerThread
@@ -77,29 +77,29 @@ namespace dk
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 */
 		WorkerThread();
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		~WorkerThread();
 
 		/**
-		 * @brief Add a job to the worker thread.
+		 * Add a job to the worker thread.
 		 * @param Job
 		 */
 		void add_job(std::function<void(void)> job);
 
 		/**
-		 * @brief Add a list of jobs.
+		 * Add a list of jobs.
 		 * @param List of jobs.
 		 */
 		void add_jobs(const std::vector<std::function<void(void)>>& jobs);
 
 		/**
-		 * @brief Wait for the worker to finish working.
+		 * Wait for the worker to finish working.
 		 */
 		void wait();
 
@@ -127,7 +127,7 @@ namespace dk
 	};
 
 	/**
-	 * @brief Manages worker threads.
+	 * Manages worker threads.
 	 * @see WorkerThread
 	 */
 	class ThreadPool
@@ -135,25 +135,25 @@ namespace dk
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 */
 		ThreadPool();
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Number of worker threads.
 		 */
 		ThreadPool(size_t thread_count);
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		~ThreadPool();
 
 
 
 		/**
-		 * @brief Wait for the thread pool to finish working.
+		 * Wait for the thread pool to finish working.
 		 */
 		void wait();
 

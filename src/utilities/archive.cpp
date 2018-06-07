@@ -5,7 +5,6 @@
  */
 
 /** Includes. */
-#include <string>
 #include "archive.hpp"
 
 namespace dk

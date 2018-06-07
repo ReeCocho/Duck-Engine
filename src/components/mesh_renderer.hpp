@@ -122,16 +122,7 @@ namespace dk
 	{
 	public:
 
-		/**
-		 * @brief Constructor.
-		 * @param Scene the system exists in.
-		 */
-		MeshRendererSystem(Scene* scene) : System<MeshRenderer>(scene, true, 32) {}
-
-		/**
-		 * @brief Destructor.
-		 */
-		~MeshRendererSystem() = default;
+		DK_SYSTEM_BODY(MeshRendererSystem, MeshRenderer, true, 32)
 
 		/**
 		 * @brief Called when a component is added to the system.

@@ -12,8 +12,5 @@ namespace dk
 {
 	Entity::Entity(Scene* scene, EntityID id) : m_scene(scene), m_id(id) {}
 
-	Entity::Entity(Scene* scene) : m_scene(scene), m_id(m_scene->create_entity())
-	{
-		
-	}
+	Entity::Entity(Scene* scene) : m_scene(scene), m_id(m_scene->create_entity()) {}
 }

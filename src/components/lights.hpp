@@ -117,16 +117,7 @@ namespace dk
 	{
 	public:
 
-		/**
-		 * @brief Constructor.
-		 * @param Scene the system exists in.
-		 */
-		DirectionalLightSystem(Scene* scene) : System<DirectionalLight>(scene, true, 16) {}
-
-		/**
-		 * @brief Destructor.
-		 */
-		~DirectionalLightSystem() = default;
+		DK_SYSTEM_BODY(DirectionalLightSystem, DirectionalLight, true, 16)
 
 		/**
 		 * @brief Called when a component is added to the system.
@@ -153,16 +144,7 @@ namespace dk
 	{
 	public:
 
-		/**
-		 * @brief Constructor.
-		 * @param Scene the system exists in.
-		 */
-		PointLightSystem(Scene* scene) : System<PointLight>(scene, true, 16) {}
-
-		/**
-		 * @brief Destructor.
-		 */
-		~PointLightSystem() = default;
+		DK_SYSTEM_BODY(PointLightSystem, PointLight, true, 16)
 
 		/**
 		 * @brief Called when a component is added to the system.

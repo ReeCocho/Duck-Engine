@@ -16,7 +16,7 @@ namespace dk
 		std::ifstream file(path, std::ios::ate | std::ios::binary);
 		dk_assert(file.is_open());
 
-		size_t file_size = static_cast<size_t>(file.tellg());
+		const size_t file_size = static_cast<size_t>(file.tellg());
 		std::vector<char> data(file_size);
 
 		file.seekg(0);

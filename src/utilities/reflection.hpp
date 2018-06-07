@@ -6,8 +6,6 @@
  * @author Connor J. Bramham (ReeCocho)
  */
 
-/** Includes. */
-
 namespace dk
 {
 	// Used for checking if types are specializations of other types
@@ -29,6 +27,9 @@ namespace dk
 		static const char id = 0;
 	};
 
+	/** Duck type ID */
+	using type_id = intptr_t;
+
 	/**
 	 * A template class to get an ID.
 	 */
@@ -37,15 +38,14 @@ namespace dk
 	{
 	public:
 
-		static constexpr inline size_t id()
+		static constexpr inline type_id id()
 		{
-			return reinterpret_cast<size_t>(&TypeIDGenerator<T>::id);
+			return reinterpret_cast<type_id>(&TypeIDGenerator<T>::id);
 		}
 	};
 
 	/**
 	 * Base class for reflection contexts.
-	 * @note All ReflectionContext's should follow the form context->field<TYPE>(name_of_field, field_of_TYPE);
 	 */
 	class ReflectionContext
 	{

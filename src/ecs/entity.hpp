@@ -18,76 +18,76 @@ namespace dk
 
 
 	/**
-	 * @brief ECS entity.
+	 * ECS entity.
 	 */
 	class Entity
 	{
 	public:
 
 		/**
-		 * @brief Default constructor.
+		 * Default constructor.
 		 */
 		Entity() : m_scene(nullptr), m_id(0) {}
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Scene.
 		 * @param Entity ID.
 		 */
 		Entity(Scene* scene, EntityID id);
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Scene.
 		 * @note Will create a new entity.
 		 */
 		Entity(Scene* scene);
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
 		~Entity() = default;
 
 		/**
-		 * @brief Equivilence operator.
+		 * Equivilence operator.
 		 * @param Other entity.
 		 * @return If the two handles are equal.
 		 */
-		bool operator==(const Entity& other) const
+		inline bool operator==(const Entity& other) const
 		{
 			return m_id == other.m_id && m_scene == other.m_scene;
 		}
 
 		/**
-		 * @brief Unequivilence operator.
+		 * Unequivilence operator.
 		 * @param Other entity.
 		 * @return If the two handles are not equal.
 		 */
-		bool operator!=(const Entity& other) const
+		inline bool operator!=(const Entity& other) const
 		{
 			return m_id != other.m_id || m_scene != other.m_scene;
 		}
 
 		/**
-		 * @brief Get the scene the entity is in.
+		 * Get the scene the entity is in.
 		 * @return Scene.
 		 */
-		Scene& get_scene() const
+		inline Scene& get_scene() const
 		{
 			return *m_scene;
 		}
 
 		/**
-		 * @brief Get the entities ID.
+		 * Get the entities ID.
 		 * @param Entites ID.
 		 */
-		EntityID get_id() const
+		inline EntityID get_id() const
 		{
 			return m_id;
 		}
 
 		/**
-		 * @brief Add a component.
+		 * Add a component.
 		 * @tparam Type of component.
 		 * @param Entity the component will belong to.
 		 * @return Component handle.
@@ -97,7 +97,7 @@ namespace dk
 		Handle<T> add_component();
 
 		/**
-		 * @brief Get a component from an entity.
+		 * Get a component from an entity.
 		 * @tparam Type of component.
 		 * @param Entity the component belongs to.
 		 * @return Component handle.
@@ -107,7 +107,7 @@ namespace dk
 		Handle<T> get_component();
 
 		/**
-		 * @brief Remove a component from an entity.
+		 * Remove a component from an entity.
 		 * @tparam Type of component.
 		 * @param entity the component belongs to.
 		 */
@@ -117,9 +117,9 @@ namespace dk
 	private:
 
 		/** Scene the entity exists in. */
-		Scene* m_scene = nullptr;
+		Scene* m_scene;
 
 		/** Entities ID. */
-		EntityID m_id = 0;
+		EntityID m_id;
 	};
 }

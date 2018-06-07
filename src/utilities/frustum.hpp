@@ -13,7 +13,7 @@
 namespace dk
 {
 	/**
-	 * @brief AABB bounding box.
+	 * AABB bounding box.
 	 */
 	struct AABB
 	{
@@ -34,19 +34,19 @@ namespace dk
 
 
 	/**
-	 * @brief A frustum described as a set of 6 plane equations.
+	 * A frustum described as a set of 6 plane equations.
 	 */
 	class Frustum
 	{
 	public:
 
 		/**
-		 * @brief Default constructor.
+		 * Default constructor.
 		 */
 		Frustum() = default;
 
 		/**
-		 * @brief Create the frustum based on a matrix.
+		 * Create the frustum based on a matrix.
 		 * @param Matrix.
 		 */
 		Frustum(glm::mat4 mat);
@@ -54,7 +54,7 @@ namespace dk
 
 
 		/**
-		 * @brief Get the distance from a point to a plane.
+		 * Get the distance from a point to a plane.
 		 * @param Plane index.
 		 * @param Point.
 		 * @return Distance to plane.
@@ -63,21 +63,21 @@ namespace dk
 		float distance(size_t i, glm::vec3 p);
 
 		/**
-		 * @brief Check if a point is inside the frustum.
+		 * Check if a point is inside the frustum.
 		 * @param Point.
 		 * @return If the point is inside.
 		 */
 		bool check_inside(glm::vec3 p);
 
 		/**
-		 * @brief Check if an AABB bounding box is inside the frustum.
+		 * Check if an AABB bounding box is inside the frustum.
 		 * @param AABB bounding box.
 		 * @return If the bounding box is inside.
 		 */
 		bool check_inside(const AABB& aabb);
 
 		/**
-		 * @brief Check if a sphere is inside the frustum.
+		 * Check if a sphere is inside the frustum.
 		 * @param Sphere center.
 		 * @param Radius.
 		 * @return If the sphere is inside.

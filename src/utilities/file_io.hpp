@@ -13,7 +13,7 @@
 namespace dk
 {
 	/**
-	 * @brief Read a binary file.
+	 * Read a binary file.
 	 * @param Path to the file.
 	 * @return Binary data contained in the file.
 	 */

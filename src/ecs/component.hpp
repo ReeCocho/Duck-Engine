@@ -10,7 +10,10 @@
 #include <utilities\reflection.hpp>
 #include "entity.hpp"
 
-/** Defines constructors for a component. */
+/** 
+ * Defines constructors for a component. 
+ * @param Component type.
+ */
 #define DK_COMPONENT_BODY(T) \
 T() : dk::Component<T>(dk::Handle<T>(0, nullptr), dk::Entity()) {} \
 T(dk::Handle<T> handle, dk::Entity entity) : dk::Component<T>(handle, entity) {}
@@ -18,7 +21,7 @@ T(dk::Handle<T> handle, dk::Entity entity) : dk::Component<T>(handle, entity) {}
 namespace dk
 {
 	/**
-	 * @brief ECS component.
+	 * ECS component.
 	 * @tparam Type of the component.
 	 */
 	template<class T>
@@ -27,57 +30,52 @@ namespace dk
 	public:
 
 		/**
-		 * @brief Constructor.
+		 * Constructor.
 		 * @param Components handle.
 		 * @param Entity the component belongs to.
 		 */
 		Component(Handle<T> handle, Entity entity) : 
 			m_handle(handle), 
 			m_entity(entity)
-		{
-
-		}
+		{}
 
 		/**
-		 * @brief Destructor.
+		 * Destructor.
 		 */
-		virtual ~Component()
-		{
-
-		}
+		virtual ~Component() {}
 		
 		/**
-		 * @brief Get the scene the component exists in.
+		 * Get the scene the component exists in.
 		 * @return Scene.
 		 */
-		Scene& get_scene()
+		inline Scene& get_scene() const
 		{
 			return m_entity.get_scene();
 		}
 
 		/**
-		 * @brief Get the ID of the component.
+		 * Get the ID of the component.
 		 * @return ID.
 		 */
-		size_t get_id() const
+		constexpr type_id get_id() const
 		{
 			return TypeID<T>::id();
 		}
 
 		/**
-		 * @brief Get the entity the component belongs to.
+		 * Get the entity the component belongs to.
 		 * @return Entity.
 		 */
-		Entity get_entity() const
+		inline Entity get_entity() const
 		{
 			return m_entity;
 		}
 
 		/**
-		 * @brief Get this components handle.
+		 * Get this components handle.
 		 * @return Components handle.
 		 */
-		Handle<T> get_handle() const
+		inline Handle<T> get_handle() const
 		{
 			return m_handle;
 		}
