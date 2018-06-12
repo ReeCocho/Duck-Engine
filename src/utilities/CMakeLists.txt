@@ -8,6 +8,7 @@ set(DUCK_UTILS_HDRS
 	frustum.hpp
 	reflection.hpp
 	archive.hpp
+	hex.hpp
 )
 
 # Sources
@@ -19,6 +20,7 @@ set(DUCK_UTILS_SRCS
 	frustum.cpp
 	reflection.cpp
 	archive.cpp
+	hex.cpp
 )
 
 # Utilities lib

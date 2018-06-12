@@ -2,7 +2,6 @@
 #include "transform.hpp"
 #include <engine\common.hpp>
 #include <engine\config.hpp>
-#include <editor\component_inspector.hpp>
 #include "rigidbody.hpp"
 
 namespace dk
@@ -270,17 +269,13 @@ namespace dk
 		rigid_body->m_rigid_body.reset();
     }
 
-	void RigidBodySystem::serialize(ReflectionContext& archive)
+	void RigidBodySystem::serialize(ComponentArchive& archive)
 	{
-		Handle<RigidBody> body = get_component();
-		
-		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
-		{
+		archive.set_name("Rigid Body");
+	}
 
-		}
-		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
-		{
-			a->set_name("Rigid Body");
-		}
+	void RigidBodySystem::inspect(ReflectionContext& context)
+	{
+		context.set_name("Rigid Body");
 	}
 }

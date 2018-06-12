@@ -2,7 +2,6 @@
 #include "transform.hpp"
 #include <engine\common.hpp>
 #include <engine\config.hpp>
-#include <editor\component_inspector.hpp>
 #include "character_controller.hpp"
 
 namespace dk
@@ -234,17 +233,15 @@ namespace dk
 		controller->m_rigid_body.reset();
     }
 
-	void CharacterControllerSystem::serialize(ReflectionContext& archive)
+	void CharacterControllerSystem::serialize(ComponentArchive& archive)
 	{
 		Handle<CharacterController> controller = get_component();
+		archive.set_name("Character Controller");
+	}
 
-		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
-		{
-
-		}
-		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
-		{
-			a->set_name("Character Controller");
-		}
+	void CharacterControllerSystem::inspect(ReflectionContext& context)
+	{
+		Handle<CharacterController> controller = get_component();
+		context.set_name("Character Controller");
 	}
 }

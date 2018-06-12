@@ -25,10 +25,10 @@ namespace dk
 		// Find component fields
 		for (size_t i = 0; i < m_scene->get_system_count(); ++i)
 		{
-			auto archive = std::make_unique<ComponentInspector>(m_scene, m_resource_manager);
+			auto archive = std::make_unique<ReflectionContext>();
 
-			// Try to serialize component
-			if (m_scene->get_system_by_index(i)->serialize_by_entity(*archive, m_inspected_entity))
+			// Try to inspect component
+			if (m_scene->get_system_by_index(i)->inspect_by_entity(*archive, m_inspected_entity))
 				m_component_inspectors.push_back(std::move(archive));
 		}
 	}
@@ -52,13 +52,13 @@ namespace dk
 
 					// Loop over every field
 					for (const auto& field : fields)
-						draw_field(field);
+						draw_field(field.get());
 				}
 			}
 		}
 	}
 
-	void Inspector::draw_field(ComponentInspector::Field* field)
+	void Inspector::draw_field(ReflectionContext::Field* field)
 	{
 		bool run_callback = false;
 
@@ -74,6 +74,10 @@ namespace dk
 		// Vec4 or Quaternion
 		else if(field->type_id == TypeID<glm::vec4>::id() || field->type_id == TypeID<glm::quat>::id())
 			run_callback = ImGui::InputFloat4(field->name.data(), static_cast<float*>(field->data));
+		// String
+		else if (field->type_id == TypeID<std::string>::id())
+		{
+		}
 
 		if (run_callback) field->callback();
 	}

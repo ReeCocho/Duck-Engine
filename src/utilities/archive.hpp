@@ -10,14 +10,13 @@
 #include <vector>
 #include <string>
 #include "debugging.hpp"
-#include "reflection.hpp"
 
 namespace dk
 {
 	/**
 	 * Manages reflected data so that it can be stored in a persistant manner.
 	 */
-	class Archive : public ReflectionContext
+	class Archive
 	{
 	public:
 

@@ -24,7 +24,6 @@ set(DUCK_EDITOR_HDRS
 	file_explorer.hpp
 	toolbar.hpp
 	editor_window.hpp
-	component_inspector.hpp
 )
 
 # Sources
@@ -37,7 +36,6 @@ set(DUCK_EDITOR_SRCS
 	file_explorer.cpp
 	toolbar.cpp
 	editor_window.cpp
-	component_inspector.cpp
 )
 
 # ECS lib

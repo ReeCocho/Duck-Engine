@@ -7,14 +7,33 @@
  */
 
 /** Includes. */
+#include <json.hpp>
 #include <memory>
 #include <tuple>
 #include "entity.hpp"
 #include "component.hpp"
 #include "system.hpp"
 
+/** For convenience */
+using json = nlohmann::json;
+
 namespace dk
 {
+	/**
+	 * Serializable version of a scene.
+	 */
+	struct SerializableScene
+	{
+		/** Entity ID counter. */
+		EntityID entity_id_counter = 0;
+
+		/** List of free entity ids. */
+		std::vector<EntityID> free_entities = {};
+
+		/** List of serializable systems. */
+		std::vector<SerializableSystem> systems = {};
+	};
+
 	/**
 	 * ECS scene.
 	 */
@@ -37,14 +56,6 @@ namespace dk
 		 * @param Time in seconds since the last frame.
 		 */
 		void tick(float delta_time);
-
-		/**
-		 * Save/load the entire scene depending on whether the archive is in read or write mode.
-		 * @param Generic archive.
-		 * @param Archive for components.
-		 * @note The component archive should use the generic archive to read and write.
-		 */
-		void serialize(Archive& archive, ReflectionContext& comp_archive);
 
 		/**
 		 * Create a new entity.
@@ -178,6 +189,20 @@ namespace dk
 			static_assert(std::is_convertible<T, Component<T>>::value, "T must derive from Component<T>.");
 			m_components_marked_for_delete.push_back(std::make_tuple(entity, TypeID<T>::id()));
 		}
+
+		/**
+		 * Get serializable versions of the scene.
+		 * @return Serializable scene.
+		 */
+		SerializableScene get_serializable_scene();
+
+		/**
+		 * Update entities.
+		 * @param Entity counter.
+		 * @param Free entity IDs.
+		 * @note This is used internally. Do not call.
+		 */
+		void update_entities(EntityID counter, const std::vector<EntityID>& free_ids);
 
 	private:
 

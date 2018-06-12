@@ -155,7 +155,8 @@ namespace dk
 		 */
 		void allocate_by_id(ResourceID id) override
 		{
-			dk_assert(!m_allocation_table[id]);
+			dk_assert(id < m_allocation_table.size());
+			dk_assert(!is_allocated(id));
 			m_allocation_table[id] = true;
 		}
 
@@ -271,6 +272,15 @@ namespace dk
 			allocator->deallocate(id);
 			id = 0;
 			allocator = nullptr;
+		}
+
+		/**
+		 * Determine if the handle is valid.
+		 * @return If the handle is valid.
+		 */
+		inline bool is_valid() const
+		{
+			return allocator != nullptr && allocator->is_allocated(id);
 		}
 
 		/** Resource ID. */

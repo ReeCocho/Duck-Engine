@@ -3,9 +3,9 @@ set(DUCK_ENGINE_HDRS
 	engine.hpp
 	input.hpp
 	resource_manager.hpp
-	archive.hpp
 	common.hpp
 	config.hpp
+	scene_util.hpp
 )
 
 # Sources
@@ -13,7 +13,7 @@ set(DUCK_ENGINE_SRCS
 	engine.cpp
 	input.cpp
 	resource_manager.cpp
-	archive.cpp
+	scene_util.cpp
 )
 
 # Engine lib

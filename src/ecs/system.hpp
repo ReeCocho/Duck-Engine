@@ -11,6 +11,7 @@
 #include <utilities\archive.hpp>
 #include <engine\config.hpp>
 #include "component.hpp"
+#include "component_archive.hpp"
 
 /** 
  * Generate some basic body for the system 
@@ -20,11 +21,43 @@
  * @param Preallocated size.
  */
 #define DK_SYSTEM_BODY(S, C, RIE, PA) \
-S(dk::Scene* scene) : System<C>(scene, #S, RIE, PA) {} \
+S(dk::Scene* scene) : dk::System<C>(scene, #S, RIE, PA) {} \
 ~S() = default; \
 
 namespace dk
 {
+	/**
+	 * Description of a component.
+	 */
+	struct SerializableComponent
+	{
+		/** Entity the component belongs to. */
+		Entity entity = {};
+
+		/** Components ID in the system. */
+		ResourceID id;
+
+		/** Reflection context of the component. */
+		std::shared_ptr<ReflectionContext> reflection_context = {};
+	};
+
+	/** 
+	 * System that can be serialized.
+	 */
+	struct SerializableSystem
+	{
+		/** Name of the system. */
+		std::string name = "";
+
+		/** Type of component that the system uses. */
+		type_id id;
+
+		/** List of component descriptions. */
+		std::vector<SerializableComponent> components = {};
+	};
+
+
+
 	/**
 	 * ECS system base.
 	 */
@@ -142,25 +175,45 @@ namespace dk
 
 		/**
 		 * Serialize the active component.
-		 * @param Archiver.
+		 * @param Component archiver.
 		 */
-		virtual void serialize(ReflectionContext& archive);
+		virtual void serialize(ComponentArchive& archive) = 0;
+
+		/**
+		 * Inspect the active component.
+		 * @param Reflection context.
+		 */
+		virtual void inspect(ReflectionContext& context) = 0;
 
 		/**
 		 * Serialize the entire system.
-		 * @param Archiver.
-		 * @param Component archiver.
-		 * @note The component archiver should use the archiver to read and write.
-		 */
-		virtual void serialize_system(Archive& archive, ReflectionContext& comp_archive);
-
-		/**
-		 * Serialize a component.
-		 * @param Archiver.
+		 * @param Component archive.
 		 * @param Entity.
 		 * @return If the entity has the proper component.
 		 */
-		virtual bool serialize_by_entity(ReflectionContext& archive, Entity entity);
+		virtual bool serialize_by_entity(ComponentArchive& archive, Entity entity) = 0;
+
+		/**
+		 * Inspect a component via it's entity.
+		 * @param Reflection context.
+		 * @param Entity.
+		 * @return If the entity has the proper component.
+		 */
+		virtual bool inspect_by_entity(ReflectionContext& context, Entity entity) = 0;
+
+		/**
+		 * Get a version of the system that can be serialized.
+		 * @return Serializeable system.
+		 */
+		virtual SerializableSystem get_serializable_system() = 0;
+
+		/**
+		 * Load a component.
+		 * @param Component ID.
+		 * @param Component entity.
+		 * @param Function to call to load data.
+		 */
+		virtual void load_component(ResourceID id, Entity entity, std::function<void(ComponentArchive&)> load) = 0;
 
 	private:
 
@@ -273,110 +326,74 @@ namespace dk
 		virtual ~System() {}
 
 		/**
-		 * Serialize the entire system.
-		 * @param Archiver.
-		 * @param Component archiver.
-		 * @note The component archiver should use the archiver to read and write.
+		 * Load a component.
+		 * @param Component ID.
+		 * @param Component entity.
+		 * @param Function to call to load data.
 		 */
-		void serialize_system(Archive& archive, ReflectionContext& comp_archive) override
+		void load_component(ResourceID id, Entity entity, std::function<void(ComponentArchive&)> load) override
 		{
-			// Save the old active component
+			dk_assert(&entity.get_scene() == &get_scene());
+			dk_assert(!m_components.is_allocated(id));
+
+			// Resize allocator if needed
+			if (id >= m_components.max_allocated())
+				m_components.resize(id + 1);
+
+			// Allocate the component and call its constructor
+			m_components.allocate_by_id(id);
+			T* component = m_components.get_resource_by_handle(id);
+			::new(component)(T)(Handle<T>(id, &m_components), entity);
+
+			// Create a serialized version of the component
 			const ResourceID old_id = m_active_component;
+			m_active_component = id;
+			ComponentArchive archive(false);
+			serialize(archive);
 
-			if (archive.is_writing())
-			{
-				// Write the minimum number of preallocated components needed
-				uint32_t min_alloc = 0;
-				for (uint32_t i = 0; i < m_components.max_allocated(); ++i)
-					if (m_components.is_allocated(i))
-						min_alloc = i;
+			// Load the component
+			load(archive);
 
-				archive.write<uint32_t>(min_alloc + 1);
-
-				// Write the number of components
-				archive.write<uint32_t>(static_cast<uint32_t>(m_components.num_allocated()));
-
-				// Write every component
-				for(uint32_t i = 0; i < m_components.max_allocated(); ++i)
-					if (m_components.is_allocated(i))
-					{
-						// Get the component
-						T* component = m_components.get_resource_by_handle(i);
-
-						// Write the component ID
-						archive.write<uint32_t>(i);
-
-						// Write the entity ID
-						archive.write<EntityID>(component->get_entity().get_id());
-
-						// Write the component
-						m_active_component = static_cast<ResourceID>(i);
-						serialize(comp_archive);
-					}
-			}
-			else
-			{
-				// Get the number of preallocated components
-				uint32_t pre_alloc = archive.read<uint32_t>();
-
-				// Preallocate components
-				m_components.resize(static_cast<size_t>(pre_alloc));
-
-				// Get the number of components
-				uint32_t comp_count = archive.read<uint32_t>();
-
-				// Read every component
-				for (uint32_t i = 0; i < comp_count; ++i)
-				{
-					// Read the component ID
-					uint32_t comp_id = archive.read<uint32_t>();
-
-					// Read the entity ID
-					EntityID entity_id = archive.read<EntityID>();
-
-					// Allocate the component and call its constructor
-					T* component = nullptr;
-
-					if (m_components.is_allocated(comp_id))
-						component = m_components.get_resource_by_handle(comp_id);
-					else
-					{
-						m_components.allocate_by_id(comp_id);
-						component = m_components.get_resource_by_handle(comp_id);
-						::new(component)(T)(Handle<T>(comp_id, &m_components), Entity(&get_scene(), entity_id));
-					}
-
-					// Deserialize the component
-					m_active_component = comp_id;
-					serialize(comp_archive);
-				}
-			}
-
-			// Call on_begin() for every component at once
-			for(ResourceID i = 0; i < m_components.max_allocated(); ++i)
-				if (m_components.is_allocated(i))
-				{
-					m_active_component = i;
-
+			// Call on_begin() on the system
 #if DK_EDITOR
-					if (get_runs_in_editor())
+			if (get_runs_in_editor())
 #endif
-					{
-						on_begin();
-					}
-				}
+			{
+				on_begin();
+			}
 
-			// Put back old active component
+			// Reset active component
 			m_active_component = old_id;
 		}
 
 		/**
-		 * Serialize a component.
-		 * @param Archiver.
+		 * Inspect a component via it's entity.
+		 * @param Reflection context.
 		 * @param Entity.
 		 * @return If the entity has the proper component.
 		 */
-		bool serialize_by_entity(ReflectionContext& archive, Entity entity) override final
+		bool inspect_by_entity(ReflectionContext& context, Entity entity) override
+		{
+			dk_assert(&entity.get_scene() == &get_scene());
+			const Handle<T> comp = find_component_by_entity(entity);
+			if (comp == Handle<T>())
+				return false;
+
+			// Serialize the component
+			const ResourceID old_id = m_active_component;
+			m_active_component = comp.id;
+			inspect(context);
+			m_active_component = old_id;
+			return true;
+		}
+
+		/**
+		 * Serialize the entire system.
+		 * @param Component archive.
+		 * @param Entity.
+		 * @return If the entity has the proper component.
+		 */
+		bool serialize_by_entity(ComponentArchive& archive, Entity entity) override final
 		{
 			dk_assert(&entity.get_scene() == &get_scene());
 			const Handle<T> comp = find_component_by_entity(entity);
@@ -389,6 +406,40 @@ namespace dk
 			serialize(archive);
 			m_active_component = old_id;
 			return true;
+		}
+
+		/**
+		 * Get a version of the system that can be serialized.
+		 * @return Serializeable system.
+		 */
+		SerializableSystem get_serializable_system() override
+		{
+			SerializableSystem description = {};
+			description.name = get_name();
+			description.id = TypeID<T>::id();
+			description.components.resize(m_components.num_allocated());
+
+			// Serialize every component
+			const ResourceID old_id = m_active_component;
+			size_t comp_index = 0;
+			for(ResourceID id = 0; id < m_components.max_allocated(); ++id)
+				if (m_components.is_allocated(id))
+				{
+					// Serialize the component
+					auto archive = std::make_shared<ComponentArchive>(true);
+					m_active_component = id;
+					serialize(*archive.get());
+
+					T* component = m_components.get_resource_by_handle(id);
+					description.components[comp_index].entity = component->get_entity();
+					description.components[comp_index].id = id;
+					description.components[comp_index].reflection_context = archive;
+
+					++comp_index;
+				}
+
+			m_active_component = old_id;
+			return description;
 		}
 
 		/**

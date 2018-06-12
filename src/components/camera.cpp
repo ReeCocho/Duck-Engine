@@ -6,7 +6,6 @@
 
 /** Includes. */
 #include <glm\gtc\matrix_transform.hpp>
-#include <editor\component_inspector.hpp>
 #include "transform.hpp"
 #include "camera.hpp"
 
@@ -83,31 +82,22 @@ namespace dk
 			command_buffer.free();
 	}
 
-	void CameraSystem::serialize(ReflectionContext& archive)
+	void CameraSystem::serialize(ComponentArchive& archive)
 	{
 		Handle<Camera> camera = get_component();
+		archive.set_name("Camera");
+		archive.set_field("Field of View", camera->m_field_of_view);
+		archive.set_field("Near Clipping Plane", camera->m_near_clipping_plane);
+		archive.set_field("Far Clipping Plane", camera->m_far_clipping_plane);
+	}
 
-		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
-		{
-			a->field(camera->m_sky_box);
-			a->field(camera->m_field_of_view);
-			a->field(camera->m_near_clipping_plane);
-			a->field(camera->m_far_clipping_plane);
-
-			char is_main_camera = main_camera.id == camera.id ? 1 : 0;
-			a->field(is_main_camera);
-
-			if (!a->is_writing() && is_main_camera)
-				set_main_camera(camera);
-		}
-		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
-		{
-			a->set_name("Camera");
-			a->set_field<HSkyBox>("Sky box", &camera->m_sky_box);
-			a->set_field<float>("Field of view", &camera->m_field_of_view);
-			a->set_field<float>("Near clipping plane", &camera->m_near_clipping_plane);
-			a->set_field<float>("Far clipping plane", &camera->m_far_clipping_plane);
-		}
+	void CameraSystem::inspect(ReflectionContext& context)
+	{
+		Handle<Camera> camera = get_component();
+		context.set_name("Camera");
+		context.set_field("Field of View", camera->m_field_of_view);
+		context.set_field("Near Clipping Plane", camera->m_near_clipping_plane);
+		context.set_field("Far Clipping Plane", camera->m_far_clipping_plane);
 	}
 
 	void CameraSystem::set_main_camera(Handle<Camera> camera)

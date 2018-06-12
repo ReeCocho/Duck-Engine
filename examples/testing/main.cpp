@@ -11,8 +11,7 @@
 #include <components\lights.hpp>
 #include <components\rigidbody.hpp>
 #include <components\character_controller.hpp>
-#include <editor\component_inspector.hpp>
-
+#include <engine\scene_util.hpp>
 
 #if DK_EDITOR
 namespace active_system = dk::editor;
@@ -146,16 +145,14 @@ public:
 		}
 	}
 
-	void serialize(dk::ReflectionContext& archive)
+	void serialize(dk::ComponentArchive& archive) override
 	{
-		if (auto a = dynamic_cast<dk::ComponentArchive*>(&archive))
-		{
+		archive.set_name("Player");
+	}
 
-		}
-		else if (auto a = dynamic_cast<dk::ComponentInspector*>(&archive))
-		{
-			a->set_name("Player");
-		}
+	void inspect(dk::ReflectionContext& context) override
+	{
+		context.set_name("Player");
 	}
 
 private:
@@ -328,27 +325,38 @@ int main()
 	// 	light->set_color(glm::vec3(1, 1, 1));
 	// 	light->set_intensity(4.0f);
 	// }
-	
-	// Read scene data
-	std::ifstream stream("./test.dat", std::ios::binary | std::ios::ate);
-	dk_assert(stream.is_open());
-	
-	// Get data size
-	size_t len = static_cast<size_t>(stream.tellg());
-	
-	// Move back to the beginning of the stream
-	stream.seekg(0);
-	
-	// Read the data in the stream
-	char* data = new char[len];
-	stream.read(data, len);
-	stream.close();
-	
-	// Deserialize the scene
-	dk::Archive archive(data, len);
-	dk::ComponentArchive comp_archive(&active_system::scene, &active_system::resource_manager, &archive);
-	active_system::scene.serialize(archive, comp_archive);
-	delete[] data;
+
+	{
+		std::ifstream stream("./scene.json");
+		json j;
+		j << stream;
+		dk::serializable_scene_from_json(j, active_system::scene, active_system::resource_manager);
+		// json j = dk::serializable_scene_to_json(active_system::scene.get_serializable_scene(), active_system::resource_manager);
+		// std::ofstream stream("./scene.json");
+		// stream << j.dump(4);
+		// stream.close();
+	}
+
+	// // Read scene data
+	// std::ifstream stream("./test.dat", std::ios::binary | std::ios::ate);
+	// dk_assert(stream.is_open());
+	// 
+	// // Get data size
+	// size_t len = static_cast<size_t>(stream.tellg());
+	// 
+	// // Move back to the beginning of the stream
+	// stream.seekg(0);
+	// 
+	// // Read the data in the stream
+	// char* data = new char[len];
+	// stream.read(data, len);
+	// stream.close();
+	// 
+	// // Deserialize the scene
+	// dk::Archive archive(data, len);
+	// dk::ComponentArchive comp_archive(&active_system::scene, &active_system::resource_manager, &archive);
+	// active_system::scene.serialize(archive, comp_archive);
+	// delete[] data;
 
 	// // Serialize the scene
 	// dk::Archive archive(512);

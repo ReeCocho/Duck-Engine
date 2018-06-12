@@ -16,6 +16,7 @@
 /** For convenience */
 using json = nlohmann::json;
 
+#if !DK_EDITOR
 namespace
 {
 	/** Rendering thread. */
@@ -161,3 +162,4 @@ namespace dk
 		}
 	}
 }
+#endif

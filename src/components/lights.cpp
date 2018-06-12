@@ -9,7 +9,6 @@
 #include <engine\config.hpp>
 #include "lights.hpp"
 #include <engine\common.hpp>
-#include <editor\component_inspector.hpp>
 
 namespace dk
 {
@@ -32,21 +31,20 @@ namespace dk
 		}
 	}
 
-	void DirectionalLightSystem::serialize(ReflectionContext& archive)
+	void DirectionalLightSystem::serialize(ComponentArchive& archive)
 	{
 		Handle<DirectionalLight> light = get_component();
+		archive.set_name("Directional Light");
+		archive.set_field("Color", *(glm::vec3*)&light->m_light_data.color);
+		archive.set_field("Intensity", light->m_light_data.color.w);
+	}
 
-		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
-		{
-			a->field(*(glm::vec3*)&light->m_light_data.color);
-			a->field(light->m_light_data.color.w);
-		}
-		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
-		{
-			a->set_name("Directional Light");
-			a->set_field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
-			a->set_field<float>("Intensity", &light->m_light_data.color.w);
-		}
+	void DirectionalLightSystem::inspect(ReflectionContext& context)
+	{
+		Handle<DirectionalLight> light = get_component();
+		context.set_name("Directional Light");
+		context.set_field("Color", *(glm::vec3*)&light->m_light_data.color);
+		context.set_field("Intensity", light->m_light_data.color.w);
 	}
 
 	void PointLightSystem::on_begin()
@@ -69,22 +67,21 @@ namespace dk
 		}
 	}
 
-	void PointLightSystem::serialize(ReflectionContext& archive)
+	void PointLightSystem::serialize(ComponentArchive& archive)
 	{
 		Handle<PointLight> light = get_component();
+		archive.set_name("Point Light");
+		archive.set_field("Color", *(glm::vec3*)&light->m_light_data.color);
+		archive.set_field("Intensity", light->m_light_data.color.w);
+		archive.set_field("Range", light->m_light_data.position.w);
+	}
 
-		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
-		{
-			a->field(*(glm::vec3*)&light->m_light_data.color);
-			a->field(light->m_light_data.color.w);
-			a->field(light->m_light_data.position.w);
-		}
-		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
-		{
-			a->set_name("Point Light");
-			a->set_field<glm::vec3>("Color", (glm::vec3*)&light->m_light_data.color);
-			a->set_field<float>("Intensity", &light->m_light_data.color.w);
-			a->set_field<float>("Range", &light->m_light_data.position.w);
-		}
+	void PointLightSystem::inspect(ReflectionContext& context)
+	{
+		Handle<PointLight> light = get_component();
+		context.set_name("Point Light");
+		context.set_field("Color", *(glm::vec3*)&light->m_light_data.color);
+		context.set_field("Intensity", light->m_light_data.color.w);
+		context.set_field("Range", light->m_light_data.position.w);
 	}
 }

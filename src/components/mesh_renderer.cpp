@@ -6,7 +6,6 @@
 
 /** Includes. */
 #include <engine/common.hpp>
-#include <editor\component_inspector.hpp>
 #include "transform.hpp"
 #include <engine/config.hpp>
 #include "camera.hpp"
@@ -142,6 +141,7 @@ namespace dk
 		mesh_renderer->m_transform = mesh_renderer->get_entity().get_component<Transform>();
 		mesh_renderer->m_command_buffer = active_system::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
 		mesh_renderer->m_depth_prepass_command_buffer = active_system::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
+		mesh_renderer->generate_resources();
 	}
 
 	void MeshRendererSystem::on_pre_render(float delta_time)
@@ -153,7 +153,12 @@ namespace dk
 
 		for (Handle<MeshRenderer> mesh_renderer : *this)
 		{
-			if (!mesh_renderer->m_mesh.allocator || !mesh_renderer->m_material.allocator)
+			if (
+				!mesh_renderer->m_mesh.allocator || 
+				!mesh_renderer->m_material.allocator || 
+				!mesh_renderer->m_fragment_map || 
+				!mesh_renderer->m_vertex_map
+				)
 				continue;
 
 			bool textures_unbound = false;
@@ -213,23 +218,19 @@ namespace dk
 		mesh_renderer->free_resources();
 	}
 
-	void MeshRendererSystem::serialize(ReflectionContext& archive)
+	void MeshRendererSystem::serialize(ComponentArchive& archive)
 	{
 		Handle<MeshRenderer> mesh_renderer = get_component();
+		archive.set_name("Mesh Renderer");
+		archive.set_field("Mesh", mesh_renderer->m_mesh);
+		archive.set_field("Material", mesh_renderer->m_material);
+	}
 
-		if (auto a = dynamic_cast<ComponentArchive*>(&archive))
-		{
-			a->field(mesh_renderer->m_mesh);
-			a->field(mesh_renderer->m_material);
-
-			if (!a->is_writing())
-				mesh_renderer->generate_resources();
-		}
-		else if (auto a = dynamic_cast<ComponentInspector*>(&archive))
-		{
-			a->set_name("Mesh Renderer");
-			a->set_field<HMesh>("Mesh", &mesh_renderer->m_mesh);
-			a->set_field<HMaterial>("Material", &mesh_renderer->m_material);
-		}
+	void MeshRendererSystem::inspect(ReflectionContext& context)
+	{
+		Handle<MeshRenderer> mesh_renderer = get_component();
+		context.set_name("Mesh Renderer");
+		context.set_field("Mesh", mesh_renderer->m_mesh);
+		context.set_field("Material", mesh_renderer->m_material);
 	}
 }

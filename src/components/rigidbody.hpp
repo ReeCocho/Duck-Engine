@@ -291,9 +291,15 @@ namespace dk
 		void on_end() override;
 
 		/**
-		 * Serialize a component.
-		 * @param Archiver.
+		 * Serialize the active component.
+		 * @param Component archiver.
 		 */
-		void serialize(ReflectionContext& archive) override;
+		void serialize(ComponentArchive& archive) override;
+
+		/**
+		 * Inspect the active component.
+		 * @param Reflection context.
+		 */
+		void inspect(ReflectionContext& context) override;
 	};
 }

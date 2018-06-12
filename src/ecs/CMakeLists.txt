@@ -4,6 +4,7 @@ set(DUCK_ECS_HDRS
 	component.hpp
 	system.hpp
 	scene.hpp
+	component_archive.hpp
 )
 
 # Sources
@@ -12,6 +13,7 @@ set(DUCK_ECS_SRCS
 	component.cpp
 	system.cpp
 	scene.cpp
+	component_archive.cpp
 )
 
 # ECS lib

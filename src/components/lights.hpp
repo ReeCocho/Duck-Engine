@@ -131,10 +131,16 @@ namespace dk
 		void on_pre_render(float delta_time) override;
 
 		/**
-		 * Serialize a component.
-		 * @param Archiver.
+		 * Serialize the active component.
+		 * @param Component archiver.
 		 */
-		void serialize(ReflectionContext& archive) override;
+		void serialize(ComponentArchive& archive) override;
+
+		/**
+		 * Inspect the active component.
+		 * @param Reflection context.
+		 */
+		void inspect(ReflectionContext& context) override;
 	};
 
 	/**
@@ -158,9 +164,15 @@ namespace dk
 		void on_pre_render(float delta_time) override;
 
 		/**
-		 * Serialize a component.
-		 * @param Archiver.
+		 * Serialize the active component.
+		 * @param Component archiver.
 		 */
-		void serialize(ReflectionContext& archive) override;
+		void serialize(ComponentArchive& archive) override;
+
+		/**
+		 * Inspect the active component.
+		 * @param Reflection context.
+		 */
+		void inspect(ReflectionContext& context) override;
 	};
 }

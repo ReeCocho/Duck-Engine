@@ -52,19 +52,4 @@ namespace dk
 	{
 		
 	}
-
-	void SystemBase::serialize(ReflectionContext& archive)
-	{
-
-	}
-
-	bool SystemBase::serialize_by_entity(ReflectionContext& archive, Entity entity)
-	{
-		return false;
-	}
-
-	void SystemBase::serialize_system(Archive& archive, ReflectionContext& comp_archive)
-	{
-
-	}
 }
