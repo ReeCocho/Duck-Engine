@@ -66,7 +66,7 @@ namespace dk
 		/** Entity being inspected. */
 		Entity m_inspected_entity = Entity(nullptr, 0);
 
-		/** Systems inspected components. */
-		std::vector<std::unique_ptr<ReflectionContext>> m_component_inspectors = {};
+		/** Systems inspected components and the components ID. */
+		std::vector<std::tuple<type_id, std::unique_ptr<ReflectionContext>>> m_component_inspectors = {};
 	};
 }

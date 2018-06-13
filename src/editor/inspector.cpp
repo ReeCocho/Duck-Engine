@@ -29,7 +29,7 @@ namespace dk
 
 			// Try to inspect component
 			if (m_scene->get_system_by_index(i)->inspect_by_entity(*archive, m_inspected_entity))
-				m_component_inspectors.push_back(std::move(archive));
+				m_component_inspectors.push_back(std::make_tuple(m_scene->get_system_by_index(i)->get_id(), std::move(archive)));
 		}
 	}
 
@@ -45,16 +45,63 @@ namespace dk
 			// Loop over every system archive
 			for (const auto& archive : m_component_inspectors)
 			{
-				// Show component name
-				if (ImGui::CollapsingHeader(archive->get_name().data()))
+				auto comp_id = std::get<0>(archive);
+				auto& reflection = std::get<1>(archive);
+
+				// Show component fields
+				bool fields_shown = ImGui::CollapsingHeader(reflection->get_name().data());
+
+				// Context menu
+				ImGui::PushID(reflection->get_name().data());
+				if (ImGui::BeginPopupContextItem("Component Context Menu"))
 				{
-					const auto& fields = archive->get_fields();
+					const std::string label = "Destroy " + reflection->get_name();
+
+					// Destroy the entity
+					if (ImGui::Button(label.data()))
+					{
+						// Make it so you can't destroy transforms since they are required
+						if (comp_id != TypeID<Transform>::id())
+						{
+							m_scene->get_system_by_base(comp_id)->remove_component_anon(m_inspected_entity);
+						}
+					}
+					ImGui::EndPopup();
+				}
+				ImGui::PopID();
+
+				if(fields_shown)
+				{
+					const auto& fields = reflection->get_fields();
 
 					// Loop over every field
 					for (const auto& field : fields)
 						draw_field(field.get());
 				}
 			}
+
+			// Add component menu
+			ImGui::Separator();
+			if(ImGui::CollapsingHeader("Add Components"))
+				if (ImGui::ListBoxHeader("##", ImVec2(-1, 0)))
+				{
+					for (size_t i = 0; i < m_scene->get_system_count(); ++i)
+					{
+						SystemBase* system = m_scene->get_system_by_index(i);
+						const std::string label = "Add " + system->get_name() + " component";
+						ImGui::PushItemWidth(-1.0f);
+						
+						// Add the component
+						if (ImGui::Button(label.data(), ImVec2(-1, 0)))
+						{
+							system->add_component_anon(m_inspected_entity);
+
+							// Reinspect the entity to update the inspector view
+							inspect_entity(m_inspected_entity);
+						}
+					}
+					ImGui::ListBoxFooter();
+				}
 		}
 	}
 
@@ -62,8 +109,20 @@ namespace dk
 	{
 		bool run_callback = false;
 
+		// 32 bit integer
+		if (field->type_id == TypeID<int32_t>::id())
+			run_callback = ImGui::InputScalar(field->name.data(), ImGuiDataType_S32, static_cast<int32_t*>(field->data));
+		// 64 bit integer
+		else if (field->type_id == TypeID<int64_t>::id())
+			run_callback = ImGui::InputScalar(field->name.data(), ImGuiDataType_S64, static_cast<int64_t*>(field->data));
+		// 32 bit unsigned integer
+		else if (field->type_id == TypeID<uint32_t>::id())
+			run_callback = ImGui::InputScalar(field->name.data(), ImGuiDataType_U32, static_cast<uint32_t*>(field->data));
+		// 64 bit unsigned integer
+		else if (field->type_id == TypeID<uint64_t>::id())
+			run_callback = ImGui::InputScalar(field->name.data(), ImGuiDataType_U64, static_cast<uint64_t*>(field->data));
 		// Float
-		if (field->type_id == TypeID<float>::id())
+		else if (field->type_id == TypeID<float>::id())
 			run_callback = ImGui::InputFloat(field->name.data(), static_cast<float*>(field->data));
 		// Vec2
 		else if(field->type_id == TypeID<glm::vec2>::id())

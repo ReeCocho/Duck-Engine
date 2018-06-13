@@ -215,6 +215,18 @@ namespace dk
 		 */
 		virtual void load_component(ResourceID id, Entity entity, std::function<void(ComponentArchive&)> load) = 0;
 
+		/**
+		 * Add a component to the system anonymously.
+		 * @param Entity the component belongs to.
+		 */
+		virtual void add_component_anon(Entity entity) = 0;
+
+		/**
+		 * Remove a component from the system anonymously. 
+		 * @param Entity the component belongs to.
+		 */
+		virtual void remove_component_anon(Entity entity) = 0;
+
 	private:
 
 		/** Scene the system exists in. */
@@ -494,6 +506,26 @@ namespace dk
 			}
 
 			return Handle<T>(id, &m_components);
+		}
+
+		/**
+		 * Add a component to the system.
+		 * @param Entity the component belongs to.
+		 */
+		void add_component_anon(Entity entity) override
+		{
+			if(find_component_by_entity(entity) == Handle<T>())
+				add_component(entity);
+		}
+
+		/**
+		 * Remove a component from the system anonymously. 
+		 * @param Entity the component belongs to.
+		 */
+		void remove_component_anon(Entity entity) override
+		{
+			if (find_component_by_entity(entity) != Handle<T>())
+				remove_component(entity);
 		}
 
 		/**
