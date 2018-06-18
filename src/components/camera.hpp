@@ -177,7 +177,7 @@ namespace dk
 	{
 	public:
 
-		DK_SYSTEM_BODY(CameraSystem, Camera, false, 4)
+		DK_SYSTEM_BODY(CameraSystem, Camera, false)
 
 		/**
 		 * @brief Called when a component is added to the system.
@@ -199,13 +199,13 @@ namespace dk
 		 * Serialize the active component.
 		 * @param Component archiver.
 		 */
-		void serialize(ComponentArchive& archive) override;
+		void serialize(ReflectionContext& r) override;
 
 		/**
 		 * Inspect the active component.
 		 * @param Reflection context.
 		 */
-		void inspect(ReflectionContext& context) override;
+		void inspect(ReflectionContext& r) override;
 
 		/**
 		 * @brief Set the main camera.

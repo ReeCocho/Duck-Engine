@@ -45,7 +45,7 @@ namespace dk
 
 	void CameraSystem::on_begin()
 	{
-		Handle<Camera> camera = get_component();
+		Handle<Camera> camera = get_active_component();
 		camera->m_transform = camera->get_entity().get_component<Transform>();
 		camera->m_command_buffers =
 		{
@@ -77,27 +77,27 @@ namespace dk
 
 	void CameraSystem::on_end()
 	{
-		Handle<Camera> camera = get_component();
+		Handle<Camera> camera = get_active_component();
 		for (auto& command_buffer : camera->m_command_buffers)
 			command_buffer.free();
 	}
 
-	void CameraSystem::serialize(ComponentArchive& archive)
+	void CameraSystem::serialize(ReflectionContext& r)
 	{
-		Handle<Camera> camera = get_component();
-		archive.set_name("Camera");
-		archive.set_field("Field of View", camera->m_field_of_view);
-		archive.set_field("Near Clipping Plane", camera->m_near_clipping_plane);
-		archive.set_field("Far Clipping Plane", camera->m_far_clipping_plane);
+		Handle<Camera> camera = get_active_component();
+		r.set_name("Camera");
+		r.set_field("Field of View", camera->m_field_of_view);
+		r.set_field("Near Clipping Plane", camera->m_near_clipping_plane);
+		r.set_field("Far Clipping Plane", camera->m_far_clipping_plane);
 	}
 
-	void CameraSystem::inspect(ReflectionContext& context)
+	void CameraSystem::inspect(ReflectionContext& r)
 	{
-		Handle<Camera> camera = get_component();
-		context.set_name("Camera");
-		context.set_field("Field of View", camera->m_field_of_view);
-		context.set_field("Near Clipping Plane", camera->m_near_clipping_plane);
-		context.set_field("Far Clipping Plane", camera->m_far_clipping_plane);
+		Handle<Camera> camera = get_active_component();
+		r.set_name("Camera");
+		r.set_field("Field of View", camera->m_field_of_view);
+		r.set_field("Near Clipping Plane", camera->m_near_clipping_plane);
+		r.set_field("Far Clipping Plane", camera->m_far_clipping_plane);
 	}
 
 	void CameraSystem::set_main_camera(Handle<Camera> camera)

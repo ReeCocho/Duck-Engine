@@ -14,7 +14,7 @@ namespace dk
 		m_graphics(graphics),
 		m_inspector(inspector)
 	{
-		m_transform_system = m_scene->get_system<Transform>();
+		m_transform_system = static_cast<System<Transform>*>(m_scene->get_system_by_id(TypeID<Transform>::id()));
 		dk_assert(m_transform_system);
 	}
 
@@ -54,6 +54,25 @@ namespace dk
 		std::string label = "Entity " + std::to_string(transform.id);
 		bool node_open = ImGui::TreeNodeEx((const void*)(intptr_t)transform.id, flags, label.data());
 		
+		// Context menu
+		ImGui::PushID((const void*)(intptr_t)transform.id);
+		if (ImGui::BeginPopupContextWindow("Entity Context Menu"))
+		{
+			// Destroy the entity
+			if (ImGui::MenuItem("Destroy entity"))
+			{
+				m_scene->destroy_entity(transform->get_entity());
+
+				ImGui::EndPopup();
+				ImGui::PopID();
+
+				if(node_open) ImGui::TreePop();
+				return;
+			}
+			ImGui::EndPopup();
+		}
+		ImGui::PopID();
+
 		// Inspect the entity if the node is clicked
 		if(ImGui::IsItemClicked())
 			m_inspector->inspect_entity(transform->get_entity());
@@ -62,16 +81,16 @@ namespace dk
 		if (ImGui::BeginDragDropSource())
 		{
 			ImGui::Text(label.data());
-			ImGui::SetDragDropPayload("ResourceID", &transform.id, sizeof(ResourceID));
+			ImGui::SetDragDropPayload("resource_id", &transform.id, sizeof(resource_id));
 			ImGui::EndDragDropSource();
 		}
 
 		if (ImGui::BeginDragDropTarget())
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ResourceID"))
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource_id"))
 			{
 				// Get transform
-				ResourceID transform_id = 0;
+				resource_id transform_id = 0;
 				std::memcpy(&transform_id, payload->Data, payload->DataSize);
 
 				// Only allow for drag and drop on transforms that aren't ourselves

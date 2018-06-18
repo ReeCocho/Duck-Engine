@@ -196,7 +196,7 @@ namespace dk
 
     void RigidBodySystem::on_begin()
     {
-        Handle<RigidBody> rigid_body = get_component();
+        Handle<RigidBody> rigid_body = get_active_component();
 
         // Get transform component
 		rigid_body->m_transform = rigid_body->get_entity().get_component<Transform>();
@@ -260,7 +260,7 @@ namespace dk
 
     void RigidBodySystem::on_end()
     {
-        Handle<RigidBody> rigid_body = get_component();
+        Handle<RigidBody> rigid_body = get_active_component();
 #if !DK_EDITOR
         dk::engine::physics.unregister_rigid_body(rigid_body->m_rigid_body.get());
 #endif
@@ -269,13 +269,13 @@ namespace dk
 		rigid_body->m_rigid_body.reset();
     }
 
-	void RigidBodySystem::serialize(ComponentArchive& archive)
+	void RigidBodySystem::serialize(ReflectionContext& r)
 	{
-		archive.set_name("Rigid Body");
+		r.set_name("Rigid Body");
 	}
 
-	void RigidBodySystem::inspect(ReflectionContext& context)
+	void RigidBodySystem::inspect(ReflectionContext& r)
 	{
-		context.set_name("Rigid Body");
+		r.set_name("Rigid Body");
 	}
 }

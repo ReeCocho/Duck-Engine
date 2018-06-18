@@ -51,11 +51,11 @@ class PlayerSystem : public dk::System<Player>
 {
 public:
 
-	DK_SYSTEM_BODY(PlayerSystem, Player, false, 1)
+	DK_SYSTEM_BODY(PlayerSystem, Player, false)
 
 	void on_begin() override
 	{
-		auto component = get_component();
+		auto component = get_active_component();
 		component->m_transform = component->get_entity().get_component<dk::Transform>();
 		component->m_camera_transform = component->m_transform->get_child(0);
 		component->m_character_controller = component->get_entity().get_component<dk::CharacterController>();
@@ -145,14 +145,14 @@ public:
 		}
 	}
 
-	void serialize(dk::ComponentArchive& archive) override
+	void serialize(dk::ReflectionContext& r) override
 	{
-		archive.set_name("Player");
+		r.set_name("Player");
 	}
 
-	void inspect(dk::ReflectionContext& context) override
+	void inspect(dk::ReflectionContext& r) override
 	{
-		context.set_name("Player");
+		r.set_name("Player");
 	}
 
 private:
@@ -210,7 +210,7 @@ int main()
 	
 	// // Player
 	// {
-	// 	dk::Entity entity1 = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity1 = dk::engine::scene.create_entity();
 	// 
 	// 	dk::Handle<dk::Transform> transform1 = entity1.get_component<dk::Transform>();
 	// 	transform1->set_position(glm::vec3(0, 16, 1));
@@ -219,7 +219,7 @@ int main()
 	// 
 	// 	// Camera
 	// 	{
-	// 		dk::Entity entity2 = dk::Entity(&active_system::scene);
+	// 		dk::Entity entity2 = dk::engine::scene.create_entity();
 	// 
 	// 		dk::Handle<dk::Camera> camera = entity2.add_component<dk::Camera>();
 	// 		camera->set_sky_box(active_system::resource_manager.get_sky_box("sky.sky"));
@@ -235,7 +235,7 @@ int main()
 	// 
 	// // Test sphere 1
 	// {
-	// 	dk::Entity entity = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity = dk::engine::scene.create_entity();
 	// 	dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 	// 	mesh_renderer->set_material(active_system::resource_manager.get_material("metal.mat"));
 	// 	mesh_renderer->set_mesh(active_system::resource_manager.get_mesh("sphere.mesh"));
@@ -250,7 +250,7 @@ int main()
 	// 
 	// // Test sphere 2
 	// {
-	// 	dk::Entity entity = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity = dk::engine::scene.create_entity();
 	// 	dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 	// 	mesh_renderer->set_material(active_system::resource_manager.get_material("mud.mat"));
 	// 	mesh_renderer->set_mesh(active_system::resource_manager.get_mesh("sphere.mesh"));
@@ -265,7 +265,7 @@ int main()
 	// 
 	// // Floor
 	// {
-	// 	dk::Entity entity = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity = dk::engine::scene.create_entity();
 	// 
 	// 	dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 	// 	mesh_renderer->set_material(active_system::resource_manager.get_material("mud.mat"));
@@ -282,7 +282,7 @@ int main()
 	// 
 	// // Sloped floor
 	// {
-	// 	dk::Entity entity = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity = dk::engine::scene.create_entity();
 	// 
 	// 	dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 	// 	mesh_renderer->set_material(active_system::resource_manager.get_material("metal.mat"));
@@ -300,7 +300,7 @@ int main()
 	// 
 	// // Wall
 	// {
-	// 	dk::Entity entity = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity = dk::engine::scene.create_entity();
 	// 
 	// 	dk::Handle<dk::MeshRenderer> mesh_renderer = entity.add_component<dk::MeshRenderer>();
 	// 	mesh_renderer->set_material(active_system::resource_manager.get_material("metal.mat"));
@@ -317,7 +317,7 @@ int main()
 	// 
 	// // Directional light
 	// {
-	// 	dk::Entity entity = dk::Entity(&active_system::scene);
+	// 	dk::Entity entity = dk::engine::scene.create_entity();
 	// 	dk::Handle<dk::Transform> transform = entity.get_component<dk::Transform>();
 	// 	transform->set_euler_angles(glm::vec3(45, 145, 0));
 	// 
@@ -330,42 +330,14 @@ int main()
 		std::ifstream stream("./scene.json");
 		json j;
 		j << stream;
-		dk::serializable_scene_from_json(j, active_system::scene, active_system::resource_manager);
-		// json j = dk::serializable_scene_to_json(active_system::scene.get_serializable_scene(), active_system::resource_manager);
+		dk::scene_from_json(dk::engine::scene, j, dk::engine::resource_manager);
+		stream.close();
+
+		// json j = dk::scene_to_json(dk::engine::scene.get_serializable_scene(), dk::engine::resource_manager);
 		// std::ofstream stream("./scene.json");
 		// stream << j.dump(4);
 		// stream.close();
 	}
-
-	// // Read scene data
-	// std::ifstream stream("./test.dat", std::ios::binary | std::ios::ate);
-	// dk_assert(stream.is_open());
-	// 
-	// // Get data size
-	// size_t len = static_cast<size_t>(stream.tellg());
-	// 
-	// // Move back to the beginning of the stream
-	// stream.seekg(0);
-	// 
-	// // Read the data in the stream
-	// char* data = new char[len];
-	// stream.read(data, len);
-	// stream.close();
-	// 
-	// // Deserialize the scene
-	// dk::Archive archive(data, len);
-	// dk::ComponentArchive comp_archive(&active_system::scene, &active_system::resource_manager, &archive);
-	// active_system::scene.serialize(archive, comp_archive);
-	// delete[] data;
-
-	// // Serialize the scene
-	// dk::Archive archive(512);
-	// dk::ComponentArchive comp_archive(&active_system::scene, &active_system::resource_manager, &archive);
-	// active_system::scene.serialize(archive, comp_archive);
-	// 
-	// std::ofstream stream("./test.dat");
-	// stream.write(archive.get_data(), archive.get_bytes_allocated());
-	// stream.close();
 	
 	active_system::simulate();
 	active_system::shutdown();

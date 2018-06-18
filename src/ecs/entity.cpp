@@ -1,6 +1,6 @@
 /**
  * @file entity.cpp
- * @brief ECS entity source.
+ * @brief Entity source file.
  * @author Connor J. Bramham (ReeCocho)
  */
 
@@ -10,7 +10,7 @@
 
 namespace dk
 {
-	Entity::Entity(Scene* scene, EntityID id) : m_scene(scene), m_id(id) {}
+	Entity::Entity() : m_scene(nullptr), m_id(0) {}
 
-	Entity::Entity(Scene* scene) : m_scene(scene), m_id(m_scene->create_entity()) {}
+	Entity::Entity(Scene* scene, entity_id id) : m_scene(scene), m_id(id) {}
 }

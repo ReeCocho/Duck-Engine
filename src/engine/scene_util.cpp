@@ -15,7 +15,7 @@ namespace dk
 	 * @param JSON element.
 	 * @param Field.
 	 * @param Resource manager for resource handles.
-	 * @param Serializable scene for system names.
+	 * @param Scene for system names.
 	 */
 	static void serialize_scene_field_as_json
 	(
@@ -67,9 +67,9 @@ namespace dk
 				else
 					// Component
 					for (const auto& system : scene.systems)
-						if (system.id == handle_field.resource_type)
+						if (system->get_component_type() == handle_field.resource_type)
 						{
-							j["data"]["system"] = system.name;
+							j["data"]["system"] = system->get_name();
 							j["data"]["id"] = handle_field.resource_id;
 							break;
 						}
@@ -79,30 +79,41 @@ namespace dk
 			j["data"] = binary_to_hex((char*)field.data, field.data_size);
 	}
 
-	json serializable_scene_to_json(SerializableScene& scene, ResourceManager& resource_manager)
+	json scene_to_json(SerializableScene& scene, ResourceManager& resource_manager)
 	{
 		json j = {};
 
-		// Scene properties
-		j["entity_id_counter"] = scene.entity_id_counter;
-		j["free_entity_ids"] = scene.free_entities;
+		// Save entities
+		j["entity_id_counter"] = scene.entity_counter;
+		j["free_entity_ids"] = scene.free_entity_ids;
 
+		// Loop over every system
 		for (size_t i = 0; i < scene.systems.size(); ++i)
 		{
-			// System properties
-			SerializableSystem& system = scene.systems[i];
-			j["systems"][i]["name"] = system.name;
+			// For convenience
+			ISystem* system = scene.systems[i];
+			
+			// Save system name
+			j["systems"][i]["name"] = system->get_name();
 
-			for (size_t k = 0; k < system.components.size(); ++k)
+			// Get active components in the scene
+			const auto active_components = system->get_active_components();
+
+			// Loop over every active component
+			for (size_t k = 0; k < active_components.size(); ++k)
 			{
-				// Component properties
-				SerializableComponent& component = system.components[k];
-				j["systems"][i]["components"][k]["entity"] = component.entity.get_id();
-				j["systems"][i]["components"][k]["id"] = component.id;
-				j["systems"][i]["components"][k]["name"] = component.reflection_context->get_name();
+				// Serialize the component
+				ReflectionContext r = {};
+				system->set_active_component(active_components[k]);
+				system->serialize(r);
+
+				// Save component entity, resource id, and name
+				j["systems"][i]["components"][k]["entity"] = system->get_entity_by_component_by_id(active_components[k]).get_id();
+				j["systems"][i]["components"][k]["id"] = active_components[k];
+				j["systems"][i]["components"][k]["name"] = r.get_name();
 				
 				// Serialize fields
-				const auto& fields = component.reflection_context->get_fields();
+				const auto& fields = r.get_fields();
 				for (size_t l = 0; l < fields.size(); ++l)
 					serialize_scene_field_as_json
 					(
@@ -118,13 +129,19 @@ namespace dk
 	}
 
 	/**
-	 * Deserialize a JSON field.
+	 * Deserialize a component field.
 	 * @param Field to write to.
-	 * @param JSON field.
-	 * @param Scene we are deserializing to.
+	 * @param JSON field data.
+	 * @param Scene we are deserializing.
 	 * @param Resource manager.
 	 */
-	static void deserialize_json_field(ReflectionContext::Field& field, json::value_type& j_field, Scene& scene, ResourceManager& resource_manager)
+	static void deserialize_component_field
+	(
+		ReflectionContext::Field& field,
+		json::value_type& j_field,
+		Scene& scene,
+		ResourceManager& resource_manager
+	)
 	{
 		// Don't do anything if the types arn't the same
 		if (j_field["type"] != field.type)
@@ -143,13 +160,13 @@ namespace dk
 			vec_field.resize(j_field["data"].size());
 
 			for (size_t i = 0; i < j_field["data"].size(); ++i)
-				deserialize_json_field(*vec_field.get_element(i), j_field["data"][i], scene, resource_manager);
+				deserialize_component_field(*vec_field.get_element(i), j_field["data"][i], scene, resource_manager);
 		}
 		else if (field.type == ReflectionContext::FieldType::Handle)
 		{
 			auto& handle_field = static_cast<ReflectionContext::HandleField&>(field);
 
-			if(!j_field["data"]["null_handle"])
+			if (!j_field["data"]["null_handle"])
 			{
 				// Resources
 				if (handle_field.resource_type == TypeID<Mesh>::id())
@@ -167,45 +184,86 @@ namespace dk
 				// Component
 				else
 				{
-					SystemBase* system = scene.get_system_by_name(j_field["data"]["system"]);
+					// Find a system with the appropriate name
+					ISystem* system = scene.get_system_by_name(j_field["data"]["system"]);
+					dk_assert(system);
 
 					// We can interpret the component as just a handle to any ol'
 					// data type since it's just a pointer and an integer.
-					*(Handle<char>*)field.data = Handle<char>(j_field["data"]["id"], (ResourceAllocator<char>*)system->get_component_allocator());
+					*(Handle<char>*)field.data = Handle<char>(j_field["data"]["id"], (ResourceAllocator<char>*)&system->get_component_allocator());
 				}
 			}
 		}
 	}
 
-	void serializable_scene_from_json(json& j, Scene& scene, ResourceManager& resource_manager)
+	/**
+	 * Deserialize a component.
+	 * @param System the component belongs to.
+	 * @param JSON component data.
+	 * @param Scene we are deserializing.
+	 * @param Resource manager.
+	 */
+	static void deserialize_component
+	(
+		ISystem& system, 
+		json::value_type& j_component, 
+		Scene& scene, 
+		ResourceManager& resource_manager
+	)
 	{
-		// Scene properties        
+		// Function used to load the component
+		std::function<void(ReflectionContext&)> load_func = [&j_component, &scene, &resource_manager](ReflectionContext& r)
+		{
+			// Get the components field
+			const auto& fields = r.get_fields();
+
+			// Loop over every field
+			for (const auto& field : fields)
+				// Loop over every JSON field
+				for (size_t i = 0; i < j_component["fields"].size(); ++i)
+					// If the two field names match...
+					if (j_component["fields"][i]["name"].get<std::string>() == field->name)
+						// Deserialize the field
+						deserialize_component_field(*field.get(), j_component["fields"][i], scene, resource_manager);
+		};
+
+		// Load the component
+		system.load_component
+		(
+			j_component["id"],
+			Entity(&scene, j_component["entity"]),
+			load_func
+		);
+	}
+
+	void deserialize_system
+	(
+		ISystem& system, 
+		json::value_type& j_system, 
+		Scene& scene, 
+		ResourceManager& resource_manager
+	)
+	{
+		// Loop over every component...
+		for (size_t i = 0; i < j_system["components"].size(); ++i)
+			// and load it
+			deserialize_component(system, j_system["components"][i], scene, resource_manager);
+	}
+
+	void scene_from_json(Scene& scene, json& j, ResourceManager& resource_manager)
+	{
+		// Update entity state
 		scene.update_entities(j["entity_id_counter"], j["free_entity_ids"]);
 
 		// Loop over every system
 		for (size_t i = 0; i < j["systems"].size(); ++i)
 		{
-			SystemBase* system = scene.get_system_by_name(j["systems"][i]["name"].get<std::string>());
+			// Get the system
+			ISystem* system = scene.get_system_by_name(j["systems"][i]["name"].get<std::string>());
 			dk_assert(system);
-			
-			// Loop over every component
-			for (size_t k = 0; k < j["systems"][i]["components"].size(); ++k)
-			{
-				std::function<void(ComponentArchive&)> load_func = [&j, i, k, &scene, &resource_manager](ComponentArchive& archive)
-				{
-					const auto& fields = archive.get_fields();
-					for (const auto& field : fields)
-						for (size_t l = 0; l < j["systems"][i]["components"][k]["fields"].size(); ++l)
-							if (j["systems"][i]["components"][k]["fields"][l]["name"].get<std::string>() == field->name)
-								deserialize_json_field(*field.get(), j["systems"][i]["components"][k]["fields"][l], scene, resource_manager);
-				};
-				system->load_component
-				(
-					j["systems"][i]["components"][k]["id"],
-					Entity(&scene, j["systems"][i]["components"][k]["entity"]),
-					load_func
-				);
-			}
+
+			// Load the system
+			deserialize_system(*system, j["systems"][i], scene, resource_manager);
 		}
 	}
 }

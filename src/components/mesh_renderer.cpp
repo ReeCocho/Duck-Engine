@@ -13,12 +13,6 @@
 
 namespace dk
 {
-#if DK_EDITOR
-	namespace active_system = editor;
-#else
-	namespace active_system = engine;
-#endif
-
 	void MeshRenderer::generate_resources()
 	{
 		if (m_material.allocator && m_mesh.allocator)
@@ -27,14 +21,14 @@ namespace dk
 			free_resources();
 
 			// Create buffers
-			m_vertex_uniform_buffer = active_system::graphics.create_buffer
+			m_vertex_uniform_buffer = engine::graphics.create_buffer
 			(
 				m_material->get_shader()->get_inst_vertex_buffer_size(),
 				vk::BufferUsageFlagBits::eUniformBuffer,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			);
 
-			m_fragment_uniform_buffer = active_system::graphics.create_buffer
+			m_fragment_uniform_buffer = engine::graphics.create_buffer
 			(
 				m_material->get_shader()->get_inst_fragment_buffer_size(),
 				vk::BufferUsageFlagBits::eUniformBuffer,
@@ -42,8 +36,8 @@ namespace dk
 			);
 
 			// Map buffers
-			m_vertex_map = active_system::graphics.get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
-			m_fragment_map = active_system::graphics.get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(FragmentShaderData));
+			m_vertex_map = engine::graphics.get_logical_device().mapMemory(m_vertex_uniform_buffer.memory, 0, sizeof(VertexShaderData));
+			m_fragment_map = engine::graphics.get_logical_device().mapMemory(m_fragment_uniform_buffer.memory, 0, sizeof(FragmentShaderData));
 
 			vk::DescriptorPoolSize pool_size = {};
 			pool_size.type = vk::DescriptorType::eUniformBuffer;
@@ -55,7 +49,7 @@ namespace dk
 			pool_info.pPoolSizes = &pool_size;
 			pool_info.maxSets = 1;
 
-			m_vk_descriptor_pool = active_system::graphics.get_logical_device().createDescriptorPool(pool_info);
+			m_vk_descriptor_pool = engine::graphics.get_logical_device().createDescriptorPool(pool_info);
 			dk_assert(m_vk_descriptor_pool);
 
 			// Allocate descriptor set
@@ -64,7 +58,7 @@ namespace dk
 			alloc_info.descriptorSetCount = 1;
 			alloc_info.pSetLayouts = &m_material->get_shader()->get_descriptor_set_layout();
 
-			m_vk_descriptor_set = active_system::graphics.get_logical_device().allocateDescriptorSets(alloc_info)[0];
+			m_vk_descriptor_set = engine::graphics.get_logical_device().allocateDescriptorSets(alloc_info)[0];
 			dk_assert(m_vk_descriptor_set);
 
 			// Update descriptor set
@@ -97,7 +91,7 @@ namespace dk
 				writes[i].pBufferInfo = &buffer_infos[i];
 			}
 
-			active_system::graphics.get_logical_device().updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+			engine::graphics.get_logical_device().updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 		}
 	}
 
@@ -105,31 +99,31 @@ namespace dk
 	{
 		if (m_vertex_map)
 		{
-			active_system::graphics.get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
+			engine::graphics.get_logical_device().unmapMemory(m_vertex_uniform_buffer.memory);
 			m_vertex_map = nullptr;
 		}
 
 		if (m_fragment_map)
 		{
-			active_system::graphics.get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
+			engine::graphics.get_logical_device().unmapMemory(m_fragment_uniform_buffer.memory);
 			m_fragment_map = nullptr;
 		}
 
 		if (m_vertex_uniform_buffer.buffer)
 		{
-			m_vertex_uniform_buffer.free(active_system::graphics.get_logical_device());
+			m_vertex_uniform_buffer.free(engine::graphics.get_logical_device());
 			m_vertex_uniform_buffer.buffer = vk::Buffer();
 		}
 
 		if (m_fragment_uniform_buffer.buffer)
 		{
-			m_fragment_uniform_buffer.free(active_system::graphics.get_logical_device());
+			m_fragment_uniform_buffer.free(engine::graphics.get_logical_device());
 			m_fragment_uniform_buffer.buffer = vk::Buffer();
 		}
 
 		if (m_vk_descriptor_pool)
 		{
-			active_system::graphics.get_logical_device().destroyDescriptorPool(m_vk_descriptor_pool);
+			engine::graphics.get_logical_device().destroyDescriptorPool(m_vk_descriptor_pool);
 			m_vk_descriptor_pool = vk::DescriptorPool();
 			m_vk_descriptor_set = vk::DescriptorSet();
 		}
@@ -137,10 +131,10 @@ namespace dk
 
 	void MeshRendererSystem::on_begin()
 	{
-		Handle<MeshRenderer> mesh_renderer = get_component();
+		Handle<MeshRenderer> mesh_renderer = get_active_component();
 		mesh_renderer->m_transform = mesh_renderer->get_entity().get_component<Transform>();
-		mesh_renderer->m_command_buffer = active_system::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
-		mesh_renderer->m_depth_prepass_command_buffer = active_system::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
+		mesh_renderer->m_command_buffer = engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
+		mesh_renderer->m_depth_prepass_command_buffer = engine::graphics.get_command_manager().allocate_command_buffer(vk::CommandBufferLevel::eSecondary);
 		mesh_renderer->generate_resources();
 	}
 
@@ -199,38 +193,38 @@ namespace dk
 				},
 				mesh_renderer->m_material->get_shader(),
 				mesh_renderer->m_mesh,
-				{ mesh_renderer->m_vk_descriptor_set, dk::active_system::renderer.get_descriptor_set() },
+				{ mesh_renderer->m_vk_descriptor_set, dk::engine::renderer.get_descriptor_set() },
 				mesh_renderer->m_transform->get_model_matrix()
 			};
 
 			if (mesh_renderer->m_material->get_shader()->get_texture_count() > 0)
 				renderable.descriptor_sets.push_back(mesh_renderer->m_material->get_texture_descriptor_set());
 
-			active_system::renderer.draw(renderable);
+			engine::renderer.draw(renderable);
 		}
 	}
 
 	void MeshRendererSystem::on_end()
 	{
-		Handle<MeshRenderer> mesh_renderer = get_component();
+		Handle<MeshRenderer> mesh_renderer = get_active_component();
 		mesh_renderer->m_command_buffer.free();
 		mesh_renderer->m_depth_prepass_command_buffer.free();
 		mesh_renderer->free_resources();
 	}
 
-	void MeshRendererSystem::serialize(ComponentArchive& archive)
+	void MeshRendererSystem::serialize(ReflectionContext& r)
 	{
-		Handle<MeshRenderer> mesh_renderer = get_component();
-		archive.set_name("Mesh Renderer");
-		archive.set_field("Mesh", mesh_renderer->m_mesh);
-		archive.set_field("Material", mesh_renderer->m_material);
+		Handle<MeshRenderer> mesh_renderer = get_active_component();
+		r.set_name("Mesh Renderer");
+		r.set_field("Mesh", mesh_renderer->m_mesh);
+		r.set_field("Material", mesh_renderer->m_material);
 	}
 
-	void MeshRendererSystem::inspect(ReflectionContext& context)
+	void MeshRendererSystem::inspect(ReflectionContext& r)
 	{
-		Handle<MeshRenderer> mesh_renderer = get_component();
-		context.set_name("Mesh Renderer");
-		context.set_field("Mesh", mesh_renderer->m_mesh);
-		context.set_field("Material", mesh_renderer->m_material);
+		Handle<MeshRenderer> mesh_renderer = get_active_component();
+		r.set_name("Mesh Renderer");
+		r.set_field("Mesh", mesh_renderer->m_mesh);
+		r.set_field("Material", mesh_renderer->m_material);
 	}
 }

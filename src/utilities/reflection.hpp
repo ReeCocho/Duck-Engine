@@ -160,7 +160,7 @@ namespace dk
 			dk::type_id resource_type;
 
 			/** Resource ID. */
-			ResourceID resource_id;
+			resource_id resource_id;
 
 			/** If the handle is a null handle. */
 			bool null_handle;

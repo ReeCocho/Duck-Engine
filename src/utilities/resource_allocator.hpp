@@ -13,7 +13,7 @@
 namespace dk
 {
 	/** ID of a resource in the resource allocator. */
-	using ResourceID = uint32_t;
+	using resource_id = uint32_t;
 
 	/**
 	 * Base class for resource allocators.
@@ -32,7 +32,7 @@ namespace dk
 		 * @param Resource ID.
 		 * @return If the resource is allocated.
 		 */
-		inline bool is_allocated(ResourceID id) const
+		inline bool is_allocated(resource_id id) const
 		{
 			dk_assert(id < m_allocation_table.size());
 			return m_allocation_table[id];
@@ -42,19 +42,19 @@ namespace dk
 		 * Allocate a resource.
 		 * @return The resource's ID.
 		 */
-		virtual ResourceID allocate() = 0;
+		virtual resource_id allocate() = 0;
 
 		/**
 		 * Allocate a specific resource.
 		 * @param Resource ID.
 		 */
-		virtual void allocate_by_id(ResourceID id) = 0;
+		virtual void allocate_by_id(resource_id id) = 0;
 
 		/**
 		 * Deallocate a resource.
 		 * @param The resource's ID.
 		 */
-		virtual void deallocate(ResourceID id) = 0;
+		virtual void deallocate(resource_id id) = 0;
 
 		/**
 		 * Change the number of resources that can be allocated.
@@ -136,9 +136,9 @@ namespace dk
 		 * Allocate a resource.
 		 * @return Resource ID.
 		 */
-		ResourceID allocate() override
+		resource_id allocate() override
 		{
-			for (ResourceID i = 0; i < m_allocation_table.size(); ++i)
+			for (resource_id i = 0; i < m_allocation_table.size(); ++i)
 				if (!m_allocation_table[i])
 				{
 					m_allocation_table[i] = true;
@@ -153,7 +153,7 @@ namespace dk
 		 * Allocate a specific resource.
 		 * @param Resource ID.
 		 */
-		void allocate_by_id(ResourceID id) override
+		void allocate_by_id(resource_id id) override
 		{
 			dk_assert(id < m_allocation_table.size());
 			dk_assert(!is_allocated(id));
@@ -164,7 +164,7 @@ namespace dk
 		 * Deallocate a resource.
 		 * @param Resource ID.
 		 */
-		void deallocate(ResourceID id) override
+		void deallocate(resource_id id) override
 		{
 			dk_assert(id < m_allocation_table.size() && is_allocated(id));
 			m_allocation_table[id] = false;
@@ -185,7 +185,7 @@ namespace dk
 		 * @param Handle.
 		 * @return Resource.
 		 */
-		T* get_resource_by_handle(ResourceID id)
+		T* get_resource_by_handle(resource_id id)
 		{
 			dk_assert(id < m_allocation_table.size() && is_allocated(id));
 			return &m_resources.at(id);
@@ -231,7 +231,7 @@ namespace dk
 		 * @param Resource ID.
 		 * @param Resource allocator
 		 */
-		Handle(ResourceID a_id, ResourceAllocator<T>* a_allocator) : id(a_id), allocator(a_allocator) {}
+		Handle(resource_id a_id, ResourceAllocator<T>* a_allocator) : id(a_id), allocator(a_allocator) {}
 
 		/**
 		 * Equivilence operator.
@@ -280,11 +280,11 @@ namespace dk
 		 */
 		inline bool is_valid() const
 		{
-			return allocator != nullptr && allocator->is_allocated(id);
+			return allocator != nullptr && id < allocator->max_allocated() && allocator->is_allocated(id);
 		}
 
 		/** Resource ID. */
-		ResourceID id;
+		resource_id id;
 
 		/** Resource allocator. */
 		ResourceAllocator<T>* allocator;

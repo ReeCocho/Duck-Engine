@@ -38,42 +38,42 @@ namespace dk
 
 	void ResourceManager::shutdown()
 	{
-		for(ResourceID i = 0; i < m_mesh_allocator->max_allocated(); ++i)
+		for(resource_id i = 0; i < m_mesh_allocator->max_allocated(); ++i)
 			if (m_mesh_allocator->is_allocated(i))
 			{
 				m_mesh_allocator->get_resource_by_handle(i)->free();
 				m_mesh_allocator->deallocate(i);
 			}
 
-		for (ResourceID i = 0; i < m_shader_allocator->max_allocated(); ++i)
+		for (resource_id i = 0; i < m_shader_allocator->max_allocated(); ++i)
 			if (m_shader_allocator->is_allocated(i))
 			{
 				m_shader_allocator->get_resource_by_handle(i)->free();
 				m_shader_allocator->deallocate(i);
 			}
 
-		for (ResourceID i = 0; i < m_material_allocator->max_allocated(); ++i)
+		for (resource_id i = 0; i < m_material_allocator->max_allocated(); ++i)
 			if (m_material_allocator->is_allocated(i))
 			{
 				m_material_allocator->get_resource_by_handle(i)->free();
 				m_material_allocator->deallocate(i);
 			}
 
-		for(ResourceID i = 0; i < m_texture_allocator->max_allocated(); ++i)
+		for(resource_id i = 0; i < m_texture_allocator->max_allocated(); ++i)
 			if (m_texture_allocator->is_allocated(i))
 			{
 				m_texture_allocator->get_resource_by_handle(i)->free();
 				m_texture_allocator->deallocate(i);
 			}
 
-		for (ResourceID i = 0; i < m_sky_box_allocator->max_allocated(); ++i)
+		for (resource_id i = 0; i < m_sky_box_allocator->max_allocated(); ++i)
 			if (m_sky_box_allocator->is_allocated(i))
 			{
 				m_sky_box_allocator->get_resource_by_handle(i)->free();
 				m_sky_box_allocator->deallocate(i);
 			}
 
-		for (ResourceID i = 0; i < m_cube_map_allocator->max_allocated(); ++i)
+		for (resource_id i = 0; i < m_cube_map_allocator->max_allocated(); ++i)
 			if (m_cube_map_allocator->is_allocated(i))
 			{
 				m_cube_map_allocator->get_resource_by_handle(i)->free();

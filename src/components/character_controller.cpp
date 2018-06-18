@@ -51,7 +51,7 @@ namespace dk
 
     void CharacterControllerSystem::on_begin()
     {
-        Handle<CharacterController> controller = get_component();
+        Handle<CharacterController> controller = get_active_component();
 
         // Get transform component
 		controller->m_transform = controller->get_entity().get_component<Transform>();
@@ -224,7 +224,7 @@ namespace dk
 
     void CharacterControllerSystem::on_end()
     {
-        Handle<CharacterController> controller = get_component();
+        Handle<CharacterController> controller = get_active_component();
 #if !DK_EDITOR
 		dk::engine::physics.unregister_rigid_body(controller->m_rigid_body.get());
 		dk::engine::physics.unregister_collision_object(controller->m_ghost.get());
@@ -233,15 +233,15 @@ namespace dk
 		controller->m_rigid_body.reset();
     }
 
-	void CharacterControllerSystem::serialize(ComponentArchive& archive)
+	void CharacterControllerSystem::serialize(ReflectionContext& r)
 	{
-		Handle<CharacterController> controller = get_component();
-		archive.set_name("Character Controller");
+		Handle<CharacterController> controller = get_active_component();
+		r.set_name("Character Controller");
 	}
 
-	void CharacterControllerSystem::inspect(ReflectionContext& context)
+	void CharacterControllerSystem::inspect(ReflectionContext& r)
 	{
-		Handle<CharacterController> controller = get_component();
-		context.set_name("Character Controller");
+		Handle<CharacterController> controller = get_active_component();
+		r.set_name("Character Controller");
 	}
 }

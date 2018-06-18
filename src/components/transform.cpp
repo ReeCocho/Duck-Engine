@@ -224,24 +224,24 @@ namespace dk
 
 
 
-	void TransformSystem::on_new_entity(Entity entity)
+	void TransformSystem::on_new_entity(const Entity& entity)
 	{
 		entity.add_component<Transform>();
 	}
 
 	void TransformSystem::on_begin()
 	{
-		get_component()->m_local_euler_angles = glm::degrees(glm::eulerAngles(get_component()->m_local_rotation));
-		get_component()->local_to_global_position();
-		get_component()->local_to_global_rotation();
-		get_component()->local_to_global_euler_angles();
-		get_component()->generate_model_matrix();
-		get_component()->update_children();
+		get_active_component()->m_local_euler_angles = glm::degrees(glm::eulerAngles(get_active_component()->m_local_rotation));
+		get_active_component()->local_to_global_position();
+		get_active_component()->local_to_global_rotation();
+		get_active_component()->local_to_global_euler_angles();
+		get_active_component()->generate_model_matrix();
+		get_active_component()->update_children();
 	}
 
 	void TransformSystem::on_end()
 	{
-		auto transform = get_component();
+		auto transform = get_active_component();
 
 		while(transform->child_count() > 0)
 			transform->get_child(0)->set_parent(Handle<Transform>(0, nullptr));
@@ -249,23 +249,41 @@ namespace dk
 		transform->set_parent(Handle<Transform>(0, nullptr));
 	}
 
-	void TransformSystem::serialize(ComponentArchive& archive)
+	void TransformSystem::serialize(ReflectionContext& r)
 	{
-		Handle<Transform> transform = get_component();
-		archive.set_name("Transform");
-		archive.set_field("Position", transform->m_local_position);
-		archive.set_field("Rotation", transform->m_local_rotation);
-		archive.set_field("Scale", transform->m_local_scale);
-		archive.set_field("Parent", transform->m_parent);
-		archive.set_field("Children", transform->m_children);
+		Handle<Transform> transform = get_active_component();
+		r.set_name("Transform");
+		r.set_field("Position", transform->m_local_position);
+		r.set_field("Rotation", transform->m_local_rotation);
+		r.set_field("Scale", transform->m_local_scale);
+		r.set_field("Parent", transform->m_parent);
+		r.set_field("Children", transform->m_children);
 	}
 
-	void TransformSystem::inspect(ReflectionContext& context)
+	void TransformSystem::inspect(ReflectionContext& r)
 	{
-		Handle<Transform> transform = get_component();
-		context.set_name("Transform");
-		context.set_field("Position", transform->m_local_position, [transform] { transform->generate_model_matrix(); });
-		context.set_field("Rotation", transform->m_local_euler_angles, [transform] { transform->set_local_euler_angles(transform->get_local_euler_angles()); });
-		context.set_field("Scale", transform->m_local_scale, [transform] { transform->generate_model_matrix(); });
+		Handle<Transform> transform = get_active_component();
+		r.set_name("Transform");
+		r.set_field("Position", transform->m_local_position, [transform] 
+		{ 
+			transform->local_to_global_position();
+			transform->generate_model_matrix(); 
+			transform->update_children();
+		});
+
+		r.set_field("Rotation", transform->m_local_euler_angles, [transform] 
+		{ 
+			transform->m_local_rotation = glm::quat(glm::radians(transform->m_local_euler_angles));
+			transform->local_to_global_euler_angles();
+			transform->local_to_global_rotation();
+			transform->generate_model_matrix();
+			transform->update_children();
+		});
+
+		r.set_field("Scale", transform->m_local_scale, [transform] 
+		{ 
+			transform->generate_model_matrix();
+			transform->update_children();
+		});
 	}
 }

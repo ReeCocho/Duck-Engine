@@ -2,7 +2,7 @@
 
 /**
  * @file entity.hpp
- * @brief ECS entity.
+ * @brief A handle associated with a set of components.
  * @author Connor J. Bramham (ReeCocho)
  */
 
@@ -11,14 +11,14 @@
 
 namespace dk
 {
+	/** Forward declare the scene. */
 	class Scene;
 
-	using EntityID = uint32_t;
-
-
+	/** Unique entity ID. */
+	using entity_id = uint32_t;
 
 	/**
-	 * ECS entity.
+	 * A handle associated with a set of components.
 	 */
 	class Entity
 	{
@@ -26,22 +26,16 @@ namespace dk
 
 		/**
 		 * Default constructor.
+		 * @note Results in an invalid entity.
 		 */
-		Entity() : m_scene(nullptr), m_id(0) {}
+		Entity();
 
 		/**
 		 * Constructor.
-		 * @param Scene.
-		 * @param Entity ID.
+		 * @param Scene the entity exists in.
+		 * @param Entities ID.
 		 */
-		Entity(Scene* scene, EntityID id);
-
-		/**
-		 * Constructor.
-		 * @param Scene.
-		 * @note Will create a new entity.
-		 */
-		Entity(Scene* scene);
+		Entity(Scene* scene, entity_id id);
 
 		/**
 		 * Destructor.
@@ -49,77 +43,74 @@ namespace dk
 		~Entity() = default;
 
 		/**
-		 * Equivilence operator.
+		 * Check if two entities are equal.
 		 * @param Other entity.
-		 * @return If the two handles are equal.
+		 * @return If the two entities are equal.
 		 */
-		inline bool operator==(const Entity& other) const
-		{
-			return m_id == other.m_id && m_scene == other.m_scene;
-		}
+		inline bool operator==(const Entity& other) const;
 
 		/**
-		 * Unequivilence operator.
+		 * Check if two entities are not equal.
 		 * @param Other entity.
-		 * @return If the two handles are not equal.
+		 * @return If the two entities are not equal.
 		 */
-		inline bool operator!=(const Entity& other) const
-		{
-			return m_id != other.m_id || m_scene != other.m_scene;
-		}
+		inline bool operator!=(const Entity& other) const;
 
 		/**
-		 * Get the scene the entity is in.
+		 * Get the scene the entity exists in.
 		 * @return Scene.
 		 */
-		inline Scene& get_scene() const
-		{
-			return *m_scene;
-		}
+		inline Scene& get_scene() const;
 
 		/**
-		 * Get the entities ID.
-		 * @param Entites ID.
+		 * Get the ID of the entity.
+		 * @return Entity ID.
 		 */
-		inline EntityID get_id() const
-		{
-			return m_id;
-		}
+		inline entity_id get_id() const;
 
 		/**
-		 * Add a component.
-		 * @tparam Type of component.
-		 * @param Entity the component will belong to.
-		 * @return Component handle.
-		 * @note Will not create a new component if one already exists for the given entity.
+		 * Determine if this entity is a valid entity handle.
+		 * @return If this entity handle is valid.
 		 */
-		template<class T>
-		Handle<T> add_component();
+		inline bool is_valid() const;
 
 		/**
-		 * Get a component from an entity.
-		 * @tparam Type of component.
-		 * @param Entity the component belongs to.
-		 * @return Component handle.
-		 * @note Will return a Handle<T>() if the entity does not contain the component.
+		 * Get a component that belongs to this entity.
+		 * @tparam Type of component to retrieve.
+		 * @return Component which belongs to this entity.
+		 * @note Type C must be derived from Component<C>.
+		 * @note If the component could not be found a null handle will be returned.
 		 */
-		template<class T>
-		Handle<T> get_component();
+		template<class C>
+		inline Handle<C> get_component() const;
 
 		/**
-		 * Remove a component from an entity.
-		 * @tparam Type of component.
-		 * @param entity the component belongs to.
+		 * Add a component to the entity.
+		 * @tparam Type of component to add.
+		 * @return Component that was added.
+		 * @note Type C must be derived from Component<C>.
+		 * @note If the entity already has a component of that type, the already existing component will be returned.
 		 */
-		template<class T>
-		void remove_component();
+		template<class C>
+		inline Handle<C> add_component() const;
+
+		/**
+		 * Remove a component from the entity.
+		 * @tparam Type of component to remove.
+		 * @note Type C must be derived from Component<C>.
+		 * @note If the entity does not have the component nothing will happen.
+		 */
+		template<class C>
+		inline void remove_component() const;
 
 	private:
 
+		/** Entities ID. */
+		entity_id m_id;
+
 		/** Scene the entity exists in. */
 		Scene* m_scene;
-
-		/** Entities ID. */
-		EntityID m_id;
 	};
 }
+
+#include "entity.imp.hpp"

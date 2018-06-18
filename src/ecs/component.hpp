@@ -2,90 +2,84 @@
 
 /**
  * @file component.hpp
- * @brief ECS component.
+ * @brief A container of data which is associated with an entity and is acted upon by a system.
  * @author Connor J. Bramham (ReeCocho)
  */
-
 /** Includes. */
-#include <utilities\reflection.hpp>
 #include "entity.hpp"
 
-/** 
- * Defines constructors for a component. 
- * @param Component type.
- */
+/**
+* Defines a contructor and destructor for convenience.
+* @param Component type.
+*/
 #define DK_COMPONENT_BODY(T) \
-T() : dk::Component<T>(dk::Handle<T>(0, nullptr), dk::Entity()) {} \
-T(dk::Handle<T> handle, dk::Entity entity) : dk::Component<T>(handle, entity) {}
+T() : dk::Component<T>(nullptr, dk::Entity()) {} \
+T(dk::System<T>* system, const dk::Entity& e) : dk::Component<T>(system, e) {}
 
 namespace dk
 {
-	/**
-	 * ECS component.
-	 * @tparam Type of the component.
-	 */
+	/** Forward declare System<T>. */
+	template<class T>
+	class System;
+
+	 /**
+	  * Container of data which is associated with an entity and is acted upon by a system.
+	  * @tparam Derived type of the component.
+	  */
 	template<class T>
 	class Component
 	{
 	public:
 
 		/**
-		 * Constructor.
-		 * @param Components handle.
-		 * @param Entity the component belongs to.
+		 * Default constructor.
 		 */
-		Component(Handle<T> handle, Entity entity) : 
-			m_handle(handle), 
-			m_entity(entity)
-		{}
+		Component();
+
+		/**
+		 * Constructor.
+		 * @param System the component belongs to.
+		 * @param Entity the component is associated with.
+		 */
+		Component(System<T>* system, const Entity& entity);
 
 		/**
 		 * Destructor.
 		 */
-		virtual ~Component() {}
-		
-		/**
-		 * Get the scene the component exists in.
-		 * @return Scene.
-		 */
-		inline Scene& get_scene() const
-		{
-			return m_entity.get_scene();
-		}
-
-		/**
-		 * Get the ID of the component.
-		 * @return ID.
-		 */
-		constexpr type_id get_id() const
-		{
-			return TypeID<T>::id();
-		}
+		virtual ~Component() = default;
 
 		/**
 		 * Get the entity the component belongs to.
 		 * @return Entity.
 		 */
-		inline Entity get_entity() const
-		{
-			return m_entity;
-		}
+		inline Entity get_entity() const;
 
 		/**
-		 * Get this components handle.
-		 * @return Components handle.
+		 * Get the system the component resides in.
+		 * @return System.
 		 */
-		inline Handle<T> get_handle() const
-		{
-			return m_handle;
-		}
+		inline System<T>& get_system() const;
+
+		/**
+		 * Get the scene the component's entity is in.
+		 * @return Scene.
+		 */
+		inline Scene& get_scene() const;
+
+		/**
+		 * Get the components handle.
+		 * @return The components handle.
+		 */
+		inline Handle<T> get_handle() const;
 
 	private:
 
-		/** Entity the component belongs to. */
+		/** Entity the component is associated with. */
 		Entity m_entity;
 
-		/** Components handle */
-		Handle<T> m_handle;
+		/** System the component belongs to. */
+		System<T>* m_system;
 	};
 }
+
+#include "component.imp.hpp"

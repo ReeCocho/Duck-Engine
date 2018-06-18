@@ -18,17 +18,17 @@ namespace dk
 {
 	/**
 	 * Serialize a scene in a JSON format.
-	 * @param Serialzable scene.
+	 * @param Serializable scene.
 	 * @param Resource manager for resource handles.
 	 * @return JSON data.
 	 */
-	extern json serializable_scene_to_json(SerializableScene& scene, ResourceManager& resource_manager);
+	extern json scene_to_json(SerializableScene& scene, ResourceManager& resource_manager);
 
 	/**
-	 * Serialize a scene from JSON.
+	 * Deserialize a scene from JSON.
+	 * @param Scene to write.
 	 * @param JSON data.
-	 * @param Scene to load to.
 	 * @param Resource manager for resource handles.
 	 */
-	extern void serializable_scene_from_json(json& j, Scene& scene, ResourceManager& resource_manager);
+	extern void scene_from_json(Scene& scene, json& j, ResourceManager& resource_manager);
 }

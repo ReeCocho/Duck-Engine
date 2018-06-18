@@ -42,15 +42,15 @@ namespace dk
 	void LightingManager::upload()
 	{
 		// Upload lighting data
-		memcpy(m_lighting_map, &m_lighting_data, sizeof(m_lighting_data));
+		std::memcpy(m_lighting_map, &m_lighting_data, sizeof(m_lighting_data));
 
 		// Upload point light data
-		memcpy(m_point_light_map, &m_point_light_count, sizeof(uint32_t));
-		memcpy((void*)((int*)m_point_light_map + sizeof(uint32_t)), m_point_lights.data(), sizeof(PointLightData) * m_point_lights.size());
+		std::memcpy(m_point_light_map, &m_point_light_count, sizeof(uint32_t));
+		std::memcpy((void*)((int*)m_point_light_map + sizeof(uint32_t)), m_point_lights.data(), sizeof(PointLightData) * m_point_lights.size());
 
 		// Upload directional light data
-		memcpy(m_directional_light_map, &m_directional_light_count, sizeof(uint32_t));
-		memcpy((void*)((int*)m_directional_light_map + sizeof(uint32_t)), m_directional_lights.data(), sizeof(DirectionalLightData) * m_directional_lights.size());
+		std::memcpy(m_directional_light_map, &m_directional_light_count, sizeof(uint32_t));
+		std::memcpy((void*)((int*)m_directional_light_map + sizeof(uint32_t)), m_directional_lights.data(), sizeof(DirectionalLightData) * m_directional_lights.size());
 	}
 
 	void LightingManager::flush_queues()

@@ -122,7 +122,7 @@ namespace dk
 	{
 	public:
 
-		DK_SYSTEM_BODY(MeshRendererSystem, MeshRenderer, true, 32)
+		DK_SYSTEM_BODY(MeshRendererSystem, MeshRenderer, true)
 
 		/**
 		 * @brief Called when a component is added to the system.
@@ -144,12 +144,12 @@ namespace dk
 		 * Serialize the active component.
 		 * @param Component archiver.
 		 */
-		void serialize(ComponentArchive& archive) override;
+		void serialize(ReflectionContext& r) override;
 
 		/**
 		 * Inspect the active component.
 		 * @param Reflection context.
 		 */
-		void inspect(ReflectionContext& context) override;
+		void inspect(ReflectionContext& r) override;
 	};
 }

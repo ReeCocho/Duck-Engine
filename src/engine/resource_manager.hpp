@@ -121,7 +121,7 @@ namespace dk
 		 */
 		HMesh get_mesh(const std::string& name)
 		{
-			ResourceID id = 0;
+			resource_id id = 0;
 			try { id = m_mesh_map.at(name); }
 			catch (std::out_of_range e) { return HMesh(0, nullptr); }
 			return HMesh(id, m_mesh_allocator.get());
@@ -134,7 +134,7 @@ namespace dk
 		 */
 		HMaterialShader get_shader(const std::string& name)
 		{
-			ResourceID id = 0;
+			resource_id id = 0;
 			try { id = m_shader_map.at(name); }
 			catch (std::out_of_range e) { return HMaterialShader(0, nullptr); }
 			return HMaterialShader(id, m_shader_allocator.get());
@@ -147,7 +147,7 @@ namespace dk
 		 */
 		HMaterial get_material(const std::string& name)
 		{
-			ResourceID id = 0;
+			resource_id id = 0;
 			try { id = m_material_map.at(name); }
 			catch (std::out_of_range e) { return HMaterial(0, nullptr); }
 			return HMaterial(id, m_material_allocator.get());
@@ -160,7 +160,7 @@ namespace dk
 		 */
 		HTexture get_texture(const std::string& name)
 		{
-			ResourceID id = 0;
+			resource_id id = 0;
 			try { id = m_texture_map.at(name); }
 			catch (std::out_of_range e) { return HTexture(0, nullptr); }
 			return HTexture(id, m_texture_allocator.get());
@@ -173,7 +173,7 @@ namespace dk
 		 */
 		HSkyBox get_sky_box(const std::string& name)
 		{
-			ResourceID id = 0;
+			resource_id id = 0;
 			try { id = m_sky_box_map.at(name); }
 			catch (std::out_of_range e) { return HSkyBox(0, nullptr); }
 			return HSkyBox(id, m_sky_box_allocator.get());
@@ -186,7 +186,7 @@ namespace dk
 		 */
 		HCubeMap get_cube_map(const std::string& name)
 		{
-			ResourceID id = 0;
+			resource_id id = 0;
 			try { id = m_cube_map_map.at(name); }
 			catch (std::out_of_range e) { return HCubeMap(0, nullptr); }
 			return HCubeMap(id, m_cube_map_allocator.get());
@@ -420,36 +420,36 @@ namespace dk
 		std::unique_ptr<ResourceAllocator<Mesh>> m_mesh_allocator;
 
 		/** Mesh map. */
-		std::unordered_map<std::string, ResourceID> m_mesh_map;
+		std::unordered_map<std::string, resource_id> m_mesh_map;
 
 		/** Shader allocator. */
 		std::unique_ptr<ResourceAllocator<MaterialShader>> m_shader_allocator;
 
 		/** Shader map. */
-		std::unordered_map<std::string, ResourceID> m_shader_map;
+		std::unordered_map<std::string, resource_id> m_shader_map;
 
 		/** Material allocator. */
 		std::unique_ptr<ResourceAllocator<Material>> m_material_allocator;
 
 		/** Material map. */
-		std::unordered_map<std::string, ResourceID> m_material_map;
+		std::unordered_map<std::string, resource_id> m_material_map;
 
 		/** Texture allocator. */
 		std::unique_ptr<ResourceAllocator<Texture>> m_texture_allocator;
 
 		/** Texture map. */
-		std::unordered_map<std::string, ResourceID> m_texture_map;
+		std::unordered_map<std::string, resource_id> m_texture_map;
 
 		/** Sky box allocator. */
 		std::unique_ptr<ResourceAllocator<SkyBox>> m_sky_box_allocator;
 
 		/** Sky box map. */
-		std::unordered_map<std::string, ResourceID> m_sky_box_map;
+		std::unordered_map<std::string, resource_id> m_sky_box_map;
 
 		/** Cube map allocator. */
 		std::unique_ptr<ResourceAllocator<CubeMap>> m_cube_map_allocator;
 
 		/** Cube map map. */
-		std::unordered_map<std::string, ResourceID> m_cube_map_map;
+		std::unordered_map<std::string, resource_id> m_cube_map_map;
 	};
 }

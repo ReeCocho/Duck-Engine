@@ -1,55 +1,34 @@
 /**
  * @file system.cpp
- * @brief ECS system source.
+ * @brief System source file.
  * @author Connor J. Bramham (ReeCocho)
  */
 
 /** Includes. */
-#include "system.hpp"
+#include <utilities\debugging.hpp>
+#include "scene.hpp"
 
 namespace dk
 {
-	SystemBase::SystemBase(Scene* scene, type_id id, const std::string& name, bool rie) :
-		m_scene(scene), 
-		m_component_id(id),
+	ISystem::ISystem(Scene* scene, const std::string& name, type_id component_type, bool runs_in_editor) :
+		m_scene(scene),
 		m_name(name),
-		m_run_in_editor(rie)
-	{
+		m_component_type(component_type),
+		m_runs_in_editor(runs_in_editor),
+		m_active_component(0)
+	{ dk_assert(m_scene); }
 
-	}
+	ISystem::~ISystem() {}
 
-	SystemBase::~SystemBase()
-	{
+	void ISystem::on_new_entity(const Entity& e) {}
 
-	}
+	void ISystem::on_begin() {}
 
-	void SystemBase::on_new_entity(Entity entity)
-	{
+	void ISystem::on_tick(float dt) {}
 
-	}
+	void ISystem::on_late_tick(float dt) {}
 
-	void SystemBase::on_begin()
-	{
+	void ISystem::on_pre_render(float dt) {}
 
-	}
-
-	void SystemBase::on_tick(float delta_time)
-	{
-
-	}
-
-	void SystemBase::on_late_tick(float delta_time)
-	{
-
-	}
-
-	void SystemBase::on_pre_render(float delta_time)
-	{
-
-	}
-
-	void SystemBase::on_end()
-	{
-		
-	}
+	void ISystem::on_end() {}
 }

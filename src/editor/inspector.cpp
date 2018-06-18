@@ -22,14 +22,27 @@ namespace dk
 		m_component_inspectors.clear();
 		m_inspected_entity = entity;
 
+		// Only continue if the entity is valid
+		if (!entity.is_valid())
+			return;
+
 		// Find component fields
 		for (size_t i = 0; i < m_scene->get_system_count(); ++i)
 		{
-			auto archive = std::make_unique<ReflectionContext>();
+			// System for convenience
+			ISystem& system = m_scene->get_system_by_index(i);
 
-			// Try to inspect component
-			if (m_scene->get_system_by_index(i)->inspect_by_entity(*archive, m_inspected_entity))
-				m_component_inspectors.push_back(std::make_tuple(m_scene->get_system_by_index(i)->get_id(), std::move(archive)));
+			// Check if the entity has the component
+			if (system.has_component(entity))
+			{
+				// Inspect the component
+				auto r = std::make_unique<ReflectionContext>();
+				system.set_active_component(system.get_component_id_by_entity(m_inspected_entity));
+				system.inspect(*r);
+
+				// Add the reflection context to the list
+				m_component_inspectors.push_back(std::make_tuple(system.get_component_type(), std::move(r)));
+			}
 		}
 	}
 
@@ -63,7 +76,11 @@ namespace dk
 						// Make it so you can't destroy transforms since they are required
 						if (comp_id != TypeID<Transform>::id())
 						{
-							m_scene->get_system_by_base(comp_id)->remove_component_anon(m_inspected_entity);
+							m_scene->get_system_by_id(comp_id)->remove_component(m_inspected_entity);
+							inspect_entity(m_inspected_entity);
+							ImGui::EndPopup();
+							ImGui::PopID();
+							break;
 						}
 					}
 					ImGui::EndPopup();
@@ -87,14 +104,14 @@ namespace dk
 				{
 					for (size_t i = 0; i < m_scene->get_system_count(); ++i)
 					{
-						SystemBase* system = m_scene->get_system_by_index(i);
-						const std::string label = "Add " + system->get_name() + " component";
+						ISystem& system = m_scene->get_system_by_index(i);
+						const std::string label = "Add " + system.get_name() + " component";
 						ImGui::PushItemWidth(-1.0f);
 						
 						// Add the component
 						if (ImGui::Button(label.data(), ImVec2(-1, 0)))
 						{
-							system->add_component_anon(m_inspected_entity);
+							system.add_component(m_inspected_entity);
 
 							// Reinspect the entity to update the inspector view
 							inspect_entity(m_inspected_entity);
