@@ -104,6 +104,12 @@ namespace dk
 		Entity create_entity();
 
 		/**
+		 * Check if an entity exists.
+		 * @return If an entity exists.
+		 */
+		inline bool entity_exists(const Entity& entity) const;
+
+		/**
 		 * Destroy an entity.
 		 * @param Entity to destroy.
 		 */

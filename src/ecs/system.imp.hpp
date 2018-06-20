@@ -153,11 +153,13 @@ namespace dk
 	template<class C>
 	bool System<C>::has_component(const Entity& e)
 	{
-		// Loop over every component...
+		// Loop over every component
 		for (resource_id id = 0; id < m_allocator.max_allocated(); id++)
-			// and if the component's entity is e, e has the component
-			if (m_allocator.get_resource_by_handle(id)->get_entity() == e)
-				return true;
+			// If the component is allocated...
+			if(m_allocator.is_allocated(id))
+				// and if the component's entity is e, e has the component
+				if (m_allocator.get_resource_by_handle(id)->get_entity() == e)
+					return true;
 
 		// Could not find a component with entity e
 		return false;
@@ -224,9 +226,11 @@ namespace dk
 
 		// Loop over every component
 		for (resource_id id = 0; id < m_allocator.max_allocated(); ++id)
-			// If the components entity equals the entity we are looking for, we found our component
-			if (e == m_allocator.get_resource_by_handle(id)->get_entity())
-				return id;
+			// If the component is allocated...
+			if(m_allocator.is_allocated(id))
+				// and the components entity equals the entity we are looking for, we found our component
+				if (e == m_allocator.get_resource_by_handle(id)->get_entity())
+					return id;
 
 		// Could not find a component
 		throw std::runtime_error("Could not find a component with entity e.");

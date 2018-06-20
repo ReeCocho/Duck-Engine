@@ -46,13 +46,23 @@ namespace dk
 		 */
 		void inspect_entity(Entity entity);
 
+		/**
+		 * Get the inspected entity.
+		 * @return The inspected entity.
+		 */
+		inline Entity get_inspected_entity() const
+		{
+			return m_inspected_entity;
+		}
+
 	private:
 
 		/**
 		 * Draw a field.
 		 * @param Field.
+		 * @return If the field was changed.
 		 */
-		void draw_field(ReflectionContext::Field* field);
+		bool draw_field(ReflectionContext::Field* field);
 
 		/** Graphics context. */
 		Graphics* m_graphics;

@@ -41,7 +41,7 @@ namespace dk
          */
         ShapeType get_shape_type() const
         {
-            return m_shape_type;
+            return m_data.shape_type;
         }
 
         /**
@@ -74,8 +74,7 @@ namespace dk
 		 */
 		float get_mass() const
 		{
-			float m = m_rigid_body->getInvMass();
-			return m == 0 ? 0 : 1.0f / m;
+			return m_data.mass;
 		}
 
 		/**
@@ -104,7 +103,7 @@ namespace dk
 		 */
 		float get_friction() const
 		{
-			return m_rigid_body->getFriction();
+			return m_data.friction;
 		}
 
 		/**
@@ -113,7 +112,7 @@ namespace dk
 		 */
 		float get_rolling_friction() const
 		{
-			return m_rigid_body->getRollingFriction();
+			return m_data.rolling_friction;
 		}
 
 		/**
@@ -122,7 +121,7 @@ namespace dk
 		 */
 		float get_spinning_friction() const
 		{
-			return m_rigid_body->getSpinningFriction();
+			return m_data.spinning_friction;
 		}
 
 		/**
@@ -131,7 +130,7 @@ namespace dk
 		 */
 		float get_restitution() const
 		{
-			return m_rigid_body->getRestitution();
+			return m_data.restitution;
 		}
 
         /**
@@ -247,11 +246,55 @@ namespace dk
          */
         void calculate_inertia();
 
+		/**
+		 * Shape data to serialize.
+		 */
+		struct
+		{
+			/** Shape type. */
+			ShapeType shape_type = ShapeType::None;
+
+			/** Mass. */
+			float mass = 1.0f;
+
+			/** Is the object static. */
+			bool is_static = false;
+
+			/** Friction. */
+			float friction = 0.25f;
+
+			/** Rolling friction. */
+			float rolling_friction = 0.25f;
+
+			/** Spinning friction. */
+			float spinning_friction = 0.25f;
+
+			/** Restitution. */
+			float restitution = 0.25f;
+
+			/**
+			 * Shape union.
+			 */
+			union
+			{
+				struct
+				{
+					float radius;
+				} sphere;
+
+				glm::vec3 box = {};
+
+				struct
+				{
+					float radius;
+					float height;
+				} capsule;
+			} shape = {};
+
+		} m_data;
+
 		/** Entities transform. */
 		Handle<Transform> m_transform = {};
-
-		/** Shape type. */
-		ShapeType m_shape_type = ShapeType::None;
 
 		/** Collision shape. */
 		std::unique_ptr<btCollisionShape> m_shape;

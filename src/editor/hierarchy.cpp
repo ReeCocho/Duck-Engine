@@ -52,15 +52,20 @@ namespace dk
 
 		// Create new tree element (Use transform ID since it's unique)
 		std::string label = "Entity " + std::to_string(transform.id);
-		bool node_open = ImGui::TreeNodeEx((const void*)(intptr_t)transform.id, flags, label.data());
+		bool node_open = ImGui::TreeNodeEx((const void*)(uintptr_t)transform.id, flags, label.data());
 		
 		// Context menu
-		ImGui::PushID((const void*)(intptr_t)transform.id);
-		if (ImGui::BeginPopupContextWindow("Entity Context Menu"))
+		ImGui::PushID((const void*)(uintptr_t)transform.id);
+		if (ImGui::BeginPopupContextItem("Entity Context Menu"))
 		{
 			// Destroy the entity
 			if (ImGui::MenuItem("Destroy entity"))
 			{
+				// Reset the inspected entity if we just destroyed it
+				if (transform->get_entity() == m_inspector->get_inspected_entity())
+					m_inspector->inspect_entity(Entity());
+
+				// Destroy the entity
 				m_scene->destroy_entity(transform->get_entity());
 
 				ImGui::EndPopup();

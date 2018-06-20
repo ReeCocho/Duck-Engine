@@ -43,6 +43,14 @@ namespace dk
 		return serial_scene;
 	}
 
+	inline bool Scene::entity_exists(const Entity& entity) const
+	{
+		return	&entity.get_scene() == this &&																				// Scene is the same
+				entity.get_id() > 0 &&																						// ID is greater than min
+				entity.get_id() <= m_entity_id_counter &&																	// ID is less than max
+				std::find(m_free_entity_ids.begin(), m_free_entity_ids.end(), entity.get_id()) == m_free_entity_ids.end();	// Not deleted
+	}
+
 	inline void Scene::update_entities(entity_id counter, const std::vector<entity_id>& free_ids)
 	{
 		dk_assert(m_entity_id_counter == 0 && m_free_entity_ids.size() == 0);

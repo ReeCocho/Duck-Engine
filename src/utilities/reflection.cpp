@@ -9,7 +9,10 @@
 
 namespace dk
 {
-	ReflectionContext::ReflectionContext() : m_name(""), m_fields({})
+	ReflectionContext::ReflectionContext() : 
+		m_name(""), 
+		m_fields({}),
+		m_state(State::Name)
 	{
 
 	}

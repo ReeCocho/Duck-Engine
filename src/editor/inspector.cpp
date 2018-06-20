@@ -55,6 +55,9 @@ namespace dk
 		// Begin window
 		if (m_inspected_entity != Entity(nullptr, 0))
 		{
+			// Should we reinpspect the entity?
+			bool reinspect = false;
+
 			// Loop over every system archive
 			for (const auto& archive : m_component_inspectors)
 			{
@@ -93,8 +96,11 @@ namespace dk
 
 					// Loop over every field
 					for (const auto& field : fields)
-						draw_field(field.get());
+						if (draw_field(field.get()))
+							reinspect = true;
 				}
+
+				if (reinspect) inspect_entity(m_inspected_entity);
 			}
 
 			// Add component menu
@@ -122,7 +128,7 @@ namespace dk
 		}
 	}
 
-	void Inspector::draw_field(ReflectionContext::Field* field)
+	bool Inspector::draw_field(ReflectionContext::Field* field)
 	{
 		bool run_callback = false;
 
@@ -154,7 +160,39 @@ namespace dk
 		else if (field->type_id == TypeID<std::string>::id())
 		{
 		}
+		// Enumeration
+		else if (field->type == ReflectionContext::FieldType::Enum)
+		{
+			auto* enum_field = static_cast<ReflectionContext::EnumField*>(field);
+
+			// Convert enum names into a const char* list,
+			// create a mapping for the values, and find the
+			// current values
+			int current_value = -1;
+			std::vector<const char*> enum_names(enum_field->enum_values.size());
+			std::vector<int> enum_values(enum_field->enum_values.size());
+			for (int i = 0; i < enum_values.size(); ++i)
+			{
+				enum_values[i] = std::get<0>(enum_field->enum_values[i]);
+				enum_names[i] = std::get<1>(enum_field->enum_values[i]).data();
+
+				if (*(int*)field->data == enum_values[i])
+					current_value = i;
+			}
+
+			run_callback = ImGui::Combo
+			(
+				enum_field->name.data(), 
+				&current_value,
+				enum_names.data(),
+				static_cast<int>(enum_names.size())
+			);
+
+			*(int*)enum_field->data = enum_values[current_value];
+		}
 
 		if (run_callback) field->callback();
+
+		return run_callback;
 	}
 }

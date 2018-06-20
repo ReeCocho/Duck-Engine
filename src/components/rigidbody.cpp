@@ -16,9 +16,10 @@ namespace dk
 
     void RigidBody::set_shape_none()
     {
-		m_shape_type = ShapeType::None;
+		m_data.shape_type = ShapeType::None;
 
         // Make empty shape
+		m_data.shape = {};
 		m_shape = std::make_unique<btEmptyShape>();
 		m_rigid_body->setCollisionShape(m_shape.get());
 
@@ -27,9 +28,10 @@ namespace dk
 
     void RigidBody::set_box_shape(glm::vec3 dimensions)
     {
-		m_shape_type = ShapeType::Box;
+		m_data.shape_type = ShapeType::Box;
 
         // Make box shape
+		m_data.shape.box = dimensions;
 		m_shape = std::make_unique<btBoxShape>(btVector3(dimensions.x, dimensions.y, dimensions.z) / 2.0f);
 		m_rigid_body->setCollisionShape(m_shape.get());
 
@@ -38,9 +40,10 @@ namespace dk
 
     void RigidBody::set_sphere_shape(float radius)
     {
-		m_shape_type = ShapeType::Sphere;
+		m_data.shape_type = ShapeType::Sphere;
 
         // Make sphere shape
+		m_data.shape.sphere.radius = radius;
 		m_shape = std::make_unique<btSphereShape>(radius);
 		m_rigid_body->setCollisionShape(m_shape.get());
 
@@ -49,9 +52,11 @@ namespace dk
 
     void RigidBody::set_capsule_shape(float height, float radius)
     {
-        m_shape_type = ShapeType::Capsule;
+        m_data.shape_type = ShapeType::Capsule;
 
         // Make capsule shape
+		m_data.shape.capsule.radius = radius;
+		m_data.shape.capsule.height = height;
 		m_shape = std::make_unique<btCapsuleShape>(radius, height);
 		m_rigid_body->setCollisionShape(m_shape.get());
 
@@ -62,6 +67,8 @@ namespace dk
     {
         btVector3 inertia(0, 0, 0);
         m_rigid_body->activate(true);
+
+		m_data.mass = mass;
 
         if (mass != 0)
             m_shape->calculateLocalInertia(mass, inertia);
@@ -87,6 +94,7 @@ namespace dk
     float RigidBody::set_friction(float frict)
     {
         m_rigid_body->activate(true);
+		m_data.friction = frict;
         m_rigid_body->setFriction(frict);
         return frict;
     }
@@ -94,6 +102,7 @@ namespace dk
     float RigidBody::set_rolling_friction(float frict)
     {
         m_rigid_body->activate(true);
+		m_data.rolling_friction = frict;
         m_rigid_body->setRollingFriction(frict);
         return frict;
     }
@@ -101,22 +110,23 @@ namespace dk
     float RigidBody::set_spinning_friction(float frict)
     {
         m_rigid_body->activate(true);
+		m_data.spinning_friction = frict;
         m_rigid_body->setSpinningFriction(frict);
         return frict;
     }
 
     float RigidBody::set_all_frictions(float frict)
     {
-        m_rigid_body->activate(true);
-        m_rigid_body->setFriction(frict);
-        m_rigid_body->setSpinningFriction(frict);
-        m_rigid_body->setRollingFriction(frict);
+        set_friction(frict);
+        set_spinning_friction(frict);
+        set_rolling_friction(frict);
         return frict;
     }
 
     float RigidBody::set_restitution(float rest)
     {
         m_rigid_body->activate(true);
+		m_data.restitution = rest;
         m_rigid_body->setRestitution(rest);
         return rest;
     }
@@ -125,6 +135,7 @@ namespace dk
     {
         if(s) set_mass(0);
 
+		m_data.is_static = s;
         auto flags = !(m_rigid_body->getCollisionFlags() ^ btCollisionObject::CF_STATIC_OBJECT);
         m_rigid_body->setCollisionFlags(flags | (s ? btCollisionObject::CF_STATIC_OBJECT : 0 ));
 
@@ -230,6 +241,14 @@ namespace dk
 		dk::engine::physics.register_rigid_body(rigid_body->m_rigid_body.get());
 #endif
 		rigid_body->m_rigid_body->setSleepingThresholds(DK_PHYSICS_LINEAR_SLEEP_THRESHOLD, DK_PHYSICS_ANGULAR_SLEEP_THRESHOLD);
+
+		// Get default values
+		rigid_body->m_data.friction = static_cast<float>(rigid_body->m_rigid_body->getFriction());
+		rigid_body->m_data.rolling_friction = static_cast<float>(rigid_body->m_rigid_body->getRollingFriction());
+		rigid_body->m_data.spinning_friction = static_cast<float>(rigid_body->m_rigid_body->getSpinningFriction());
+		rigid_body->m_data.mass = 1.0f;
+		rigid_body->m_data.restitution = static_cast<float>(rigid_body->m_rigid_body->getRestitution());
+		rigid_body->m_data.is_static = false;
     }
 
     void RigidBodySystem::on_late_tick(float delta_time)
@@ -271,11 +290,37 @@ namespace dk
 
 	void RigidBodySystem::serialize(ReflectionContext& r)
 	{
+		Handle<RigidBody> rigid_body = get_active_component();
 		r.set_name("Rigid Body");
+		r.set_field("data", rigid_body->m_data);
 	}
 
 	void RigidBodySystem::inspect(ReflectionContext& r)
 	{
+		Handle<RigidBody> rigid_body = get_active_component();
 		r.set_name("Rigid Body");
+
+		r.begin_enum("Body Type", rigid_body->m_data.shape_type, [rigid_body] { rigid_body->m_data.shape = {}; });
+		r.enum_value("None", ShapeType::None);
+		r.enum_value("Sphere", ShapeType::Sphere);
+		r.enum_value("Box", ShapeType::Box);
+		r.enum_value("Capsule", ShapeType::Capsule);
+		r.end_enum();
+
+		switch (rigid_body->m_data.shape_type)
+		{
+		case ShapeType::Sphere:
+			r.set_field("Radius", rigid_body->m_data.shape.sphere.radius);
+			break;
+		case ShapeType::Box:
+			r.set_field("Extents", rigid_body->m_data.shape.box);
+			break;
+		case ShapeType::Capsule:
+			r.set_field("Radius", rigid_body->m_data.shape.capsule.radius);
+			r.set_field("Height", rigid_body->m_data.shape.capsule.height);
+			break;
+		default:
+			break;
+		}
 	}
 }

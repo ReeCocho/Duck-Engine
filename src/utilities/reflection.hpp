@@ -60,6 +60,16 @@ namespace dk
 	{
 	public:
 
+		/** 
+		 * Enum for the internal state of the reflection context.
+		 */
+		enum class State
+		{
+			Name = 0,	// Expecting a name
+			Field = 1,	// Expecting a field
+			Enum = 2	// Expecting an enum value
+		};
+
 		/**
 		 * Field types.
 		 */
@@ -114,7 +124,7 @@ namespace dk
 		{
 		public:
 
-			typedef std::tuple<uint64_t, std::string> EnumValue;
+			typedef std::tuple<int, std::string> EnumValue;
 
 			/**
 			 * Constructor.
@@ -212,7 +222,9 @@ namespace dk
 		 */
 		inline void set_name(const std::string& name)
 		{
+			dk_assert(m_state == State::Name);
 			m_name = name;
+			m_state = State::Field;
 		}
 		
 		/**
@@ -234,7 +246,7 @@ namespace dk
 		template<typename T>
 		void set_field(const std::string& name, T& field, std::function<void()> callback = [] {})
 		{
-			dk_assert(!field_exists(name));
+			dk_assert(m_state == State::Field && !field_exists(name));
 			m_fields.push_back(create_field(name, field, callback));
 		}
 
@@ -248,7 +260,7 @@ namespace dk
 		template<typename T>
 		void set_field(const std::string& name, std::vector<T>& field, std::function<void()> callback = [] {})
 		{
-			dk_assert(!field_exists(name));
+			dk_assert(m_state == State::Field && !field_exists(name));
 			m_fields.push_back(create_field(name, field, callback));
 		}
 
@@ -262,8 +274,45 @@ namespace dk
 		template<typename T>
 		void set_field(const std::string& name, Handle<T>& field, std::function<void()> callback = [] {})
 		{
-			dk_assert(!field_exists(name));
+			dk_assert(m_state == State::Field && !field_exists(name));
 			m_fields.push_back(create_field(name, field, callback));
+		}
+
+		/**
+		 * Begin creating an enumeration field.
+		 * @tparam Field type.
+		 * @param Field name.
+		 * @param Field data.
+		 * @param Optional callback to be called when the field is changed.
+		 */
+		template<typename T>
+		void begin_enum(const std::string& name, T& field, std::function<void()> callback = [] {})
+		{
+			dk_assert(m_state == State::Field && !field_exists(name));
+			m_fields.push_back(create_enum_field(name, field, callback));
+			m_state = State::Enum;
+		}
+
+		/**
+		 * Create an enum value.
+		 * @tparam Field type.
+		 * @param Enum value name.
+		 * @param Enum value.
+		 */
+		template<typename T>
+		void enum_value(const std::string& name, T value)
+		{
+			dk_assert(m_state == State::Enum);
+			static_cast<EnumField*>(m_fields[m_fields.size() - 1].get())->enum_values.push_back(std::make_tuple(static_cast<int>(value), name));
+		}
+
+		/**
+		 * Stop writing an enumeration field.
+		 */
+		void end_enum()
+		{
+			dk_assert(m_state == State::Enum);
+			m_state = State::Field;
 		}
 
 		/**
@@ -369,8 +418,9 @@ namespace dk
 			field->name = name;
 			field->type_id = TypeID<T>::id();
 			field->data = (void*)&data;
-			field->data_size sizeof(T);
+			field->data_size = sizeof(T);
 			field->callback = callback;
+			field->enum_values = {};
 			return field;
 		}
 
@@ -402,5 +452,8 @@ namespace dk
 		
 		/** List of fields. */
 		std::vector<std::shared_ptr<Field>> m_fields;
+
+		/** Internal state. */
+		State m_state;
 	};
 }
